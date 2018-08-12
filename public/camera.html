@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+  <head>
+    <title>TODO supply a title</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <div>TODO write content</div>
+    <script>
+      function picTaken(input) {
+        console.log("Picture taken!!")
+        //var data = e.originalEvent.target.files[0];
+        console.log(input);
+        var canvas = document.getElementById("cam");
+        var ctx = canvas.getContext("2d");        
+        //img.src = input.files[0];        
+        var reader = new FileReader();
+        reader.onload = function (e) {          
+          console.log("image loaded");
+          var img = new Image();
+          img.src =  e.target.result;
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0);
+          };          
+        };
+        reader.readAsDataURL(input.files[0]);
+        
+      }
+      
+    </script>
+    <input type="file" accept="image/*" capture="camera" onchange="picTaken(this)">
+    <canvas id="cam"></canvas>
+  </body>
+</html>
