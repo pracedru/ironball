@@ -616,7 +616,8 @@ gameRenderer.setRenderer = () => {
       case "ballThrown":        
         gameRenderer.ballHandler = null;
         gameRenderer.ballSpeed = msg.ballSpeed;
-        gameRenderer.ballpos = msg.ballpos;      
+        gameRenderer.ballpos.x = msg.ballpos.x*scale;  
+        gameRenderer.ballpos.y = msg.ballpos.y*scale;      
         gameRenderer.ballposResidual = {x: 0.0, y: 0.0, z: 0};
         break;
       case "syncTeamNames":
