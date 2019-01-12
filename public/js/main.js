@@ -3,9 +3,9 @@
 document.addEventListener("DOMContentLoaded", function(){
   init();
 });
-var playerObjects = null;
+var teamIndex = 0;
+var team = null;
 var playerImages = [];
-var playerIndex = 0;
 var canvas;
 var currentRenderer = null;
 var ctx;
@@ -32,12 +32,20 @@ function getNewTeamName(){
 }
 
 function createRandomPlayer(){
+	var firstName = maleFirstNames[Math.floor(Math.random()*maleFirstNames.length)];
+	var lastName = lastNames[Math.floor(Math.random()*lastNames.length)];
+	var player = createPlayer(firstName, lastName, 23+Math.floor(Math.random()*10), "Male", "Score galore");
+  return player;
+}
+
+function createPlayer(firstName, lastName, age, gender, motto){
   var player = {
-    name: "New Player",
-    age: 20,
-    gender: "Male",
-    moto: "Score that ball",
-    imageData: ""
+    firstName: firstName,
+    lastName: lastName,
+    age: age,
+    gender: gender,
+    motto: motto,
+    imageData: null
   };  
   return player;
 }
@@ -50,23 +58,19 @@ function getNewPlayers(){
   return players;
 }
 
-function getPlayers(){
-  if (playerObjects === null) { 
-    var playerData = localStorage.players;
-    try {
-      playerObjects = JSON.parse(playerData);
-    } catch (e) {}
-  }
-  if (!playerObjects){
-    playerObjects = getNewPlayers();
-    setPlayers(playerObjects);
-  }
-  return playerObjects;
+function loadTeam(index){
+	team = JSON.parse(localStorage.getItem("team" + index));	
+  return team;
+}
+
+function saveTeam(){
+	localStorage.setItem("team" + teamIndex, JSON.stringify(team));
 }
 
 function setPlayers(players){
   localStorage.players = JSON.stringify(players);
 }
+
 
 window.onpopstate = function (e) {
   console.log(e);
@@ -75,7 +79,35 @@ window.onpopstate = function (e) {
   }
 };
 
+function createNewTeam() {
+	newTeam = {
+		name: getNewTeamName(),
+		players: getNewPlayers(),
+		formations: {
+			'aggressive': defaultPositions['aggressive'],
+			'defensive': defaultPositions['defensive'],
+			'balanced': defaultPositions['balanced'] 
+		},
+		tactics: {
+			
+		}		
+	}		
+	return newTeam;
+}
+
 function init(){
+	teamIndex = localStorage.getItem("teamIndex");
+	if (teamIndex == undefined){
+		teamIndex = 0;
+		team = createNewTeam();
+		localStorage.setItem("teamIndex", teamIndex);
+		saveTeam();
+		
+	} else {
+		teamIndex = parseInt(teamIndex);
+		team = loadTeam(teamIndex);
+		
+	}
 
   canvas = document.getElementById("renderTarget");
   ctx = canvas.getContext('2d');  
@@ -86,22 +118,12 @@ function init(){
     canvas.height = window.innerHeight;
     scale = canvas.width/412;    
   }
-  resizeCanvas();
-  var players = getPlayers();
-  for (var i = 0; i < players.length; i++){
-    var player = players[i];
-    var img = new Image();
-    img.src = player.imageData;
-    playerImages.push(img);
-  }
+  resizeCanvas();  
   menuRenderer.init();
   gameRenderer.init();
   playerRenderer.init();
   
-  if (localStorage.getItem("teamName") === null || localStorage.getItem("teamName") === "") {
-    localStorage.teamName = getNewTeamName();
-    localStorage.players =  JSON.stringify(getNewPlayers());    
-  }
+  
   //localStorage.teamName = getNewTeamName();
   requestAnimationFrame(mainLoop);
   
@@ -124,40 +146,3 @@ function mainLoop(){
   requestAnimationFrame(mainLoop);
 }
 
-/*
-var Status = {
-  JustWoke: 0,
-  TryingToStayAwake: 1,
-  FailingToStayAwake: 2,
-  FallingAsleep: 3,
-  Sleeping: 4  
-};
-
-var Mode = {  
-  Awake: 1,
-  Zombie: 2,
-  Sleep: 3
-};
-
-var Me = function () {
-  this.status = Status.JustWoke;
-  this.mode = Mode.Awake;
-  function drinkCoffee(){
-    switch (this.status){
-      case Status.JustWoke:
-        return true;
-      case Status.TryingToStayAwake:
-        return true;
-      case Status.FailingToStayAwake:
-        this.activateZombieMode();
-        return true;
-      case Status.FallingAsleep:
-        this.thinkOfTheCoffeeToDrinkWhenYouWake();
-        return false;
-      case Status.Sleeping:
-        this.simulateCoffeeDrinkingInSleep();
-        return false;
-    }          
-  }    
-};
-*/

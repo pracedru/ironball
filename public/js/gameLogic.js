@@ -28,7 +28,7 @@ var places = [
 defaultPositions = {};
 
 defaultPositions['balanced'] = [15, 14, 9, 8, 7, 1, 0];         // 2, 3, 2
-defaultPositions['defencive'] = [7, 6, 5, 3, 2, 1, 0];          // 0, 1, 6
+defaultPositions['defensive'] = [7, 6, 5, 3, 2, 1, 0];          // 0, 1, 6
 defaultPositions['aggressive'] = [15, 14, 12, 11, 10, 7, 4];    // 5, 1, 1
 
 function Player(defaultPosition = {x: 0.0, y: 0.0}, defaultDir = Math.PI/2, team = 1){
@@ -502,7 +502,7 @@ function GameLogics(){
           if (isClient){
             var camDist = player.dist(this.camera.pos);
             player.stepAudio.pbr = 1 - Math.random()*0.1;
-            player.stepAudio.volume = Math.min(100/camDist,1);
+            player.stepAudio.volume = Math.min(50/camDist,1);
             
             player.stepAudio.play();
           }

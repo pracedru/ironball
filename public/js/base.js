@@ -58,6 +58,7 @@ function GameAudio(path, loop = false){
 }
 
 var Control = function(loc, size){
+  this.isScreen = false;
   this.pressAudio = null;
   this.releaseAudio = null;
   this.loc = {x: 0, y:0};
@@ -70,7 +71,7 @@ var Control = function(loc, size){
   this.pressed = false;
   this.clicked = (loc) => { /*console.log("dud control clicked: " + JSON.stringify(loc));*/ };  
   this.released = () => { /*console.log("dud control released")*/ };
-  this.moved = () => { /*console.log("dud control moved")*/ };
+  this.moved = (loc, delta) => { /*console.log("dud control moved")*/ };
   this.render = () => { /*console.log("nothing to render")*/ };
   this.changed = (oldValue, newValue) => { console.log("control changed from: " + oldValue + " to: " + newValue) };
   this.lastTouchLocation = {x: 0, y:0};
@@ -110,10 +111,9 @@ var Control = function(loc, size){
     }
   };
   this.touchMove = (loc) => {
-    this.lastTouchLocation.x = loc.x;
-    this.lastTouchLocation.y = loc.y;
+    var delta = {x: loc.x - this.lastTouchLocation.x, y: loc.y - this.lastTouchLocation.y};
     if (this.inside(loc)){
-      this.moved(loc);
+      this.moved(loc, delta);
       if (this.pressed === false){
         this.pressed = true;
         if (this.pressAudio) this.pressAudio.play();        
@@ -125,6 +125,8 @@ var Control = function(loc, size){
         this.released();
       }
     }
+    this.lastTouchLocation.x = loc.x;
+    this.lastTouchLocation.y = loc.y;
   };
   this.touchEnd = () => {
     if (this.pressed === true){
@@ -201,7 +203,7 @@ var TextBox = function (txtimg, loc, size, caption = "TextBox", text = "null", f
     if (typeof this.value === "string" ||  typeof this.value === "number"){
       if (this.text !== value){
         changed = true;
-        this.text = value;      
+        this.value = value;      
       }      
     } else {
       if (localStorage.getItem(this.value.name) !== value){
@@ -299,16 +301,20 @@ var NUDBox  = function (txtimg, loc, size, caption = "TextBox", text = "null", f
   };  
 }
 
-var testImg = new Image();
-testImg.src = "img/donald.png";
-
 var Screen = function (surfaceimg, loc, size) {  
   Control.call(this, loc, size);
   this.surface = new Image();
   this.surface.src = surfaceimg;  
-  
+  this.isScreen = true;
    
+  this.render = () => {
+    var size = { x: this.size.x * canvas.width, y: this.size.y * canvas.height };
+    var loc = { x: this.loc.x * canvas.width, y: this.loc.y * canvas.height };       
+    ctx.drawImage(this.surface, loc.x, loc.y, size.x, size.y);    
+  }
   
+  this.renderContents = () =>{
+  }
 };
 
 
@@ -522,8 +528,7 @@ var Filters = {
     context.drawImage(image, 0, 0, size.x, size.y);
     return c.toDataURL();
     //return c.toDataURL("image/webp", 0.85);
-  }
-  
+  }  
 };
 
 

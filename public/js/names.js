@@ -103,7 +103,7 @@ var maleFirstNames = [
   "Rasputin"
 ];
 
-var LastNames = [
+var lastNames = [
   "Belov",
   "Gorshkov",
   "Yegorov",

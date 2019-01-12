@@ -66,11 +66,11 @@ var playerRenderer = {
     playerRenderer.camBtn.clicked = () => { 
       var cameraInput = document.getElementById('cameraInput');
       cameraInput.click();
-    };
+    }
     playerRenderer.fileBtn.clicked = () => {
       var fileInput = document.getElementById('fileInput');
       fileInput.click();
-    };
+    }
     
     playerRenderer.doneBtn.clicked = () => {
       var alphaMaskPixels = Filters.getPixels(playerRenderer.frontImageMask, {x: canvas.width, y: canvas.width});
@@ -79,9 +79,17 @@ var playerRenderer = {
       var context = c.getContext('2d');            
       context.putImageData(imageDataManipulated, 0, 0);      
       context.drawImage(playerRenderer.frontImage, 0, 0, canvas.width, canvas.width);
+      playerRenderer.playerImage = new Image();
       playerRenderer.playerImage.src = c.toDataURL('image/png');
       playerRenderer.state = PlayerRendererStates.ImageShow;
-    };
+    }
+
+    playerRenderer.saveBtn.clicked = () => {
+    	var playersScreen = menuRenderer.menus[MenuStates.PlayersMenu][2];
+    	playersScreen.imgs[playersScreen.currentPlayerIndex] = playerRenderer.playerImage;
+    	team.players[playersScreen.currentPlayerIndex].imageData = Filters.toBase64(playerRenderer.playerImage);
+    	saveTeam();
+    }
     
     var ctrls = [];
     playerRenderer.menuCtrls[PlayerRendererStates.ImageShow] = ctrls;
@@ -323,7 +331,7 @@ var playerRenderer = {
     canvas.addEventListener("touchstart", playerRenderer.touchStart, false);
     canvas.addEventListener("touchmove", playerRenderer.touchMove, false);
     canvas.addEventListener("touchend", playerRenderer.touchEnd, false);    
-    playerRenderer.playerImage.src = "img/donald.png";
+    
     currentRenderer = playerRenderer;    
   },
   unsetRenderer: () => {
