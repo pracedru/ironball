@@ -103,7 +103,7 @@ exports.Arena = function(id) {
     webSocket.send(JSON.stringify(gameState));
     this.gameLogic.team2AI.aiOnly = false;
     this.syncTeamNames();
-  };
+  }; 
   this.setSpectatorSocket = function(webSocket, msg){
     webSocket.arena = this;
     this.spectatorSockets.push(webSocket);
