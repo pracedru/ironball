@@ -74,6 +74,7 @@ exports.Arena = function(id) {
       this.team1Socket = null; 
       this.checkRecycle();
       this.gameLogic.teamName1 = "Team 1";
+	    this.gameLogic.team1AI.aiOnly = true;
       this.syncTeamNames();
     });
     this.gameLogic.teamName1 = msg.teamName;
@@ -81,6 +82,7 @@ exports.Arena = function(id) {
     gameState.type = "connected";
     gameState.clientType = 1;        
     webSocket.send(JSON.stringify(gameState));    
+    this.gameLogic.team1AI.aiOnly = false;
     this.syncTeamNames();
   };
   this.setTeam2Socket = function(webSocket, msg){
@@ -91,6 +93,7 @@ exports.Arena = function(id) {
       this.team2Socket = null; 
       this.checkRecycle();
       this.gameLogic.teamName2 = "Team 2";
+	    this.gameLogic.team2AI.aiOnly = true;
       this.syncTeamNames();
     });
     this.gameLogic.teamName2 = msg.teamName;
@@ -98,6 +101,7 @@ exports.Arena = function(id) {
     gameState.type = "connected";
     gameState.clientType = 2;    
     webSocket.send(JSON.stringify(gameState));
+    this.gameLogic.team2AI.aiOnly = false;
     this.syncTeamNames();
   };
   this.setSpectatorSocket = function(webSocket, msg){
@@ -131,6 +135,7 @@ exports.Arena = function(id) {
     switch (msg.type){
       case "userInputUpdate":
         if (this.gameLogic.state === 1){
+	        //console.log(msg.downKeys);
           var player = team[msg.playerIndex];
           this.gameLogic.updatePlayerInput(player, msg.downKeys);
           msg = JSON.parse(data);

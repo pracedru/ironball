@@ -170,7 +170,15 @@ var playerRenderer = {
   
   touchStart: (e)=>{
     e.preventDefault();
-    var touch = e.touches[0];   
+    var touch = null;
+		if(e.touches == undefined){
+		  for (var i = 0; i< menuRenderer.ctrls().length; i++){
+		    touch = e;
+		    e.touches = [];
+		  }     
+		} else {
+			touch = e.touches[e.which];  	  
+		}
     var buttonPressed = false;
     for (var i = 0; i< playerRenderer.ctrls().length; i++){
       var ctrl = playerRenderer.ctrls()[i];
@@ -211,7 +219,16 @@ var playerRenderer = {
 
   touchMove: (e)=>{
     e.preventDefault();
-    var touch = e.touches[0];
+    var touch = null;
+		if(e.touches == undefined){
+		  for (var i = 0; i< menuRenderer.ctrls().length; i++){
+			  if (e.buttons == 0){ return; }
+		    touch = e;
+		    e.touches = [];
+		  }     
+		} else {
+			touch = e.touches[e.which];  	  
+		}
     var x = touch.clientX;
     var y = touch.clientY;
     playerRenderer.deltaTouch.x = touch.clientX - playerRenderer.lastTouch.x;
@@ -305,6 +322,15 @@ var playerRenderer = {
   }, 
   touchEnd: (e)=>{
     e.preventDefault();
+    var touch = null;
+		if(e.touches == undefined){
+		  for (var i = 0; i< menuRenderer.ctrls().length; i++){
+		    touch = e;
+		    e.touches = [];
+		  }     
+		} else {
+			touch = e.touches[e.which];  	  
+		}
     if (e.touches.length<1){
       if (playerRenderer.transforming){
         playerRenderer.transforming = false;      
@@ -330,7 +356,12 @@ var playerRenderer = {
     }
     canvas.addEventListener("touchstart", playerRenderer.touchStart, false);
     canvas.addEventListener("touchmove", playerRenderer.touchMove, false);
-    canvas.addEventListener("touchend", playerRenderer.touchEnd, false);    
+    canvas.addEventListener("touchend", playerRenderer.touchEnd, false);  
+    
+    
+    canvas.addEventListener("mousedown", playerRenderer.touchStart, false); 
+    canvas.addEventListener("mouseup", playerRenderer.touchEnd, false);   
+    canvas.addEventListener("mousemove", playerRenderer.touchMove, false);    
     
     currentRenderer = playerRenderer;    
   },
@@ -338,6 +369,11 @@ var playerRenderer = {
     canvas.removeEventListener("touchstart", playerRenderer.touchStart);
     canvas.removeEventListener("touchmove", playerRenderer.touchMove);
     canvas.removeEventListener("touchend", playerRenderer.touchEnd);    
+    
+    canvas.removeEventListener("mousedown", playerRenderer.touchStart); 
+    canvas.removeEventListener("mouseup", playerRenderer.touchEnd);   
+    canvas.removeEventListener("mousemove", playerRenderer.touchMove); 
+    
     currentRenderer = null;    
   }
 };

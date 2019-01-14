@@ -47,6 +47,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
   this.arena = arena;
   this.preGameReady = false;
   this.playersReady = false;
+  this.aiOnly = true;
   this.update = () => {
     if (this.gameLogic.state !== gl.GameStates.Playing) {
       if (this.gameLogic.state === gl.GameStates.PreGame){
@@ -91,7 +92,9 @@ exports.TeamAI = function(gameLogic, team, arena) {
           // this team has the ball
           for (var i = 0; i < this.team.length; i++){
             var player = this.team[i];
+
             if (player === this.gameLogic.ballHandler){
+	            if (!this.aiOnly) player.controlled = true;
               if (player.dist(player.defaultPosition)>player.maxTravelDist){
                 player.evaluation.close = true;
               }
@@ -215,7 +218,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
         msg.team = this.gameLogic.team1 === this.team ? 1 : 2;
         if (player.health > 0){
           if (player.evaluation && this.gameLogic.state === gl.GameStates.Playing){
-            if (player.evaluation.close){
+            if (player.evaluation.close){            	
               msg.downKeys[' '] = true;              
             }
           }

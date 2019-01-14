@@ -631,6 +631,7 @@ function GameLogics(){
       this.ballpos.y += resy;
       this.ballposResidual.x -= resx;
       this.ballposResidual.y -= resy;
+      var originalPos = {x: this.ballpos.x, y: this.ballpos.y}
       if (this.ballpos.z<0) {
         if (isClient){
           this.ballAudio.volume = 0.3;
@@ -682,6 +683,23 @@ function GameLogics(){
         if (Math.abs(this.ballpos.y)>810*scale){
           this.ballpos.y *= 810*scale/Math.abs(this.ballpos.y);
         }
+      }
+      // Obstruction on mid field
+      var yDist = Math.abs(Math.abs(this.ballpos.y)-360*scale);
+      if (yDist<40){
+	      var xDist = Math.abs(this.ballpos.x);
+	      if (xDist<40*scale){
+	      	if (Math.sqrt(xDist**2+yDist**2)<40*scale){
+	      		this.ballSpeed.y *= -1;
+			    	this.ballSpeed.x *= -1;
+			    	this.ballpos.x = originalPos.x;
+			    	this.ballpos.y = originalPos.y;
+			    	if (isClient){
+				      this.ballAudio.volume = Math.min(1, Math.abs(this.ballSpeed.y+this.ballSpeed.x)/30);
+				      this.ballAudio.play();
+				    }
+	      	}	      	
+	      }
       }
       if (isServer){
         if (this.currentTimeStamp - this.ballSyncTime > 1000){

@@ -163,9 +163,11 @@ var menuRenderer = {
   },
   initAV: () => {    
     menuRenderer.bg = new Image();
-    menuRenderer.bg.src = 'img/menuback.webp';
+    //menuRenderer.bg.src = 'img/menuback.webp';
+    menuRenderer.bg.src = 'img/menuback.jpg';
     menuRenderer.bgscreen = new Image();
-    menuRenderer.bgscreen.src = 'img/menuscreen.webp';
+    //menuRenderer.bgscreen.src = 'img/menuscreen.webp';
+    menuRenderer.bgscreen.src = 'img/menuscreen.png';
     menuRenderer.initMainMenu();
     menuRenderer.initSingleFightMenu();
     menuRenderer.initTournamentMenu();
@@ -336,7 +338,7 @@ var menuRenderer = {
     menuRenderer.menus[MenuStates.PlayersMenu] = ctrls;
     ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.78}, Control.Sizes["Narrow"], "Back", 35, "blue"));
     ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.78}, Control.Sizes["Narrow"], "Edit", 35, "blue"));
-    ctrls.push(new PlayersScreen('img/screentall.webp', {x: 0.125, y: 0.07}, {x: 0.75, y: 0.7}));
+    ctrls.push(new PlayersScreen('img/screentall.png', {x: 0.125, y: 0.07}, {x: 0.75, y: 0.7}));
     ctrls[0].clicked = () => { 
 	    menuRenderer.state = MenuStates.TeamMenu; 
     	menuRenderer.renderScreen = false;
@@ -441,21 +443,39 @@ var menuRenderer = {
   },
   touchStart: (e)=>{
     e.preventDefault();
-    var touch = e.touches[e.which];    
-    var loc = {x: touch.clientX, y: touch.clientY};
-    for (var i = 0; i< menuRenderer.ctrls().length; i++){
-      var ctrl = menuRenderer.ctrls()[i];      
-      ctrl.touchStart(loc);
+    if(e.touches == undefined){
+      for (var i = 0; i< menuRenderer.ctrls().length; i++){
+        var ctrl = menuRenderer.ctrls()[i];      
+        var loc = {x: e.clientX, y: e.clientY};
+        ctrl.touchStart(loc);
+      }     
+    } else {
+      var touch = e.touches[e.which];    
+      var loc = {x: touch.clientX, y: touch.clientY};
+      for (var i = 0; i< menuRenderer.ctrls().length; i++){
+        var ctrl = menuRenderer.ctrls()[i];      
+        ctrl.touchStart(loc);
+      }    
     }    
   },
   touchMove: (e)=>{
     e.preventDefault();
-    var touch = e.changedTouches[e.which];    
-    var loc = {x: touch.clientX, y: touch.clientY};
-    for (var i = 0; i< menuRenderer.ctrls().length; i++){      
-      var ctrl = menuRenderer.ctrls()[i];      
-      ctrl.touchMove(loc);
-      
+    if(e.touches == undefined){
+      if (e.buttons != 0){
+        for (var i = 0; i< menuRenderer.ctrls().length; i++){
+          var ctrl = menuRenderer.ctrls()[i];      
+          var loc = {x: e.clientX, y: e.clientY};
+          ctrl.touchMove(loc);
+        }     
+      }      
+    } else {
+      var touch = e.changedTouches[e.which];    
+      var loc = {x: touch.clientX, y: touch.clientY};
+      for (var i = 0; i< menuRenderer.ctrls().length; i++){      
+        var ctrl = menuRenderer.ctrls()[i];      
+        ctrl.touchMove(loc);
+        
+      }    
     }    
   },
   touchEnd: (e)=>{
@@ -481,12 +501,22 @@ var menuRenderer = {
     canvas.addEventListener("touchstart", menuRenderer.touchStart, false);
     canvas.addEventListener("touchmove", menuRenderer.touchMove, false);
     canvas.addEventListener("touchend", menuRenderer.touchEnd, false);    
+
+    canvas.addEventListener("mousedown", menuRenderer.touchStart, false); 
+    canvas.addEventListener("mouseup", menuRenderer.touchEnd, false);   
+    canvas.addEventListener("mousemove", menuRenderer.touchMove, false);  
+    
     currentRenderer = menuRenderer;    
   },
   unsetRenderer: () => {
     canvas.removeEventListener("touchstart", menuRenderer.touchStart);
     canvas.removeEventListener("touchmove", menuRenderer.touchMove);
-    canvas.removeEventListener("touchend", menuRenderer.touchEnd);    
+    canvas.removeEventListener("touchend", menuRenderer.touchEnd); 
+    
+    canvas.removeEventListener("mousedown", menuRenderer.touchStart); 
+    canvas.removeEventListener("mouseup", menuRenderer.touchEnd);   
+    canvas.removeEventListener("mousemove", menuRenderer.touchMove); 
+       
     currentRenderer = null;    
   }
 };

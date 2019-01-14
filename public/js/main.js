@@ -73,7 +73,7 @@ function setPlayers(players){
 
 
 window.onpopstate = function (e) {
-  console.log(e);
+  //console.log(e);
   if (e.state.state === "menuRenderer"){
     menuRenderer.setRenderer();
   }

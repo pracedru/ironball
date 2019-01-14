@@ -370,7 +370,16 @@ gameRenderer.renderText = (txt, loc, size = 30, fill = "#000", stroke = null, st
 };
 gameRenderer.touchStart = (e)=>{
   e.preventDefault();
-  var touch = e.touches[e.which];
+  var touch = null;
+  if(e.touches == undefined){
+    for (var i = 0; i< menuRenderer.ctrls().length; i++){
+      touch = e;
+      e.touches = [];
+    }     
+  } else {
+	  touch = e.touches[e.which];  	  
+	}
+  
   //console.log("touchStart");
   gameRenderer.lastTouch.x = touch.clientX;
   gameRenderer.lastTouch.y = touch.clientY;
@@ -398,7 +407,16 @@ gameRenderer.touchStart = (e)=>{
 };
 gameRenderer.touchMove = (e)=>{
   e.preventDefault();
-  var touch = e.changedTouches[e.which];
+  var touch = null;
+  if(e.touches == undefined){
+    for (var i = 0; i< menuRenderer.ctrls().length; i++){
+      touch = e;
+      e.touches = [];
+    }     
+  } else {
+	  touch = e.touches[e.which];  	  
+	}
+  
   var dx = touch.clientX-gameRenderer.lastTouch.x;
   var dy = touch.clientY-gameRenderer.lastTouch.y;
   gameRenderer.lastTouch.x = touch.clientX;
@@ -412,7 +430,15 @@ gameRenderer.touchMove = (e)=>{
 };
 gameRenderer.touchEnd = (e)=>{
   e.preventDefault();
-  var touch = e.changedTouches[e.which];
+  var touch = null;
+  if(e.touches == undefined){
+    for (var i = 0; i< menuRenderer.ctrls().length; i++){
+      touch = e;
+      e.touches = [];
+    }     
+  } else {
+	  touch = e.changedTouches[e.which];  	  
+	}
 
   gameRenderer.updateMoveTouch(touch, true);
       
@@ -423,8 +449,6 @@ gameRenderer.touchEnd = (e)=>{
     ctrl.clicked();
   }
   
-  //console.log("touchEnd");
-  //console.log(e);
 };
 gameRenderer.keyDown = (e)=>{
   e.preventDefault();
@@ -449,6 +473,11 @@ gameRenderer.setRenderer = () => {
   canvas.addEventListener("touchend", gameRenderer.touchEnd, {passive: false});
   window.addEventListener("keydown", gameRenderer.keyDown, {passive: false});
   window.addEventListener("keyup", gameRenderer.keyUp, {passive: false});
+  
+  canvas.addEventListener("mousedown", gameRenderer.touchStart, false); 
+  canvas.addEventListener("mouseup", gameRenderer.touchEnd, false);   
+  canvas.addEventListener("mousemove", gameRenderer.touchMove, false);  
+  
   gameRenderer.crowdAudio.volume = 0;
   gameRenderer.crowdAudio.play(0);
   gameRenderer.beepAudio.play(0);  
@@ -666,11 +695,24 @@ gameRenderer.unsetRenderer = () => {
   canvas.removeEventListener("touchend", gameRenderer.touchEnd);
   window.removeEventListener("keydown", gameRenderer.keyDown);
   window.removeEventListener("keyup", gameRenderer.keyUp);
+  
+  canvas.removeEventListener("mousedown", gameRenderer.touchStart); 
+  canvas.removeEventListener("mouseup", gameRenderer.touchEnd);   
+  canvas.removeEventListener("mousemove", gameRenderer.touchMove);  
+  
   currentRenderer = null;
   gameRenderer.ws.close();
   //console.log("rendererUnset");
 };
 gameRenderer.updateMoveTouch = (touch, release, slide = false) => {
+	if (touch == undefined) {
+		gameRenderer.downKeys['a'] = false;
+    gameRenderer.downKeys['s'] = false;
+    gameRenderer.downKeys['d'] = false;
+    gameRenderer.downKeys['w'] = false;
+    gameRenderer.downKeys[' '] = false;
+    return;
+	}
   if (touch.clientY>canvas.height-canvas.width/2){
     if(touch.clientX<canvas.width/2){
       gameRenderer.downKeys['a'] = false;
