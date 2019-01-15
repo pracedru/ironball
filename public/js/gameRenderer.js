@@ -266,11 +266,14 @@ gameRenderer.render = () => {
   ctx.fillRect ( 0 , 0 , canvas.width , canvas.height );
 
   if (gameRenderer.arena !== null)
+  	var viewTargetPos = null;
     if (gameRenderer.playerIndex !== -1){
-      var player = gameRenderer.getTeam()[gameRenderer.playerIndex];
+    	var player = gameRenderer.getTeam()[gameRenderer.playerIndex];
+      
       if (player === undefined) return;
+      else viewTargetPos = player.pos;
     } else {
-      var player = {pos: gameRenderer.ballpos};      
+      viewTargetPos = gameRenderer.ballpos;      
     }
     
     camposdx = gameRenderer.camera.residualPos.x*gameRenderer.deltaTime/300;
@@ -285,14 +288,15 @@ gameRenderer.render = () => {
     var xlim = canvas.width*((s-1)/2);
     var ylim = h/2 - canvas.height/2;
     var cyoffset = canvas.height/6;
-    var desiredCamPosX = Math.max(Math.min((gameRenderer.pos.x + player.pos.x)/2, xlim), -xlim);
-    var desiredCamPosY = Math.max(Math.min((gameRenderer.pos.y + player.pos.y)/2-cyoffset, ylim), -ylim -canvas.width/2);
+    //var desiredCamPosX = Math.max(Math.min((gameRenderer.ballpos.x + viewTargetPos.x)/2, xlim), -xlim);
+    //var desiredCamPosY = Math.max(Math.min((gameRenderer.ballpos.y + viewTargetPos.y)/2-cyoffset, ylim), -ylim -canvas.width/2);
+    var desiredCamPosX = Math.max(Math.min((gameRenderer.ballpos.x), xlim), -xlim);
+    var desiredCamPosY = Math.max(Math.min((gameRenderer.ballpos.y)-cyoffset, ylim), -ylim -canvas.width/2);
     gameRenderer.camera.residualPos.x = desiredCamPosX - gameRenderer.camera.pos.x;
     gameRenderer.camera.residualPos.y = desiredCamPosY - gameRenderer.camera.pos.y;
     var x = -w/2+canvas.width/2-gameRenderer.camera.pos.x;
     var y = -h/2+canvas.height/2+gameRenderer.camera.pos.y;
 
-    //ctx.drawImage(gameRenderer.arena, x, y, w, h);
     var sc = gameRenderer.arena.width/canvas.width;
     ctx.drawImage(gameRenderer.arena, -x*sc/s, -y*sc/s, canvas.width*sc/s, canvas.height*sc/s, 0, 0, canvas.width, canvas.height);
 
@@ -420,9 +424,7 @@ gameRenderer.touchMove = (e)=>{
   var dx = touch.clientX-gameRenderer.lastTouch.x;
   var dy = touch.clientY-gameRenderer.lastTouch.y;
   gameRenderer.lastTouch.x = touch.clientX;
-  gameRenderer.lastTouch.y = touch.clientY;
-  gameRenderer.pos.x -= dx;
-  gameRenderer.pos.y += dy;
+  gameRenderer.lastTouch.y = touch.clientY;  
 
   gameRenderer.updateMoveTouch(touch, false, true);
   //console.log("touchMove px: " + gameRenderer.pos.x + " py: " + gameRenderer.pos.y);
@@ -485,7 +487,7 @@ gameRenderer.setRenderer = () => {
   //console.log("rendererSet");
   gameRenderer.ws = new WebSocket("ws://" + location.host);
   gameRenderer.arenaIDTextBox = new TextBox('img/txtbx.png', {x: 0.125, y: 0.18}, Control.Sizes["Wide"], "Invite friend to arena ID:", gameRenderer.arenaID.toString(), 32);
-  gameRenderer.arenaPlayAgainstAIBtn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.35}, Control.Sizes["Wide"], "Play against AI");
+  gameRenderer.arenaPlayAgainstAIBtn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.35}, Control.Sizes["Wide"], "Play against AI", 32);
   gameRenderer.arenaPlayAgainstAIBtn.clicked = () => {
     gameRenderer.playAgainstAI = true;
     gameRenderer.ws.send(JSON.stringify({type: "arenaPlayAgainstAI"}));
@@ -494,7 +496,7 @@ gameRenderer.setRenderer = () => {
   {
     var msg = {
       type: "arenaConnection", 
-      teamName: localStorage.teamName,
+      team: JSON.stringify(team),
       arenaID: gameRenderer.arenaID
     };
     gameRenderer.ws.send(JSON.stringify(msg));

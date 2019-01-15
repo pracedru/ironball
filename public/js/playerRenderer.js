@@ -314,6 +314,8 @@ var playerRenderer = {
       
       playerRenderer.pinchTouch.x = dx;
       playerRenderer.pinchTouch.y = dy;
+    } else if(e.buttons) {
+    	console.log(JSON.stringify(e.buttons));
     }
     
     

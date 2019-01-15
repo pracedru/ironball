@@ -131,7 +131,6 @@ var GameStates = {
 };
 
 function GameLogics(){
-  this.pos = {x: 0.0, y: 0.0};
   this.lastTouch = {x: 0, y: 0};
   this.ballpos = {x: 0.0, y: 0.0, z: 0};
   this.ballposResidual = {x: 0.0, y: 0.0, z: 0};
@@ -230,8 +229,6 @@ function GameLogics(){
       var player = this.team2[i];
       this.updatePlayer(player);
     }
-    this.pos.x = this.ballpos.x;
-    this.pos.y = this.ballpos.y;
   };
   this.switchSide = () => {
     for (var i = 0; i < this.team1.length; i++){
