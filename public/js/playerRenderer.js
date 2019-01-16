@@ -51,11 +51,11 @@ var playerRenderer = {
     playerRenderer.adjusterImage.src = "img/adjuster.png";
     playerRenderer.playerImage = new Image();
     playerRenderer.menuCtrls = {};
-    playerRenderer.backBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.80}, Control.Sizes["Narrow"], "Back", 35, "blue");
-    playerRenderer.camBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.80}, Control.Sizes["Narrow"], "Cam", 35, "blue");
-    playerRenderer.fileBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.64}, Control.Sizes["Narrow"], "File", 35, "blue");
-    playerRenderer.saveBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.64}, Control.Sizes["Narrow"], "Save", 35, "blue");
-    playerRenderer.doneBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.03, y: 0.01}, Control.Sizes["Narrow"], "Done", 35, "blue");
+    playerRenderer.backBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.80}, Control.Sizes["Narrow"], "Back", 30, "dark");
+    playerRenderer.camBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.80}, Control.Sizes["Narrow"], "Cam", 30, "dark");
+    playerRenderer.fileBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.67}, Control.Sizes["Narrow"], "File", 30, "dark");
+    playerRenderer.saveBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.67}, Control.Sizes["Narrow"], "Save", 30, "dark");
+    playerRenderer.doneBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.03, y: 0.01}, Control.Sizes["Narrow"], "Done", 30, "dark");
     playerRenderer.backBtn.clicked = () => { menuRenderer.setRenderer(); };
     playerRenderer.camBtn.clicked = () => { 
       var cameraInput = document.getElementById('cameraInput');

@@ -97,7 +97,8 @@ exports.Arena = function(id) {
 	    this.gameLogic.team2AI.aiOnly = true;
       this.syncTeamNames();
     });
-    this.gameLogic.teamName2 = msg.teamName;
+    var team = JSON.parse(msg.team);
+    this.gameLogic.teamName2 = team.name;
     var gameState = this.getGameState();
     gameState.type = "connected";
     gameState.clientType = 2;    

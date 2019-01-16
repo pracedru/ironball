@@ -303,7 +303,7 @@ gameRenderer.renderTexts = () => {
 gameRenderer.renderText = (txt, loc, size = 30, fill = "#000", stroke = null, strokeWidth = scale) => {
 
   ctx.textAlign = "center";
-  ctx.font = size + "px Arial";
+  ctx.font = size + "px Sans";
   ctx.fillStyle = fill;
   ctx.fillText(txt,loc.x,loc.y);
   if (stroke !== null){
@@ -427,7 +427,7 @@ gameRenderer.setRenderer = () => {
   //console.log("rendererSet");
   gameRenderer.ws = new WebSocket("ws://" + location.host);
   gameRenderer.arenaIDTextBox = new TextBox('img/txtbx.png', {x: 0.125, y: 0.18}, Control.Sizes["Wide"], "Invite friend to arena ID:", gameRenderer.arenaID.toString(), 32);
-  gameRenderer.arenaPlayAgainstAIBtn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.35}, Control.Sizes["Wide"], "Play against AI", 32);
+  gameRenderer.arenaPlayAgainstAIBtn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.35}, Control.Sizes["Wide"], "Play against AI", 30, "dark");
   gameRenderer.arenaPlayAgainstAIBtn.clicked = () => {
     gameRenderer.playAgainstAI = true;
     gameRenderer.ws.send(JSON.stringify({type: "arenaPlayAgainstAI"}));

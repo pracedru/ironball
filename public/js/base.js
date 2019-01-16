@@ -3,7 +3,7 @@
 isClient = true;
 
 var Base = {};
-Base.renderText = (txt, loc, size = 30, fill = "#000", stroke = null, strokeWidth = scale, font = "arial") => {
+Base.renderText = (txt, loc, size = 30, fill = "#000", stroke = null, strokeWidth = scale, font = "sans") => {
   ctx.textAlign = "center";
   ctx.font= size + "px " + font;
   ctx.fillStyle=fill;
@@ -139,8 +139,8 @@ var Control = function(loc, size){
 }
 
 Control.Sizes = {
-  Wide: {x: 0.75, y: 0.15},
-  Narrow: {x: 0.365, y: 0.15}
+  Wide: {x: 0.75, y: 0.12},
+  Narrow: {x: 0.365, y: 0.12}
 };
 
 var Button = function (btnimg, btnpressimg, loc, size, text = "Button", fontHeight = null, fontColor = "red"){
@@ -153,7 +153,7 @@ var Button = function (btnimg, btnpressimg, loc, size, text = "Button", fontHeig
   this.btnPress.src = btnimg;  
   this.text = text;  
   this.fontColor = fontColor;
-  this.fontColors = { red: ["#865", "#311", "#f96", "#721"], blue: ["#566", "#113", "#6ef", "#127"]};
+  this.fontColors = { red: ["#865", "#311", "#f96", "#721"], blue: ["#566", "#113", "#6ef", "#127"], black: ["#000", null, "#000", null],  dark: ["#0009", null, "#0009", null]};
   this.pressed = false;
   this.fontHeight = fontHeight === null ? this.size.y/3 : fontHeight*scale/canvas.height;  
   this.render = () => {
@@ -163,6 +163,7 @@ var Button = function (btnimg, btnpressimg, loc, size, text = "Button", fontHeig
       var fontHeight = this.fontHeight * canvas.height;
       var fc = this.fontColors[this.fontColor];
       if (this.pressed){
+        fontHeight *= 0.993;
         ctx.drawImage(this.btnPress, loc.x, loc.y, size.x, size.y);
         Base.renderText(this.text,{x: loc.x+size.x/2, y: loc.y+fontHeight/3 + size.y/2}, fontHeight, fc[0], fc[1]);
       } else {

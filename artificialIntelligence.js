@@ -202,8 +202,6 @@ exports.TeamAI = function(gameLogic, team, arena) {
           msg.downKeys = downKeysFromDirection(dx, dy);
         } else {
           if (Math.abs(player.pos.x - player.targetPosition.x) > 1e-1 || Math.abs(player.pos.y - player.targetPosition.y) > 1e-5){
-            //console.log("correctionNeeded dx: " + (Math.abs(player.pos.x - player.targetPosition.x)));
-            //console.log("correctionNeeded dy: " + (Math.abs(player.pos.y - player.targetPosition.y)));
             correctionNeeded = true;
           }
           player.pos.x = player.targetPosition.x;
