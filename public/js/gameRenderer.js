@@ -1,70 +1,10 @@
-/* global ctx, canvas, scale, currentRenderer, isClient, menuRenderer, GameStates, Btn, Rounds, MenuStates */
 
 window.oncontextmenu = function(event) {
   event.preventDefault();
   event.stopPropagation();
   return false;
 };
-var Animator = function(framePaths){
-  this.frames = [];
-  this.frameIndex = 0;
-  this.frameRate = 30;
-  this.lastFrameTimeStamp = 0;
-  this.loop = false;
-  this.fadeIn = false;
-  this.fadeOut = false;
-  this.alpha = 1;
-  this.pos = {x: 0, y: 0};
-  this.size = {x: 100, y: 100};
-  this.finished = false;
-  for (var i = 0; i < framePaths.length; i++){
-    var frame = new Image();
-    frame.src = framePaths[i];
-    this.frames.push(frame);
-  }
-  this.start = () =>{
-    this.frameIndex = 0;
-    this.lastFrameTimeStamp = gameRenderer.currentTimeStamp;
-    this.alpha = 1;
-    this.finished = false;
-  };
-  this.update = () => {
-    var deltaTime = gameRenderer.currentTimeStamp-this.lastFrameTimeStamp;
-    var timeLim = 1000/this.frameRate;
-    if (deltaTime > timeLim){
-      this.lastFrameTimeStamp = gameRenderer.currentTimeStamp;
-      this.frameIndex++;
-    }
-    if (!this.loop){
-      if (this.frameIndex>=this.frames.length){
-        if (this.fadeOut){
-          this.alpha -=  0.01;
-          if (this.alpha<=0){
-            this.alpha = 0;
-            return true;
-          }
-        } else{
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-  this.render = () =>{
-    if (!this.finished){
-      this.finished = this.update();
-      ctx.globalAlpha = this.alpha;
-      var index = this.frameIndex;
-      if (this.loop){
-        index = index % this.frames.length;
-      } else {
-        index = Math.min(index, this.frames.length-1);
-      }
-      ctx.drawImage(this.frames[index], this.pos.x, this.pos.y, this.size.x, this.size.y);
-      ctx.globalAlpha = 1;
-    }
-  };
-};
+
 var ClientType = {
   Team1: 1,
   Team2: 2,

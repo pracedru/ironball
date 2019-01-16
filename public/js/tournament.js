@@ -4,11 +4,10 @@ var Tournament = function(){
   this.ws = null;
   this.id = 0;
   this.onmessage = function (evt){
-    //console.log(evt.data);
     var msg = JSON.parse(evt.data);
     switch (msg.type){
       case "connected":
-        //console.log("tournamentConnected");
+
         localStorage.setItem("tournamentID", msg.id);
         break;
       case "tournamentStateChanged":
@@ -16,9 +15,9 @@ var Tournament = function(){
         localStorage.setItem("poolSize", msg.poolSize);
         break;
     }
-  };
+  }
   this.onclose = function()
   {
     console.log("Connection to tournament is closed...");    
-  };
-};
+  }
+}

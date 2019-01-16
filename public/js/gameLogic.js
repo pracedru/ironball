@@ -1,6 +1,3 @@
-
-/* global gameRenderer, animations */
-
 var isServer = typeof isClient !== "undefined" ? !isClient : true;
 var isClient = !isServer;
 var scale = isClient ? scale : 1;
@@ -87,7 +84,6 @@ function Player(defaultPosition = {x: 0.0, y: 0.0}, defaultDir = Math.PI/2, team
     return evaluation;
   };
   this.restart = () =>{
-    //console.log("playerreset");
     this.pos.x = this.defaultPosition.x;
     this.pos.y = this.defaultPosition.y;
     this.posResidual = {x: 0.0, y: 0.0};
@@ -189,14 +185,7 @@ function GameLogics(){
     this.ballposResidual.x = 0;
     this.ballposResidual.y = 0;
     this.ballHandler = null;
-    /*for (var i = 0; i < this.team1.length; i++){
-      var player = this.team1[i];
-      player.restart();
-    }
-    for (var i = 0; i < this.team2.length; i++){
-      var player = this.team2[i];
-      player.restart();
-    }*/
+    
   };
   this.update = () => {
     this.currentTimeStamp = Date.now();
@@ -269,13 +258,11 @@ function GameLogics(){
   };
   this.scored = (team) => {
     if (isServer){
-      //console.log(this.score);
       if (team === 1){
         this.score.team1++;
       }else {
         this.score.team2++;
       }
-      //console.log(this.score);
       this.updateScore(true);
     }
   };
@@ -517,11 +504,7 @@ function GameLogics(){
     if(player.health <= 0){
      return;
     }
-    if (player === this.ballHandler){
-      //console.log(player.speed);
-    }
 
-    //console.log(this.deltaTime);
     var xlimit = 440 - player.reach/2;
     var ylimit = 810 - player.reach/2;
     
@@ -566,7 +549,6 @@ function GameLogics(){
         dy = player.pos.y - this.ballpos.y;
         var balldist = Math.sqrt(dx*dx+dy*dy);
         if (balldist<player.reach*scale) {
-          //player.kicking = false;
           this.ballHandlerChanged(player);
         }
       }
@@ -709,7 +691,6 @@ function GameLogics(){
       this.ballpos.x = this.ballHandler.pos.x;
       this.ballpos.y = this.ballHandler.pos.y;
     }
-    //console.log(JSON.stringify(this.ballpos));
   };
 }
 if ( isServer ){

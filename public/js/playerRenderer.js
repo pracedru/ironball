@@ -1,13 +1,10 @@
 
-/* global currentRenderer, canvas, ctx, menuRenderer, Btn, Filters */
-
 PlayerRendererStates = {
   ImageShow: 0,
   ImageEdit: 1
 };
 
 var cameraImage = new Image();
-//var imageData = null;
 var imageDataOriginal = null;
 var imageDataManipulated = null;
 
@@ -21,9 +18,6 @@ function pictureTaken(input) {
     cameraImage.src =  e.target.result;
     cameraImage.onload = () => {
       playerRenderer.state = PlayerRendererStates.ImageEdit;
-      //imageData = Filters.getPixels(cameraImage);
-      //pxls = cameraImage.data;
-      //for 
     };          
   };
   reader.readAsDataURL(input.files[0]);
@@ -212,9 +206,6 @@ var playerRenderer = {
     }    
     playerRenderer.lastTouch.x = touch.clientX;
     playerRenderer.lastTouch.y = touch.clientY;
-    
-    //gameRenderer.setRenderer();
-    //console.log(e);
   },
 
   touchMove: (e)=>{
@@ -272,9 +263,6 @@ var playerRenderer = {
         var newDist = Math.sqrt(dx*dx+dy*dy);
         playerRenderer.brightness.r += playerRenderer.deltaTouch.x*0.5;
         playerRenderer.brightness.b += playerRenderer.deltaTouch.y*0.5;
-        //playerRenderer.saturation *= newDist/oldDist;
-        //playerRenderer.saturation = Math.max(-1, playerRenderer.saturation);
-        //playerRenderer.saturation = Math.min(1, playerRenderer.saturation);
       } else {
         playerRenderer.brightness.r += playerRenderer.deltaTouch.x*0.5;
         playerRenderer.brightness.g += playerRenderer.deltaTouch.x*0.5;
@@ -317,10 +305,6 @@ var playerRenderer = {
     } else if(e.buttons) {
     	console.log(JSON.stringify(e.buttons));
     }
-    
-    
-    //console.log("touchMove");
-    //console.log(e);
   }, 
   touchEnd: (e)=>{
     e.preventDefault();

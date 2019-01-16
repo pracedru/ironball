@@ -1,5 +1,3 @@
-/* global canvas, scale, ctx, Base, gameRenderer, currentRenderer, Btn, getNewTeamName */
-
 
 MenuStates = {
   MainMenu: 0,
@@ -127,7 +125,6 @@ var LobbyScreen = function (surfaceimg, loc, size){
   this.pools.push({loc: {x: 0.51, y:0.01}, size: {x: 0.48, y: 0.3}});
   
   this.render = () => {
-    //this.testImg = Filters.createImageData(testImg.width, testImg.height);
     var size = { x: this.size.x * canvas.width, y: this.size.y * canvas.height };
     var loc = { x: this.loc.x * canvas.width, y: this.loc.y * canvas.height };
     ctx.drawImage(this.surface, loc.x, loc.y, size.x, size.y);
@@ -188,7 +185,7 @@ var menuRenderer = {
     mmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.39}, Control.Sizes["Narrow"], "Team", 35, "blue"));
     mmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.39}, Control.Sizes["Narrow"], "Score", 35, "blue"));
     mmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.55}, Control.Sizes["Narrow"], "Setup", 35, "blue"));
-    mmctrls[0].clicked = () => { menuRenderer.state = MenuStates.SingleFightMenu; };// gameRenderer.setRenderer;
+    mmctrls[0].clicked = () => { menuRenderer.state = MenuStates.SingleFightMenu; };
     mmctrls[1].clicked = () => { menuRenderer.state = MenuStates.TournamentMenu; };
     mmctrls[2].clicked = () => { menuRenderer.state = MenuStates.TeamMenu; };
     mmctrls[4].clicked = () => { menuRenderer.state = MenuStates.SetupMenu; };
@@ -199,7 +196,6 @@ var menuRenderer = {
     sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "New Arena"));
     sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.23}, Control.Sizes["Wide"], "Join Arena"));
     sfmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.78}, Control.Sizes["Narrow"], "Back", 35, "blue"));
-    //menuRenderer.sfmctrls[0].clicked = gameRenderer.setRenderer;
     sfmctrls[0].clicked = () => {
       var request = new XMLHttpRequest();
       request.responseType = 'json';

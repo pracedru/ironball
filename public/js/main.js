@@ -1,4 +1,3 @@
-/* global menuRenderer, gameRenderer, playerRenderer */
 
 document.addEventListener("DOMContentLoaded", function(){
   init();
@@ -123,8 +122,6 @@ function init(){
   gameRenderer.init();
   playerRenderer.init();
   
-  
-  //localStorage.teamName = getNewTeamName();
   requestAnimationFrame(mainLoop);
   
   document.getElementById('modalClose').onclick = modalClose;
