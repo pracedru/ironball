@@ -255,7 +255,7 @@ exports.Arena = function(id) {
     }
   };
   setTimeout(this.update, 50, 'update');
-
+	console.log("Arena created " + this.id); 
 };
 
 exports.getArena = function(id) {
