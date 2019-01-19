@@ -48,6 +48,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
   this.preGameReady = false;
   this.playersReady = false;
   this.aiOnly = true;
+  this.correctionNeededThresshold = 4;
   this.update = () => {
     if (this.gameLogic.state !== gl.GameStates.Playing) {
       if (this.gameLogic.state === gl.GameStates.PreGame){
@@ -193,42 +194,48 @@ exports.TeamAI = function(gameLogic, team, arena) {
       var correctionNeeded = false;
       if (!player.controlled){
         var msg = {};
-        msg.downKeys = {a: false, s: false, d: false, w: false, ' ': false};
+        var downKeys = {a: false, s: false, d: false, w: false, ' ': false};
         msg.pos = player.pos;
         msg.dir = player.dir;
         if (player.dist(player.targetPosition)>player.reach){
           var dx = player.targetPosition.x - player.pos.x;
           var dy = player.targetPosition.y - player.pos.y;
-          msg.downKeys = downKeysFromDirection(dx, dy);
+          downKeys = downKeysFromDirection(dx, dy);
         } else {
-          if (Math.abs(player.pos.x - player.targetPosition.x) > 1e-1 || Math.abs(player.pos.y - player.targetPosition.y) > 1e-5){
+          if (Math.abs(player.pos.x - player.targetPosition.x) > this.correctionNeededThresshold || Math.abs(player.pos.y - player.targetPosition.y) > this.correctionNeededThresshold){
             correctionNeeded = true;
           }
           player.pos.x = player.targetPosition.x;
           player.pos.y = player.targetPosition.y;
           msg.pos = player.targetPosition;          
-          msg.targetDir = player.defaultDir;
+          msg.tdir = player.defaultDir;
           player.targetDir = player.defaultDir;
         }
 
-        msg.type = "playerInputUpdate";
-        msg.playerIndex = i;
-        msg.team = this.gameLogic.team1 === this.team ? 1 : 2;
+        msg.t = "playerInputUpdate";
+        msg.pi = i;
+        msg.tm = this.gameLogic.team1 === this.team ? 1 : 2;
+      	//console.log(downKeys);
         if (player.health > 0){
           if (player.evaluation && this.gameLogic.state === gl.GameStates.Playing){
             if (player.evaluation.close){            	
-              msg.downKeys[' '] = true;              
+              downKeys[' '] = true;              
             }
           }
           
-          var inputChanged = this.gameLogic.updatePlayerInput(player, msg.downKeys);
+          var inputChanged = this.gameLogic.updatePlayerInput(player, gl.k2b(downKeys));
+          downKeys = gl.b2k(inputChanged[1]);
           if (player.evaluation && this.gameLogic.state === gl.GameStates.Playing){
             if (player.evaluation.close){
-              msg.downKeys[' '] = true;              
+              downKeys[' '] = true;              
             }
           }
-          if (inputChanged || correctionNeeded){                      
-            this.arena.sendPlayerUpdate(msg);
+          if (inputChanged[0] || correctionNeeded){          
+           	//if (correctionNeeded) console.log("pu because correctionNeeded");
+           	//if (inputChanged[0]) console.log("pu because inputChanged");
+          	msg.bk = gl.k2b(downKeys);
+          	//console.log(downKeys);
+            this.arena.sendPlayerUpdate(msg); 
           } else {          
           }
           

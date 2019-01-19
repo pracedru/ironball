@@ -41,7 +41,7 @@ exports.gameWebSocketServer = function(server, app) {
 function onMessage(data) {  
   var msg = JSON.parse(data);  
   this.removeListener("message", onMessage);
-  if (msg.type === "arenaConnection"){
+  if (msg.t === "arenaConnection"){
     var arenaID = msg.arenaID;
     var arena = ArenaHandler.getArena(arenaID);
     if (arena === null){
@@ -49,7 +49,7 @@ function onMessage(data) {
     } else {
       arena.setSocket(this, msg);            
     }
-  } else if (msg.type === "tournamentConnection"){
+  } else if (msg.t === "tournamentConnection"){
     //console.log("tournament connection!");    
     var tournamentID = msg.tournamentID;
     var tournament = TournamentHandler.getTournament(tournamentID);

@@ -28,6 +28,21 @@ defaultPositions['balanced'] = [15, 14, 9, 8, 7, 1, 0];         // 2, 3, 2
 defaultPositions['defensive'] = [7, 6, 5, 3, 2, 1, 0];          // 0, 1, 6
 defaultPositions['aggressive'] = [15, 14, 12, 11, 10, 7, 4];    // 5, 1, 1
 
+function k2b(dk){
+	return (dk['a'] << 0) + (dk['s'] << 1) + (dk['d'] << 2) + (dk['w'] << 3) + (dk[' '] << 4);
+}
+
+function b2k(bk){
+	var downKeys = {
+		a: (bk & 0b1)>0, 
+		s: (bk & 0b10)>0, 
+		d: (bk & 0b100)>0, 
+		w: (bk & 0b1000)>0, 
+		' ': (bk & 0b10000)>0
+	}
+	return downKeys;
+}
+
 function Player(defaultPosition = {x: 0.0, y: 0.0}, defaultDir = Math.PI/2, team = 1){
   this.defaultPosition = defaultPosition;
   this.pos = {x: defaultPosition.x, y: defaultPosition.y};
@@ -195,13 +210,13 @@ function GameLogics(){
     if(isServer){
       var time = 90 - (this.currentTimeStamp - this.roundStartTime)/1000;
       if (time <= 0){
-        var msg = {type: "roundEnded"};
+        var msg = {t: "roundEnded"};
         this.eventCallBack(msg);
         this.round ++;
         this.switchSide();
         this.restartGame();
         this.state = GameStates.GetReady;
-        this.eventCallBack({ type: "changeGameState", state: GameStates.GetReady });
+        this.eventCallBack({ t: "changeGameState", state: GameStates.GetReady });
         this.roundStartTime = this.currentTimeStamp;
       }
     }
@@ -266,10 +281,11 @@ function GameLogics(){
       this.updateScore(true);
     }
   };
-  this.updatePlayerInput = (player, downKeys) => { 
+  this.updatePlayerInput = (player, bk) => {
+  	var downKeys = b2k(bk);
     var changed = false;
     var inputDir = {x: 0, y: 0};
-    if (player === undefined) return;
+    if (player === undefined) return [changed, bk];
     if (downKeys['w']){
       inputDir.y = 1;
     } else {
@@ -332,9 +348,8 @@ function GameLogics(){
 
     if (inputDir.x !== 0 || inputDir.y !== 0){
       var timeStamp = Date.now();
-      if (player.running === false)
+      if (player.running === false ){
         player.animFrameTime = timeStamp;
-      if (!player.running){
         changed = true;
       }
       player.running = true;
@@ -349,34 +364,33 @@ function GameLogics(){
       if (player.running){
         changed = true;
       }
-      player.running = false;
-      //player.targetDir = player.defaultDir ;
+      player.running = false;      
     }
-    return changed;
+    return [changed, k2b(downKeys)];
   };
   this.playerPositionSync = (player) =>{
     var msg = this.getPlayerTeamAndIndex(player);
-    msg.type = "playerPositionSync";
+    msg.t = "playerPositionSync";
     msg.pos = player.pos;
     this.eventCallBack(msg);
   };
   this.ballHandlerChanged = (player) =>{
     this.ballHandler = player;
     var msg = this.getPlayerTeamAndIndex(player);
-    msg.type = "ballHandlerChanged";
+    msg.t = "ballHandlerChanged";
     msg.pos = player.pos;
     this.eventCallBack(msg);
   };
   this.playerMelee = (player, otherPlayer) => {
     var msg = this.getPlayerTeamAndIndex(player);
-    msg.otherPlayer = this.getPlayerTeamAndIndex(otherPlayer);
-    msg.type = "playerMelee";
-    msg.otherPlayer.pos = otherPlayer.pos;
+    msg.op = this.getPlayerTeamAndIndex(otherPlayer);
+    msg.t = "playerMelee";
+    msg.op.pos = otherPlayer.pos;
     this.eventCallBack(msg);
   };
   this.playerHealthChange = (player, value) => {
     var msg = this.getPlayerTeamAndIndex(player);
-    msg.type = "playerHealthChange";
+    msg.t = "playerHealthChange";
     msg.value = value;
     this.eventCallBack(msg);
   };
@@ -390,21 +404,21 @@ function GameLogics(){
     this.ballSpeed.y = Math.sin(player.dir)*(player.throwSpeed+player.speed);
     this.ballSpeed.z = player.throwSpeed/2;
     var msg = {
-      type: "ballThrown",
-      ballpos: this.ballpos,
-      ballSpeed: this.ballSpeed
+      t: "ballThrown",
+      bp: this.ballpos,
+      bspd: this.ballSpeed
     };
     this.eventCallBack(msg);
   };
 
   this.updateScore = (restart) =>{
-    var msg = {type: "scoreUpdate", score: this.score, restart: restart};
+    var msg = {t: "scoreUpdate", score: this.score, restart: restart};
     if (restart){
       this.restartGame();
     }
     this.eventCallBack(msg);
     this.state = GameStates.GetReady;
-    this.eventCallBack({ type: "changeGameState", state: GameStates.GetReady });
+    this.eventCallBack({ t: "changeGameState", state: GameStates.GetReady });
   };
 
   this.updatePlayer = (player) =>{
@@ -564,7 +578,7 @@ function GameLogics(){
       team = 2;
       playerIndex = this.team2.indexOf(player);
     }
-    return {playerIndex: playerIndex, team: team};
+    return {pi: playerIndex, tm: team};
   };
   this.checkPlayerCollision = (player, otherPlayer) =>{
     var dist = otherPlayer.dist(player.pos);
@@ -682,7 +696,7 @@ function GameLogics(){
       }
       if (isServer){
         if (this.currentTimeStamp - this.ballSyncTime > 1000){
-          this.eventCallBack({type:"ballSync", pos: this.ballpos, speed: this.ballSpeed});
+          this.eventCallBack({t:"ballSync", pos: this.ballpos, spd: this.ballSpeed});
           this.ballSyncTime = this.currentTimeStamp;
         }
       }
@@ -696,4 +710,6 @@ function GameLogics(){
 if ( isServer ){
   exports.GameLogics = GameLogics;
   exports.GameStates = GameStates;
+  exports.b2k = b2k;
+  exports.k2b = k2b;
 }

@@ -20,7 +20,7 @@ exports.Arena = function(id) {
     // console.log(data);
     try{
       this.arena.sendPlayerUpdate(msg);
-      if (msg.type === "changeGameState" && msg.state === gl.GameStates.GetReady){
+      if (msg.t === "changeGameState" && msg.state === gl.GameStates.GetReady){
         this.team1AI.playersReady = false;
         this.team2AI.playersReady = false;        
       }
@@ -36,6 +36,7 @@ exports.Arena = function(id) {
     }
   };
   this.setSocket = (webSocket, msg) => {
+  	//console.log(msg);
     if(this.team1Socket===null){
       this.setTeam1Socket(webSocket, msg);
     } else if(this.team2Socket===null){
@@ -62,14 +63,13 @@ exports.Arena = function(id) {
       team1: this.gameLogic.team1,
       team2: this.gameLogic.team2,
       score: this.gameLogic.score
-    };
-    // console.log (gameState);
+    }
     return gameState;
   };
   this.setTeam1Socket = function(webSocket, msg){
     webSocket.arena = this;
     this.team1Socket = webSocket;
-    webSocket.on("message", this.onTeam1Message);
+    webSocket.on("message", this.onTeam1Message); 
     webSocket.on("close", ()=>{ 
       this.team1Socket = null; 
       this.checkRecycle();
@@ -77,11 +77,11 @@ exports.Arena = function(id) {
 	    this.gameLogic.team1AI.aiOnly = true;
       this.syncTeamNames();
     });
-    var team = JSON.parse(msg.team);
+    var team = JSON.parse(msg.tm);
     this.gameLogic.teamName1 = team.name;
     var gameState = this.getGameState();
-    gameState.type = "connected";
-    gameState.clientType = 1;        
+    gameState.t = "connected";
+    gameState.ct = 1;        
     webSocket.send(JSON.stringify(gameState));    
     this.gameLogic.team1AI.aiOnly = false;
     this.syncTeamNames();
@@ -97,11 +97,11 @@ exports.Arena = function(id) {
 	    this.gameLogic.team2AI.aiOnly = true;
       this.syncTeamNames();
     });
-    var team = JSON.parse(msg.team);
+    var team = JSON.parse(msg.tm);
     this.gameLogic.teamName2 = team.name;
     var gameState = this.getGameState();
-    gameState.type = "connected";
-    gameState.clientType = 2;    
+    gameState.t = "connected";
+    gameState.ct = 2;    
     webSocket.send(JSON.stringify(gameState));
     this.gameLogic.team2AI.aiOnly = false;
     this.syncTeamNames();
@@ -115,8 +115,8 @@ exports.Arena = function(id) {
       this.checkRecycle(); 
     });
     var gameState = this.getGameState();
-    gameState.type = "connected";
-    gameState.clientType = 0;
+    gameState.t = "connected";
+    gameState.ct = 0;
     webSocket.send(JSON.stringify(gameState));
   };
 
@@ -132,62 +132,65 @@ exports.Arena = function(id) {
   };
 
   this.onTeamMessage = function(teamNo, team, data){
+
     var msg = JSON.parse(data);
-    if (msg.playerIndex === -1) return;
-    switch (msg.type){
-      case "userInputUpdate":
-        if (this.gameLogic.state === 1){
-	        //console.log(msg.downKeys);
-          var player = team[msg.playerIndex];
-          this.gameLogic.updatePlayerInput(player, msg.downKeys);
+    //console.log(msg); 
+    if (msg.pi === -1) return;    
+    switch (msg.t){
+      case "userInputUpdate":      	
+        if (this.gameLogic.state === 1){	        
+          var player = team[msg.pi];
+          this.gameLogic.updatePlayerInput(player, msg.bk);
+
           msg = JSON.parse(data);
-          msg.team = teamNo;
-          msg.type = "playerInputUpdate"
+          msg.tm = teamNo;
+          msg.t = "playerInputUpdate"
           if (player===undefined){
-            console.log(msg.playerIndex);
+            console.log(msg.pi);
           }
           msg.pos = player.pos;
           msg.dir = player.dir;
           this.sendPlayerUpdate(msg);
-        }
+        } 
         break;
       case "playerReturn":
-        var player = team[msg.playerIndex];
-        msg.downKeys = {a: false, s: false, d: false, w: false, ' ': false};
-        this.gameLogic.updatePlayerInput(player, msg.downKeys);
-        msg.team = teamNo;
-        msg.type = "playerReturn";
+        var player = team[msg.pi];
+        msg.bk = 0; // {a: false, s: false, d: false, w: false, ' ': false};
+        this.gameLogic.updatePlayerInput(player, msg.bk);
+        msg.tm = teamNo;
+        msg.t = "playerReturn";
         msg.pos = player.pos;
         msg.dir = player.dir;
         player.returning = true;
         this.sendPlayerUpdate(msg);
         break;
       case "playerIsControlled":
-        // console.log("controlled player is: " +msg.playerIndex);
         for (var i = 0; i < team.length; i++){
           var player = team[i];
-          if (player.controlled && parseInt(msg.playerIndex) !== parseInt(i)){
+          if (player.controlled && parseInt(msg.pi) != i){
             player.running = false;
-            var newmsg = {downKeys: {a: false, s: false, d: false, w: false, ' ': false}};
-            newmsg.type = "playerInputUpdate";
-            newmsg.pos = player.pos;
-            newmsg.dir = player.dir;
-            newmsg.playerIndex = i;
-            newmsg.team = teamNo;
-            // console.log("player stopped running: " + i);
-            this.gameLogic.updatePlayerInput(player, newmsg.downKeys);
+            var newmsg = {
+            	bk: 0,
+            	t: "playerInputUpdate",
+            	pos:  player.pos,
+            	dir: player.dir,
+            	pi: i,
+            	tm: teamNo
+            }
+            this.gameLogic.updatePlayerInput(player, newmsg.bk);
             this.sendPlayerUpdate(newmsg);
           }
-          player.controlled = (parseInt(msg.playerIndex) === parseInt(i));
+          player.controlled = (parseInt(msg.pi) == i);
           if(player.controlled){
-            var newmsg = {downKeys: msg.downKeys};
-            newmsg.type = "playerInputUpdate";
-            newmsg.pos = player.pos;
-            newmsg.dir = player.dir;
-            newmsg.playerIndex = i;
-            newmsg.team = teamNo;
-            this.gameLogic.updatePlayerInput(player, msg.downKeys);
-            // console.log("player stopped running: " + i);
+            var newmsg = {
+            	bk: msg.bk,
+            	t: "playerInputUpdate",
+            	pos: player.pos,
+            	dir: player.dir,
+            	pi: i,
+            	tm: teamNo
+            }            
+            this.gameLogic.updatePlayerInput(player, msg.bk);            
             this.sendPlayerUpdate(newmsg);
           }
         }        
@@ -204,9 +207,9 @@ exports.Arena = function(id) {
 
   this.syncTeamNames = () => {
     this.sendPlayerUpdate({ 
-      type: "syncTeamNames", 
-      teamName1: this.gameLogic.teamName1, 
-      teamName2: this.gameLogic.teamName2
+      t: "syncTeamNames", 
+      tn1: this.gameLogic.teamName1, 
+      tn2: this.gameLogic.teamName2
     });
   };
 
@@ -236,13 +239,13 @@ exports.Arena = function(id) {
       if (this.gameLogic.team1AI.preGameReady && this.gameLogic.team2AI.preGameReady){
         if (this.team1Socket !== null && this.team2Socket !== null || this.playAgainstAI){
           this.gameLogic.setState(gl.GameStates.GetReady);      
-          this.sendPlayerUpdate({ type: "changeGameState", state: gl.GameStates.GetReady });
+          this.sendPlayerUpdate({ t: "changeGameState", state: gl.GameStates.GetReady });
         }
       }
     } else if (this.gameLogic.state === gl.GameStates.GetReady){
       if (this.gameLogic.team1AI.playersReady && this.gameLogic.team2AI.playersReady){        
         this.gameLogic.setState(gl.GameStates.Playing);      
-        this.sendPlayerUpdate({ type: "changeGameState", state: gl.GameStates.Playing });
+        this.sendPlayerUpdate({ t: "changeGameState", state: gl.GameStates.Playing });
       }
     }
     

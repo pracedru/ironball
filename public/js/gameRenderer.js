@@ -189,9 +189,9 @@ gameRenderer.render = () => {
       if (gameRenderer.playerIndex !== closestPlayerIndex && currentDist > smallestDist + 150){
         gameRenderer.playerIndex = closestPlayerIndex;
         var msg = { 
-          type: "playerIsControlled", 
-          playerIndex: gameRenderer.playerIndex, 
-          downKeys: gameRenderer.downKeys
+          t: "playerIsControlled", 
+          pi: gameRenderer.playerIndex, 
+          bk: k2b(gameRenderer.downKeys)
         };
         gameRenderer.ws.send(JSON.stringify(msg));
       }
@@ -430,13 +430,13 @@ gameRenderer.setRenderer = () => {
   gameRenderer.arenaPlayAgainstAIBtn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.35}, Control.Sizes["Wide"], "Play against AI", 30, "dark");
   gameRenderer.arenaPlayAgainstAIBtn.clicked = () => {
     gameRenderer.playAgainstAI = true;
-    gameRenderer.ws.send(JSON.stringify({type: "arenaPlayAgainstAI"}));
+    gameRenderer.ws.send(JSON.stringify({t: "arenaPlayAgainstAI"}));
   };
   gameRenderer.ws.onopen = function()
   {
     var msg = {
-      type: "arenaConnection", 
-      team: JSON.stringify(team),
+      t: "arenaConnection", 
+      tm: JSON.stringify(team),
       arenaID: gameRenderer.arenaID
     };
     gameRenderer.ws.send(JSON.stringify(msg));
@@ -450,43 +450,41 @@ gameRenderer.setRenderer = () => {
    * @returns {none}
    */  
   gameRenderer.ws.onmessage = function (evt)
-  {
-    //var received_msg = evt.data;
-    //console.log("Message is received..." + received_msg);
-    var msg = JSON.parse(evt.data);
-    switch (msg.type){
+  {    
+    var msg = JSON.parse(evt.data);    
+    switch (msg.t){
       case "playerReturn":
         var player = null;
-        if (msg.team === 1){
-          player = gameRenderer.team1[msg.playerIndex];
+        if (msg.tm === 1){
+          player = gameRenderer.team1[msg.pi];
         } else {
-          player = gameRenderer.team2[msg.playerIndex];
+          player = gameRenderer.team2[msg.pi];
         }
         player.returning = true;
         player.posResidual.x = msg.pos.x*scale - player.pos.x;
         player.posResidual.y = msg.pos.y*scale - player.pos.y;
         player.dir = msg.dir;
-        gameRenderer.updatePlayerInput(player, msg.downKeys);
+        gameRenderer.updatePlayerInput(player, msg.bk);
         break;
       case "playerMelee":
         var player = null;
-        if (msg.team === 1){
-          player = gameRenderer.team1[msg.playerIndex];
+        if (msg.tm === 1){
+          player = gameRenderer.team1[msg.pi];
         } else {
-          player = gameRenderer.team2[msg.playerIndex];
+          player = gameRenderer.team2[msg.pi];
         }
         var otherPlayer = null;
-        if (msg.otherPlayer.team === 1){
-          otherPlayer = gameRenderer.team1[msg.otherPlayer.playerIndex];
+        if (msg.op.tm === 1){
+          otherPlayer = gameRenderer.team1[msg.op.pi];
         } else {
-          otherPlayer = gameRenderer.team2[msg.otherPlayer.playerIndex];
+          otherPlayer = gameRenderer.team2[msg.op.pi];
         }
         player.kicking = false;
         otherPlayer.falling = true;
         otherPlayer.animFrameIndex = 0;
         otherPlayer.animFrameTime = gameRenderer.currentTimeStamp;
-        otherPlayer.posResidual.x = msg.otherPlayer.pos.x*scale - otherPlayer.pos.x;
-        otherPlayer.posResidual.y = msg.otherPlayer.pos.y*scale - otherPlayer.pos.y;
+        otherPlayer.posResidual.x = msg.op.pos.x*scale - otherPlayer.pos.x;
+        otherPlayer.posResidual.y = msg.op.pos.y*scale - otherPlayer.pos.y;
 
         if (isClient){
           player.kickImpactAudio.play();
@@ -495,61 +493,62 @@ gameRenderer.setRenderer = () => {
         break;
       case "playerInputUpdate":
         var player = null;
-        if (msg.team === 1){
-          player = gameRenderer.team1[msg.playerIndex];
+        if (msg.tm === 1){
+          player = gameRenderer.team1[msg.pi];
         } else {
-          player = gameRenderer.team2[msg.playerIndex];
+          player = gameRenderer.team2[msg.pi];
         }
         player.posResidual.x = (msg.pos.x*scale - player.pos.x);
         player.posResidual.y = (msg.pos.y*scale - player.pos.y);
         player.dir = msg.dir;
-        if (msg.targetDir){
-          player.targetDir = msg.targetDir;
+        if (msg.tdir){
+          player.targetDir = msg.tdir;
           player.speed = 0;          
         }
-        gameRenderer.updatePlayerInput(player, msg.downKeys);        
+        //console.log(msg.downKeys); 
+        gameRenderer.updatePlayerInput(player, msg.bk);        
         break;
       case "playerPositionSync":
         var player = null;
-        if (msg.team === 1){
-          player = gameRenderer.team1[msg.playerIndex];
+        if (msg.tm === 1){
+          player = gameRenderer.team1[msg.pi];
         } else {
-          player = gameRenderer.team2[msg.playerIndex];
+          player = gameRenderer.team2[msg.pi];
         }
         player.posResidual.x = msg.pos.x*scale - player.pos.x;
         player.posResidual.y = msg.pos.y*scale - player.pos.y;
         break;
       case "playerHealthChange":
         var player = null;
-        if (msg.team === 1){
-          player = gameRenderer.team1[msg.playerIndex];
+        if (msg.tm === 1){
+          player = gameRenderer.team1[msg.pi];
         } else {
-          player = gameRenderer.team2[msg.playerIndex];
+          player = gameRenderer.team2[msg.pi];
         }
         player.health = msg.value;
         break;
       case "ballHandlerChanged":
         var player = null;
-        if (msg.team === 1){
-          player = gameRenderer.team1[msg.playerIndex];
+        if (msg.tm === 1){
+          player = gameRenderer.team1[msg.pi];
         } else {
-          player = gameRenderer.team2[msg.playerIndex];
+          player = gameRenderer.team2[msg.pi];
         }
         player.posResidual.x = msg.pos.x*scale - player.pos.x;
         player.posResidual.y = msg.pos.y*scale - player.pos.y;
         gameRenderer.ballHandler = player;
         gameRenderer.pickupAudio.play();
         //player.kicking = false;
-        if (msg.team === gameRenderer.clientType && gameRenderer.playerIndex !== msg.playerIndex){
+        if (msg.tm === gameRenderer.clientType && gameRenderer.playerIndex !== msg.pi){
           if (gameRenderer.playerIndex !== -1){
             var oldPlayer = gameRenderer.getTeam()[gameRenderer.playerIndex];
-            oldPlayer.running = false;  
+            oldPlayer.running = false;   
           }         
-          gameRenderer.playerIndex = msg.playerIndex;
+          gameRenderer.playerIndex = msg.pi;
           var msg = { 
-            type: "playerIsControlled", 
-            playerIndex: gameRenderer.playerIndex, 
-            downKeys: gameRenderer.downKeys
+            t: "playerIsControlled", 
+            pi: gameRenderer.playerIndex, 
+            bk: k2b(gameRenderer.downKeys)
           };
           gameRenderer.ws.send(JSON.stringify(msg));
         }
@@ -557,7 +556,7 @@ gameRenderer.setRenderer = () => {
       case "ballSync":
         gameRenderer.ballposResidual.x = msg.pos.x*scale - gameRenderer.ballpos.x;
         gameRenderer.ballposResidual.y = msg.pos.y*scale - gameRenderer.ballpos.y;
-        gameRenderer.ballSpeed = msg.speed;
+        gameRenderer.ballSpeed = msg.spd;
         break;
       case "scoreUpdate":
         //console.log(msg);
@@ -586,17 +585,17 @@ gameRenderer.setRenderer = () => {
         break;
       case "ballThrown":        
         gameRenderer.ballHandler = null;
-        gameRenderer.ballSpeed = msg.ballSpeed;
-        gameRenderer.ballpos.x = msg.ballpos.x*scale;  
-        gameRenderer.ballpos.y = msg.ballpos.y*scale;      
+        gameRenderer.ballSpeed = msg.bspd;
+        gameRenderer.ballpos.x = msg.bp.x*scale;  
+        gameRenderer.ballpos.y = msg.bp.y*scale;      
         gameRenderer.ballposResidual = {x: 0.0, y: 0.0, z: 0};
         break;
       case "syncTeamNames":
-        gameRenderer.teamName1 = msg.teamName1;
-        gameRenderer.teamName2 = msg.teamName2;        
+        gameRenderer.teamName1 = msg.tn1;
+        gameRenderer.teamName2 = msg.tn2;        
         break;
       case "connected":
-        gameRenderer.clientType = msg.clientType;
+        gameRenderer.clientType = msg.ct;
         gameRenderer.ballpos = msg.ballpos;
         gameRenderer.currentTimeStamp = Date.now();
         gameRenderer.lastTimeStamp = gameRenderer.currentTimeStamp;         
@@ -692,15 +691,14 @@ gameRenderer.updateMoveTouch = (touch, release, slide = false) => {
 };
 
 gameRenderer.updateUserInput = () => {
-
   if (gameRenderer.connected){
-    var newInput = JSON.stringify(gameRenderer.downKeys);
+    var newInput = k2b(gameRenderer.downKeys); // JSON.stringify(gameRenderer.downKeys);
     if (newInput !== gameRenderer.lastInput){
-      gameRenderer.ws.send(JSON.stringify({type: "userInputUpdate", playerIndex: gameRenderer.playerIndex,  downKeys: gameRenderer.downKeys}));
+      //console.log(newInput);
+      gameRenderer.ws.send(JSON.stringify({t: "userInputUpdate", pi: gameRenderer.playerIndex,  bk: newInput}));
       gameRenderer.lastInput = newInput;
     }
   }
-
 };
 
 gameRenderer.animPlayers = (camposx, camposy) => {
@@ -782,12 +780,7 @@ gameRenderer.animPlayer = (camposx, camposy, player) => {
 
   ctx.beginPath();
   ctx.strokeStyle = '#5b5';
-  /*if (player.health<50){
-    ctx.strokeStyle = '#aa5';
-  }
-  if (player.health<25){
-    ctx.strokeStyle = '#b55';
-  }*/
+
   ctx.lineWidth = 2;
   ctx.moveTo(-25*scale,50*scale);
   ctx.lineTo((-25+player.health/2)*scale, 50*scale);    
