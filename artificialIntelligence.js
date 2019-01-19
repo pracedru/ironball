@@ -192,7 +192,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
     for (var i = 0; i < this.team.length; i++){
       var player = this.team[i];
       var correctionNeeded = false;
-      if (!player.controlled){
+      if (!player.controlled && !player.falling){
         var msg = {};
         var downKeys = {a: false, s: false, d: false, w: false, ' ': false};
         msg.pos = player.pos;

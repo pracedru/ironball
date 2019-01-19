@@ -69,7 +69,7 @@ var Control = function(loc, size){
   this.size.y = size.y;
   this.enabled = true;
   this.pressed = false;
-  this.clicked = (loc) => { /*console.log("dud control clicked: " + JSON.stringify(loc));*/ };  
+  this.clicked = (sender, loc) => { /*console.log("dud control clicked: " + JSON.stringify(loc));*/ };  
   this.released = () => { /*console.log("dud control released")*/ };
   this.moved = (loc, delta) => { /*console.log("dud control moved")*/ };
   this.render = () => { /*console.log("nothing to render")*/ };
@@ -109,7 +109,7 @@ var Control = function(loc, size){
         this.released();
       }
     }
-  };
+  }
   this.touchMove = (loc) => {
     var delta = {x: loc.x - this.lastTouchLocation.x, y: loc.y - this.lastTouchLocation.y};
     if (this.inside(loc)){
@@ -127,15 +127,15 @@ var Control = function(loc, size){
     }
     this.lastTouchLocation.x = loc.x;
     this.lastTouchLocation.y = loc.y;
-  };
+  }
   this.touchEnd = () => {
     if (this.pressed === true){
       this.pressed = false;
       if (this.releaseAudio) this.releaseAudio.play();
       this.released();
-      this.clicked();
+      this.clicked(this, this.lastTouchLocation);
     }
-  };
+  }
 }
 
 Control.Sizes = {

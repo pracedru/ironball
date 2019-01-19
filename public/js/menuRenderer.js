@@ -194,8 +194,9 @@ var menuRenderer = {
     var sfmctrls = [];
     menuRenderer.menus[MenuStates.SingleFightMenu] = sfmctrls;
     sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "New Arena", 30, "dark"));
-    sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Join Arena", 30, "dark"));
+    sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Join Arena", 30, "dark"));    
     sfmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.81}, Control.Sizes["Narrow"], "Back", 30, "dark"));
+    sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.33}, Control.Sizes["Wide"], "Best of 3", 30, "dark"));
     sfmctrls[0].clicked = () => {
       var request = new XMLHttpRequest();
       request.responseType = 'json';

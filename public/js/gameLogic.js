@@ -6,7 +6,7 @@ var places = [
   {x: -150, y: -640}, //0
   {x: 150, y: -640},  //1
   {x: -320, y: -708}, //2
-  {x: 320, y: 708},   //3
+  {x: 320, y: -708},   //3
   {x: 0, y: -460},    //4
   {x: -250, y: -310}, //5
   {x: 250, y: -310},  //6
@@ -24,9 +24,9 @@ var places = [
 
 defaultPositions = {};
 
-defaultPositions['balanced'] = [15, 14, 9, 8, 7, 1, 0];         // 2, 3, 2
-defaultPositions['defensive'] = [7, 6, 5, 3, 2, 1, 0];          // 0, 1, 6
-defaultPositions['aggressive'] = [15, 14, 12, 11, 10, 7, 4];    // 5, 1, 1
+defaultPositions['balanced'] = [15, 14, 9, 8, 7, 1, 0, 16];         // 2, 3, 2
+defaultPositions['defensive'] = [7, 6, 5, 3, 2, 1, 0, 16];          // 0, 1, 6
+defaultPositions['aggressive'] = [9, 8, 12, 11, 10, 7, 13, 16];    // 5, 1, 1
 
 function k2b(dk){
 	return (dk['a'] << 0) + (dk['s'] << 1) + (dk['d'] << 2) + (dk['w'] << 3) + (dk[' '] << 4);
@@ -712,4 +712,5 @@ if ( isServer ){
   exports.GameStates = GameStates;
   exports.b2k = b2k;
   exports.k2b = k2b;
+  exports.places = places;
 }

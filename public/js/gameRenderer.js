@@ -104,10 +104,22 @@ gameRenderer.init = () => {
 
 };
 
+
+ArenaMenuStates = {
+  SinglePlayerStartMenu: 0,
+  InGameMenu: 1,
+  TacticsMenu: 2,
+  FormationsMenu: 3
+}
+
 gameRenderer.initAV = () => {
   gameRenderer.clientType = ClientType.Spectator;
   gameRenderer.playerIndex = -1;
-  gameRenderer.camera = {pos: {x:0, y:0}, residualPos: {x: 0, y: 0}};
+  gameRenderer.camera = {pos: {x: 0, y: 0}, residualPos: {x: 0, y: 0}};
+  gameRenderer.arenaMenuPos = {x: 1, y: 0};
+  gameRenderer.arenaMenuSpeed = {x: 0, y: 0};
+  gameRenderer.arenaMenuState = 0;
+  gameRenderer.lastLoc = {x:0, y:0};
   gameRenderer.downKeys = {};
   gameRenderer.downKeys['w'] = false;
   gameRenderer.downKeys['a'] = false;
@@ -118,6 +130,8 @@ gameRenderer.initAV = () => {
   gameRenderer.connected = false;
   gameRenderer.arena = new Image();
   gameRenderer.arena.src = 'img/ArenaFull.jpg';
+  gameRenderer.arenaMenu = new Image();
+  gameRenderer.arenaMenu.src = 'img/arenaMenu.png';
   gameRenderer.dir = new Image();
   gameRenderer.dir.src = 'img/dir.png';
   gameRenderer.btn = new Image();
@@ -143,6 +157,58 @@ gameRenderer.initAV = () => {
   animations['getReady'].size.x = canvas.width;
   animations['getReady'].size.y = canvas.width;
   gameRenderer.arenaID = 0;
+  gameRenderer.arenaMenus = {};
+  
+  var ctrls = [];
+  gameRenderer.arenaMenus[ArenaMenuStates.SinglePlayerStartMenu] = ctrls;
+  ctrls.push(new TextBox('img/txtbx.png', {x: 0.125, y: 0.18}, Control.Sizes["Wide"], "Invite friend to arena ID:", gameRenderer.arenaID.toString(), 32));
+  ctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.35}, Control.Sizes["Wide"], "Play against AI", 30, "dark"));
+  ctrls[0].editable = false;
+  ctrls[1].clicked = () => {
+    gameRenderer.playAgainstAI = true;
+    gameRenderer.ws.send(JSON.stringify({t: "arenaPlayAgainstAI"}));    
+    gameRenderer.arenaMenuSpeed.x = 0.3;
+    gameRenderer.arenaMenuState = ArenaMenuStates.InGameMenu;
+  };
+  
+  var ctrls = [];
+  gameRenderer.arenaMenus[ArenaMenuStates.InGameMenu] = ctrls;
+  ctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "Formations", 30, "dark"));
+  ctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Tactics", 30, "dark"));
+  ctrls[0].clicked = () => {    
+    gameRenderer.arenaMenuState = ArenaMenuStates.FormationsMenu;
+  };
+  
+  var ctrls = [];
+  gameRenderer.arenaMenus[ArenaMenuStates.FormationsMenu] = ctrls;  
+  ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.81}, Control.Sizes["Narrow"], "Back", 30, "dark"));
+  ctrls[0].clicked = () => {    
+    gameRenderer.arenaMenuState = ArenaMenuStates.InGameMenu;
+  };
+  var counter = 0;
+  for (positionsName in defaultPositions){
+  	var pos = defaultPositions[positionsName];
+  	var btn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.07+counter*0.13}, Control.Sizes["Wide"], positionsName, 30, "dark"); 
+  	btn.clicked = (sender) => {
+  		var msg = { 
+        t: "changeFormation", 
+        frm: defaultPositions[sender.text]        
+      }
+			gameRenderer.ws.send(JSON.stringify(msg));
+  	}
+  	ctrls.push(btn);
+  	counter++;
+  }
+  
+  /*
+  gameRenderer.arenaIDTextBox = new TextBox('img/txtbx.png', {x: 0.125, y: 0.18}, Control.Sizes["Wide"], "Invite friend to arena ID:", gameRenderer.arenaID.toString(), 32);
+  gameRenderer.arenaPlayAgainstAIBtn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.35}, Control.Sizes["Wide"], "Play against AI", 30, "dark");
+  gameRenderer.arenaPlayAgainstAIBtn.clicked = () => {
+    gameRenderer.playAgainstAI = true;
+    gameRenderer.ws.send(JSON.stringify({t: "arenaPlayAgainstAI"}));
+    
+  };
+  */
 };
 
 gameRenderer.isNavigating = () => {
@@ -205,7 +271,7 @@ gameRenderer.render = () => {
   ctx.fillStyle="grey";
   ctx.fillRect ( 0 , 0 , canvas.width , canvas.height );
 
-  if (gameRenderer.arena !== null)
+  if (gameRenderer.arena !== null){
   	var viewTargetPos = null;
     if (gameRenderer.playerIndex !== -1){
     	var player = gameRenderer.getTeam()[gameRenderer.playerIndex];
@@ -254,11 +320,32 @@ gameRenderer.render = () => {
     }
     animations["getReady"].render();
     if (gameRenderer.state === GameStates.PreGame && !gameRenderer.playAgainstAI){
-      gameRenderer.arenaIDTextBox.render();
-      gameRenderer.arenaPlayAgainstAIBtn.render();
-    }
-
-};
+      //gameRenderer.arenaIDTextBox.render();
+      //gameRenderer.arenaPlayAgainstAIBtn.render();
+    }	
+	}
+	if (gameRenderer.arenaMenuPos.x < 1){
+		ctx.save();
+    ctx.translate(gameRenderer.arenaMenuPos.x*canvas.width, 0);
+		ctx.drawImage(gameRenderer.arenaMenu,0 , 0, canvas.width, canvas.height);
+		if (gameRenderer.arenaMenuState != -1){
+			ctrls = gameRenderer.arenaMenus[gameRenderer.arenaMenuState];
+			for (var i = 0; i < ctrls.length; i++){
+		    var ctrl = ctrls[i];
+		    ctrl.render();
+		  }
+		}
+		ctx.restore();
+	}
+	gameRenderer.arenaMenuPos.x += gameRenderer.arenaMenuSpeed.x;
+	
+	if (gameRenderer.arenaMenuPos.x < 0.5){
+		gameRenderer.arenaMenuSpeed.x -= gameRenderer.arenaMenuPos.x/50; 
+	} else {
+		gameRenderer.arenaMenuSpeed.x += (1.1-gameRenderer.arenaMenuPos.x)/50; 
+	}
+	gameRenderer.arenaMenuSpeed.x *= 0.8;
+}
 gameRenderer.renderPointer = (camposx, camposy, cyoffset) => {
   var team = gameRenderer.getTeam();
   if(team !== null){
@@ -315,15 +402,17 @@ gameRenderer.renderText = (txt, loc, size = 30, fill = "#000", stroke = null, st
 gameRenderer.touchStart = (e)=>{
   e.preventDefault();
   var touch = null;
+  gameRenderer.touching = true;
   if(e.touches == undefined){
     for (var i = 0; i< menuRenderer.ctrls().length; i++){
       touch = e;
       e.touches = [];
+
     }     
   } else {
 	  touch = e.touches[e.which];  	  
 	}
-  
+
   //console.log("touchStart");
   gameRenderer.lastTouch.x = touch.clientX;
   gameRenderer.lastTouch.y = touch.clientY;
@@ -331,24 +420,27 @@ gameRenderer.touchStart = (e)=>{
     gameRenderer.updateMoveTouch(e.touches[i], false);
   }
   
-  var ctrl = gameRenderer.arenaPlayAgainstAIBtn;  
-  if (ctrl.inside({x: touch.clientX, y: touch.clientY})){
-    if (ctrl.pressed === false){
-      ctrl.pressed = true;
-      ctrl.pressAudio.play();
-      if (navigator.vibrate){            
-        navigator.vibrate(25);            
-      }
-    }
-  } else {
-    if (ctrl.pressed === true){
-      ctrl.pressed = false;
-      ctrl.releaseAudio.play();
-    }
+  if (gameRenderer.arenaMenuPos.x<1){
+		ctrls = gameRenderer.arenaMenus[gameRenderer.arenaMenuState];
+		for (var i = 0; i < ctrls.length; i++){
+		  var ctrl = ctrls[i];
+			if (ctrl.inside({x: touch.clientX, y: touch.clientY})){
+				if (ctrl.pressed === false){
+					ctrl.pressed = true;
+					ctrl.pressAudio.play();
+					if (navigator.vibrate){            
+					  navigator.vibrate(25);            
+					}
+				}
+			} else {
+				if (ctrl.pressed === true){
+					ctrl.pressed = false;
+					ctrl.releaseAudio.play();
+				}
+			}
+		}
   }
-  //gameRenderer.updateMoveTouch(touch, false);
-  //console.log(e);
-};
+}
 gameRenderer.touchMove = (e)=>{
   e.preventDefault();
   var touch = null;
@@ -367,11 +459,11 @@ gameRenderer.touchMove = (e)=>{
   gameRenderer.lastTouch.y = touch.clientY;  
 
   gameRenderer.updateMoveTouch(touch, false, true);
-  //console.log("touchMove px: " + gameRenderer.pos.x + " py: " + gameRenderer.pos.y);
-  //console.log(touch);
-};
+
+}
 gameRenderer.touchEnd = (e)=>{
   e.preventDefault();
+	
   var touch = null;
   if(e.touches == undefined){
     for (var i = 0; i< menuRenderer.ctrls().length; i++){
@@ -381,26 +473,30 @@ gameRenderer.touchEnd = (e)=>{
   } else {
 	  touch = e.changedTouches[e.which];  	  
 	}
-
+	if (e.touches.length==0) gameRenderer.touching = false;
   gameRenderer.updateMoveTouch(touch, true);
-      
-  var ctrl = gameRenderer.arenaPlayAgainstAIBtn;
-  if (ctrl.pressed === true){
-    ctrl.pressed = false;
-    ctrl.releaseAudio.play();
-    ctrl.clicked();
+  if (gameRenderer.arenaMenuPos.x<1){
+  ctrls = gameRenderer.arenaMenus[gameRenderer.arenaMenuState];
+		for (var i = 0; i < ctrls.length; i++){
+			var ctrl = ctrls[i];
+			if (ctrl.pressed === true){
+				ctrl.pressed = false;
+				ctrl.releaseAudio.play();
+				ctrl.clicked(ctrl);
+			}
+		}
   }
-  
-};
+	
+}
 gameRenderer.keyDown = (e)=>{
   e.preventDefault();
   //console.log("'" + e.key + "'");
   gameRenderer.downKeys[e.key] = true;
   //console.log(gameRenderer.downKeys);
-};
+}
 gameRenderer.keyUp = (e)=>{
   gameRenderer.downKeys[e.key] = false;
-};
+}
 
 gameRenderer.setRenderer = () => {
   history.pushState({state: "gameRenderer"}, "game", "index.html");
@@ -424,14 +520,8 @@ gameRenderer.setRenderer = () => {
   gameRenderer.crowdAudio.play(0);
   gameRenderer.beepAudio.play(0);  
   currentRenderer = gameRenderer;
-  //console.log("rendererSet");
-  gameRenderer.ws = new WebSocket("ws://" + location.host);
-  gameRenderer.arenaIDTextBox = new TextBox('img/txtbx.png', {x: 0.125, y: 0.18}, Control.Sizes["Wide"], "Invite friend to arena ID:", gameRenderer.arenaID.toString(), 32);
-  gameRenderer.arenaPlayAgainstAIBtn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.35}, Control.Sizes["Wide"], "Play against AI", 30, "dark");
-  gameRenderer.arenaPlayAgainstAIBtn.clicked = () => {
-    gameRenderer.playAgainstAI = true;
-    gameRenderer.ws.send(JSON.stringify({t: "arenaPlayAgainstAI"}));
-  };
+    
+  gameRenderer.ws = new WebSocket("ws://" + location.host);  
   gameRenderer.ws.onopen = function()
   {
     var msg = {
@@ -581,6 +671,10 @@ gameRenderer.setRenderer = () => {
         }
         break;
       case "changeGameState":
+      	if (gameRenderer.state == GameStates.PreGame && msg.state == GameStates.GetReady){
+      		gameRenderer.arenaMenuState = ArenaMenuStates.InGameMenu;
+      		gameRenderer.arenaMenuSpeed.x = 0.3;
+      	}
         gameRenderer.setState(msg.state);
         break;
       case "ballThrown":        
@@ -595,6 +689,7 @@ gameRenderer.setRenderer = () => {
         gameRenderer.teamName2 = msg.tn2;        
         break;
       case "connected":
+      	console.log("connected");
         gameRenderer.clientType = msg.ct;
         gameRenderer.ballpos = msg.ballpos;
         gameRenderer.currentTimeStamp = Date.now();
@@ -606,9 +701,18 @@ gameRenderer.setRenderer = () => {
         gameRenderer.round = msg.round;
         gameRenderer.score = msg.score;
         gameRenderer.state = msg.state;
+        gameRenderer.playerIndex = -1;
         for (var i = 0; i < msg.team1.length; i++){
           gameRenderer.team1[i].sync(msg.team1[i]);
           gameRenderer.team2[i].sync(msg.team2[i]);
+        }
+        if (gameRenderer.state != GameStates.PreGame) {
+        	gameRenderer.arenaMenuState = ArenaMenuStates.InGameMenu;
+ 					gameRenderer.arenaMenuSpeed.x = 0.3;
+        } else {
+        	gameRenderer.arenaMenuState = ArenaMenuStates.SinglePlayerStartMenu;
+ 					gameRenderer.arenaMenuSpeed.x = -0.3;
+ 					gameRenderer.arenaMenus[ArenaMenuStates.SinglePlayerStartMenu][0].value = gameRenderer.arenaID.toString();
         }
         break;
       
@@ -685,8 +789,14 @@ gameRenderer.updateMoveTouch = (touch, release, slide = false) => {
       }
     }
   } else {
+  	
+	  var loc = {x: touch.clientX, y: touch.clientY};
+	  var delta = {x: loc.x-gameRenderer.lastLoc.x, y: loc.y-gameRenderer.lastLoc.y};
     
-    
+	  gameRenderer.lastLoc = loc;
+	  if (slide && gameRenderer.touching){
+	  	gameRenderer.arenaMenuSpeed.x += delta.x/canvas.width;
+  	}
   }
 };
 

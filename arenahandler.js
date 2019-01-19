@@ -200,6 +200,18 @@ exports.Arena = function(id) {
         this.syncTeamNames();       
         this.playAgainstAI = true;
         break;
+      case "changeFormation":
+      	console.log("teamno: " + teamNo);
+      	var direction = (this.gameLogic.round%2) === 1 ?  1 : -1;
+      	if (teamNo == 2) direction *= -1;
+      	for (var i = 0; i < team.length; i++){
+          var player = team[i];
+          var pos = {
+				    x: gl.places[msg.frm[i]].x,
+				    y: direction*gl.places[msg.frm[i]].y
+				  };
+          player.defaultPosition = pos;
+        }
       default:
         console.log(data);
     }
