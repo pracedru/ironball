@@ -354,6 +354,7 @@ var menuRenderer = {
       menuRenderer.menus[MenuStates.PlayerEditMenu][2].value = team.players[playersScreen.currentPlayerIndex].lastName;
       menuRenderer.menus[MenuStates.PlayerEditMenu][3].value = team.players[playersScreen.currentPlayerIndex].gender;
       menuRenderer.menus[MenuStates.PlayerEditMenu][4].value = team.players[playersScreen.currentPlayerIndex].age.toString();
+      menuRenderer.menus[MenuStates.PlayerEditMenu][6].value = team.players[playersScreen.currentPlayerIndex].motto;
     };
     
   },
@@ -366,11 +367,12 @@ var menuRenderer = {
     	menuRenderer.state = MenuStates.PlayersMenu; 
     	menuRenderer.renderScreen = true;
     };
-    ctrls.push(new TextBox('img/txtbx.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "First Name:", {name: "playerName"}, 30, "dark"));
-    ctrls.push(new TextBox('img/txtbx.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Last Name:", {name: "playerName"}, 30, "dark"));
-    ctrls.push(new TextBox('img/txtbxnarrow.png', {x: 0.125, y: 0.33}, Control.Sizes["Narrow"], "Gender:", {name: "playerGender"}, 30, "dark"));
+    ctrls.push(new TextBox('img/txtbx.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "First Name:", "First name", 30, "dark"));
+    ctrls.push(new TextBox('img/txtbx.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Last Name:", "Last name", 30, "dark"));
+    ctrls.push(new TextBox('img/txtbxnarrow.png', {x: 0.125, y: 0.33}, Control.Sizes["Narrow"], "Gender:", "playerGender", 30, "dark"));
     ctrls.push(new TextBox('img/txtbxnarrow.png', {x: 0.51, y: 0.33}, Control.Sizes["Narrow"], "Age:", "20", 30));
     ctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.59}, Control.Sizes["Wide"], "Picture", 30, "dark"));
+    ctrls.push(new TextBox('img/txtbx.png', {x: 0.125, y: 0.46}, Control.Sizes["Wide"], "Motto:", "Motto", 30, "dark"));
     ctrls[1].changed = (oldval, newval) => {
 	    var playersScreen = menuRenderer.menus[MenuStates.PlayersMenu][2];
     	team.players[playersScreen.currentPlayerIndex].firstName = newval;
@@ -399,6 +401,12 @@ var menuRenderer = {
     	playerRenderer.setRenderer(); 
     	var playersScreen = menuRenderer.menus[MenuStates.PlayersMenu][2];
     	playerRenderer.playerImage = playersScreen.imgs[playersScreen.currentPlayerIndex];
+    };
+    ctrls[6].changed = (oldval, newval) => { 
+    	var playersScreen = menuRenderer.menus[MenuStates.PlayersMenu][2];
+    	team.players[playersScreen.currentPlayerIndex].motto = newval;
+    	playersScreen.updateText();
+    	saveTeam();
     };
   },
   ctrls: () => {
