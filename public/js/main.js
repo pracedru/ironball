@@ -82,15 +82,18 @@ function createNewTeam() {
 	newTeam = {
 		name: getNewTeamName(),
 		players: getNewPlayers(),
-		formations: {
-			'aggressive': defaultPositions['aggressive'],
-			'defensive': defaultPositions['defensive'],
-			'balanced': defaultPositions['balanced'] 
-		},
+		formations: [],
+		defaultFormation: 0,
 		tactics: {
 			
 		}		
 	}		
+	for (defaultPositionsName in defaultPositions){
+		newTeam.formations.push({
+			name: defaultPositionsName, 
+			positions: defaultPositions[defaultPositionsName]
+		});
+	}
 	return newTeam;
 }
 

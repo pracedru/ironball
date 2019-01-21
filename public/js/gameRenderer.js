@@ -181,18 +181,21 @@ gameRenderer.initAV = () => {
   
   var ctrls = [];
   gameRenderer.arenaMenus[ArenaMenuStates.FormationsMenu] = ctrls;  
-  ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.81}, Control.Sizes["Narrow"], "Back", 30, "dark"));
+  ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
   ctrls[0].clicked = () => {    
     gameRenderer.arenaMenuState = ArenaMenuStates.InGameMenu;
   };
   var counter = 0;
-  for (positionsName in defaultPositions){
-  	var pos = defaultPositions[positionsName];
-  	var btn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.07+counter*0.13}, Control.Sizes["Wide"], positionsName, 30, "dark"); 
+  for (formationsIndex in team.formations){
+  	var formation = team.formations[formationsIndex];
+  	var positionsName = formation.name;
+  	var pos = formation.positions;
+  	var btn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.065+counter*0.125}, Control.Sizes["Wide"], positionsName, 30, "dark"); 
+		btn.formationIndex = formationsIndex;
   	btn.clicked = (sender) => {
   		var msg = { 
         t: "changeFormation", 
-        frm: defaultPositions[sender.text]        
+        frm: team.formations[sender.formationIndex].positions // defaultPositions[sender.text]        
       }
 			gameRenderer.ws.send(JSON.stringify(msg));
   	}

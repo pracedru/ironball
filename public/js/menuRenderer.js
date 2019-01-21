@@ -13,7 +13,10 @@ MenuStates = {
   PlayerEditMenu: 10,
   FieldFormationMenu: 11,
   NewTournamentMenu: 12,
-  TournamentLobbyMenu: 13
+  TournamentLobbyMenu: 13,
+  FormationsMenu: 14,
+  FormationMenu: 15,
+  PlacesMenu: 16
 };
 
 var PlayersScreen = function (surfaceimg, loc, size){    
@@ -154,6 +157,7 @@ var menuRenderer = {
   menus: {},
 	renderScreen: false,
   state: MenuStates.MainMenu,
+  selectedFormation: null,
   init: () => {
     menuRenderer.tournament = new Tournament();
     menuRenderer.initAV();    
@@ -176,6 +180,9 @@ var menuRenderer = {
     menuRenderer.initGameOverMenu();
     menuRenderer.initPlayersMenu();
     menuRenderer.initPlayerEditMenu();
+    menuRenderer.initFormationsMenu();
+    menuRenderer.initFormationMenu();
+    menuRenderer.initPlacesMenu();
   },
   initMainMenu: () => {
     var mmctrls = [];
@@ -195,7 +202,7 @@ var menuRenderer = {
     menuRenderer.menus[MenuStates.SingleFightMenu] = sfmctrls;
     sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "New Arena", 30, "dark"));
     sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Join Arena", 30, "dark"));    
-    sfmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.81}, Control.Sizes["Narrow"], "Back", 30, "dark"));
+    sfmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
     sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.33}, Control.Sizes["Wide"], "Best of 3", 30, "dark"));
     sfmctrls[0].clicked = () => {
       var request = new XMLHttpRequest();
@@ -226,14 +233,14 @@ var menuRenderer = {
   initJoinArenaMenu: () => {
     var jamctrls = [];
     menuRenderer.menus[MenuStates.JoinArenaMenu] = jamctrls;
-    jamctrls.push(new TextBox('img/txtbx.png', {x: 0.1, y: 0.06}, Control.Sizes["Wide"], "Arena ID:", {name: "teamName"}, 30, "dark"));
+    jamctrls.push(new TextBox('img/txtbx.png', {x: 0.1, y: 0.06}, Control.Sizes["Wide"], "Arena ID:", {name: "teamName"}, 25, "dark"));
   },
   initTournamentMenu: () => {
     var tnmctrls = [];
     menuRenderer.menus[MenuStates.TournamentMenu] = tnmctrls;
     tnmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "New Tournament", 30, "dark"));
     tnmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Join Tournament", 30, "dark"));
-    tnmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.81}, Control.Sizes["Narrow"], "Back", 30, "dark"));
+    tnmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
     tnmctrls[2].clicked = () => { 
       menuRenderer.state = MenuStates.MainMenu;       
     };
@@ -257,8 +264,8 @@ var menuRenderer = {
   initNewTournamentMenu: () => {
     var ctrls = [];
     menuRenderer.menus[MenuStates.NewTournamentMenu] = ctrls;
-    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.81}, Control.Sizes["Narrow"], "Back", 30, "dark"));
-    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.81}, Control.Sizes["Narrow"], "Lobby", 30, "dark"));
+    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
+    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.815}, Control.Sizes["Narrow"], "Lobby", 30, "dark"));
     ctrls.push(new TextBox('img/txtbx.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "Tournament ID:", {name: "tournamentID"}, 30, "dark"));            
     ctrls.push(new TextBox('img/txtbxnarrow.png', {x: 0.125, y: 0.20}, Control.Sizes["Narrow"], "Player Count:", {name: "playerCount"}, 30, "dark"));            
     ctrls.push(new NUDBox('img/txtbxnarrow.png', {x: 0.51, y: 0.20}, Control.Sizes["Narrow"], "Pool size:", {name: "poolSize"}, 30, "dark")); 
@@ -266,12 +273,12 @@ var menuRenderer = {
     ctrls[3].editable = false;
     ctrls[1].clicked = () => {  
       menuRenderer.state = MenuStates.TournamentLobbyMenu; 
-    };
+    }
     ctrls[0].clicked = () => { 
       menuRenderer.state = MenuStates.TournamentMenu; 
       menuRenderer.tournament.ws.close();
       menuRenderer.tournament.ws = null;
-    };
+    }
     ctrls[4].changed = (oldValue, newValue) => {      
       var poolSize = newValue;
       if (poolSize !== ""){
@@ -279,17 +286,17 @@ var menuRenderer = {
         var msg = {
           type: "poolSizeChanged", 
           poolSize: poolSize            
-        };
+        }
         menuRenderer.tournament.ws.send(JSON.stringify(msg));
       }       
-    };
+    }
   },
   
   initTournamentLobbyMenu: () => {
     var ctrls = [];
     menuRenderer.menus[MenuStates.TournamentLobbyMenu] = ctrls;
-    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.81}, Control.Sizes["Narrow"], "Back", 30, "dark"));
-    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.81}, Control.Sizes["Narrow"], "Start", 30, "dark"));
+    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
+    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.815}, Control.Sizes["Narrow"], "Start", 30, "dark"));
     ctrls.push(new LobbyScreen('img/screentall.png', {x: 0.125, y: 0.07}, {x: 0.75, y: 0.7}));
     ctrls[0].clicked = () => { 
       menuRenderer.state = MenuStates.NewTournamentMenu; 
@@ -301,11 +308,11 @@ var menuRenderer = {
   initTeamMenu: () => {
     var tmmctrls = [];
     menuRenderer.menus[MenuStates.TeamMenu] = tmmctrls;
-    tmmctrls.push(new TextBox('img/txtbx.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "Team Name:", team.name, 30, "dark"));
+    tmmctrls.push(new TextBox('img/txtbx.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "Team Name:", team.name, 28, "dark"));
     tmmctrls[0].emptyInputAlternate = getNewTeamName;
     tmmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.33}, Control.Sizes["Wide"], "Formations", 30, "dark"));
     tmmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Players", 30, "dark"));
-    tmmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.81}, Control.Sizes["Narrow"], "Back", 30, "dark"));
+    tmmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
     tmmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.46}, Control.Sizes["Wide"], "Tactics", 30, "dark"));
     tmmctrls[0].changed = (oldval, newval) => {
 	    //var playersScreen = menuRenderer.menus[MenuStates.PlayersMenu][2];
@@ -313,16 +320,107 @@ var menuRenderer = {
     	//playersScreen.updateText();
     	saveTeam();
     }
+    tmmctrls[1].clicked = () => { 
+    	menuRenderer.state = MenuStates.FormationsMenu; 
+    	menuRenderer.renderScreen = false;
+		};
     tmmctrls[2].clicked = () => { 
     	menuRenderer.state = MenuStates.PlayersMenu; 
     	menuRenderer.renderScreen = true;
 		};
     tmmctrls[3].clicked = () => { menuRenderer.state = MenuStates.MainMenu; };
   },
+  initFormationsMenu: () => {
+  	var ctrls = [];
+    menuRenderer.menus[MenuStates.FormationsMenu] = ctrls;
+		
+  	var backBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark");
+    ctrls.push(backBtn);
+    backBtn.clicked = () => { 
+    	menuRenderer.state = MenuStates.TeamMenu; 
+    }
+    var newBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.815}, Control.Sizes["Narrow"], "New", 30, "dark");
+    ctrls.push(newBtn);
+    newBtn.clicked = () => { 
+			var newFormation = { 
+				name: "New formation", 
+				positions: defaultPositions['Balanced'] 
+			}
+			team.formations.push(newFormation);
+			saveTeam();
+	    menuRenderer.initFormationsMenu();
+    }
+    var counter = 0;
+    for (formationIndex in team.formations){
+    	var formation = team.formations[formationIndex];
+    	var formationButton = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.060+0.126*counter}, Control.Sizes["Wide"], formation.name, 30, "dark");
+    	formationButton.formationIndex = formationIndex;
+    	formationButton.clicked = (sender) => {
+    		this.selectedFormation = sender.formationIndex;
+    		menuRenderer.state = MenuStates.FormationMenu; 
+    		menuRenderer.menus[MenuStates.FormationMenu][0].value = team.formations[sender.formationIndex].name; 
+    	}
+    	ctrls.push(formationButton);
+    	counter++;
+    }
+  },
+  initFormationMenu: () => {
+  	var ctrls = [];
+    menuRenderer.menus[MenuStates.FormationMenu] = ctrls;
+    ctrls.push(new TextBox('img/txtbx.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "Formation Name:", "Formation Name", 30, "dark"));
+    ctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Places", 30, "dark"));
+    ctrls[0].changed = (oldValue, newValue) => {      
+	    team.formations[this.selectedFormation].name = newValue;
+	    saveTeam();
+	    menuRenderer.initFormationsMenu();
+    };
+    ctrls[1].clicked = () => {      
+	    menuRenderer.state = MenuStates.PlacesMenu;
+	    var formation = team.formations[this.selectedFormation];
+		  var placesControls = menuRenderer.menus[MenuStates.PlacesMenu];
+		  for (placesControlIndex in placesControls){
+		  	placesControls[placesControlIndex].switchValue = false;
+		  }
+		  for (formationIndex in formation.positions){
+		  	var placeIndex = formation.positions[formationIndex];
+		  	placesControls[placeIndex].switchValue = true;
+		  }
+    };
+    var backBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark");
+    ctrls.push(backBtn);
+    backBtn.clicked = () => { 
+    	menuRenderer.state = MenuStates.FormationsMenu; 
+    	
+    }
+  },
+  initPlacesMenu: () => {
+    var ctrls = [];
+    menuRenderer.menus[MenuStates.PlacesMenu] = ctrls;
+    
+    for (placeIndex in places){
+    	var place = places[placeIndex];
+		  var size = Control.Sizes["Small"];
+		  var pos = {x: 0.5-size.x/2 +place.x/1000 , y: 0.38-size.y/2+-place.y/2000};
+		  var placeSwitch = new Button('img/swbtn.png', 'img/swbtnpressed.png', pos, Control.Sizes["Small"], "", 30, "dark");
+		  placeSwitch.isSwitch = true;
+		  ctrls.push(placeSwitch);
+    }
+    
+    var backBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark");
+    ctrls.push(backBtn);
+    var saveBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.815}, Control.Sizes["Narrow"], "Save", 30, "dark");
+    ctrls.push(saveBtn);
+    backBtn.clicked = () => { 
+    	menuRenderer.state = MenuStates.FormationMenu;     	
+    }
+    saveBtn.clicked = () => {
+    	saveTeam();
+    }
+  },
   initSetupMenu: () => {
     var stpmctrls = [];
     menuRenderer.menus[MenuStates.SetupMenu] = stpmctrls;
-    stpmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.81}, Control.Sizes["Narrow"], "Back", 30, "dark"));
+    stpmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
     stpmctrls[0].clicked = () => { 
     	menuRenderer.state = MenuStates.MainMenu; 
     };
@@ -339,8 +437,8 @@ var menuRenderer = {
     var ctrls = [];
     menuRenderer.screen = true;
     menuRenderer.menus[MenuStates.PlayersMenu] = ctrls;
-    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.81}, Control.Sizes["Narrow"], "Back", 30, "dark"));
-    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.81}, Control.Sizes["Narrow"], "Edit", 30, "dark"));
+    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
+    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.815}, Control.Sizes["Narrow"], "Edit", 30, "dark"));
     ctrls.push(new PlayersScreen('img/screentall.png', {x: 0.125, y: 0.07}, {x: 0.75, y: 0.7}));
     ctrls[0].clicked = () => { 
 	    menuRenderer.state = MenuStates.TeamMenu; 
@@ -362,7 +460,7 @@ var menuRenderer = {
     var ctrls = [];
     menuRenderer.menus[MenuStates.PlayerEditMenu] = ctrls;
 
-    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.81}, Control.Sizes["Narrow"], "Back", 30, "dark"));
+    ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
     ctrls[0].clicked = () => { 
     	menuRenderer.state = MenuStates.PlayersMenu; 
     	menuRenderer.renderScreen = true;

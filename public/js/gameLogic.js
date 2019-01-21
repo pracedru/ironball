@@ -3,30 +3,32 @@ var isClient = !isServer;
 var scale = isClient ? scale : 1;
 
 var places = [
-  {x: -150, y: -640}, //0
-  {x: 150, y: -640},  //1
-  {x: -320, y: -708}, //2
-  {x: 320, y: -708},   //3
-  {x: 0, y: -460},    //4
-  {x: -250, y: -310}, //5
-  {x: 250, y: -310},  //6
-  {x: 0, y: -100},    //7
-  {x: -255, y: 200},  //8
-  {x: 255, y: 200},   //9
-  {x: 0, y: 265},     //10
-  {x: -310, y: 410},  //11
-  {x: 310, y: 410},   //12
-  {x: 0, y: 630},     //13
-  {x: -265, y: 580},  //14
-  {x: 265, y: 580},   //15
-  {x: 0, y: -760}     //16 goalee
+  {x: 0, y: -760},			//0 goalee
+  {x: -260, y: -708},	//1
+  {x: 260, y: -708},	//2
+  {x: -140, y: -628},	//3
+  {x: 140, y: -628},	//4
+  {x: -182, y: -297},	//5
+  {x: 182, y: -297},	//6
+  {x: 0, y: -243},		//7
+  {x: 0, y: -100},		//8
+  {x: -184, y: -65},	//9
+  {x: 184, y: -65},		//10
+  {x: -320, y: 182},	//11
+  {x: 320, y: 182},		//12
+  {x: 0, y: 385},			//13
+  {x: -212, y: 458},	//14
+  {x: 212, y: 458},		//15
+  {x: 0, y: 548},			//16
+  {x: -342, y: 569},  //17
+  {x: 342, y: 569}		//18
 ];
 
 defaultPositions = {};
 
-defaultPositions['balanced'] = [15, 14, 9, 8, 7, 1, 0, 16];         // 2, 3, 2
-defaultPositions['defensive'] = [7, 6, 5, 3, 2, 1, 0, 16];          // 0, 1, 6
-defaultPositions['aggressive'] = [9, 8, 12, 11, 10, 7, 13, 16];    // 5, 1, 1
+defaultPositions['Balanced'] = [15, 14, 10, 9, 8, 4, 3, 0];         // 2, 3, 2
+defaultPositions['Defensive'] = [10, 9, 8, 6, 5, 4, 3, 0];          // 0, 1, 6
+defaultPositions['Aggressive'] = [15, 14, 12, 11, 8, 6, 5, 0];    // 5, 1, 1
 
 function k2b(dk){
 	return (dk['a'] << 0) + (dk['s'] << 1) + (dk['d'] << 2) + (dk['w'] << 3) + (dk[' '] << 4);
@@ -163,19 +165,20 @@ function GameLogics(){
     this.team2 = [];
     this.teamName1 = "Team 1";
     this.teamName2 = "Team 2";
-    for (var i = 0; i < 7; i++){
+    var defaultFormation = defaultPositions['Balanced']; //team.formations[team.defaultFormation];
+    for (var i = 0; i < 8; i++){
       var pos = {
-        x: places[defaultPositions['balanced'][i]].x*scale,
-        y: places[defaultPositions['balanced'][i]].y*scale
+        x: places[defaultFormation[i]].x*scale,
+        y: places[defaultFormation[i]].y*scale
       };
       this.team1.push(new Player(pos, Math.PI/2));
-      var pos = {
-        x: places[defaultPositions['balanced'][i]].x*scale,
-        y: -places[defaultPositions['balanced'][i]].y*scale
+      pos = {
+        x: places[defaultFormation[i]].x*scale,
+        y: -places[defaultFormation[i]].y*scale
       };
       this.team2.push(new Player(pos, -Math.PI/2, 2));
     }
-    var pos = {
+    /*var pos = {
       x: places[16].x*scale,
       y: places[16].y*scale
     };        
@@ -187,7 +190,7 @@ function GameLogics(){
       y: -places[16].y*scale
     };        
     this.team2.push(new Player(pos, -Math.PI/2, 2));
-    this.team2[7].maxTravelDist = 200;
+    this.team2[7].maxTravelDist = 200;*/
     this.lastTimeStamp = Date.now();
     this.roundStartTime = this.lastTimeStamp;
   };
