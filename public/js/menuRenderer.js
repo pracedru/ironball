@@ -342,13 +342,17 @@ var menuRenderer = {
     var newBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.815}, Control.Sizes["Narrow"], "New", 30, "dark");
     ctrls.push(newBtn);
     newBtn.clicked = () => { 
-			var newFormation = { 
-				name: "New formation", 
-				positions: defaultPositions['Balanced'] 
-			}
-			team.formations.push(newFormation);
-			saveTeam();
-	    menuRenderer.initFormationsMenu();
+    	if (team.formations.length<6){
+		  	var newFormation = { 
+					name: "New formation", 
+					positions: defaultPositions['Balanced'] 
+				}
+				team.formations.push(newFormation);
+				saveTeam();
+			  menuRenderer.initFormationsMenu();
+			  gameRenderer.initFormationsMenu();
+    	}
+			
     }
     var counter = 0;
     for (formationIndex in team.formations){
@@ -373,6 +377,7 @@ var menuRenderer = {
 	    team.formations[this.selectedFormation].name = newValue;
 	    saveTeam();
 	    menuRenderer.initFormationsMenu();
+	    gameRenderer.initFormationsMenu();
     };
     ctrls[1].clicked = () => {      
 	    menuRenderer.state = MenuStates.PlacesMenu;
@@ -403,6 +408,24 @@ var menuRenderer = {
 		  var pos = {x: 0.5-size.x/2 +place.x/1000 , y: 0.38-size.y/2+-place.y/2000};
 		  var placeSwitch = new Button('img/swbtn.png', 'img/swbtnpressed.png', pos, Control.Sizes["Small"], "", 30, "dark");
 		  placeSwitch.isSwitch = true;
+		  placeSwitch.placeIndex = placeIndex;
+		  placeSwitch.clicked = (sender) => {
+		  	positions = team.formations[this.selectedFormation].positions;
+		  	if (sender.switchValue){
+		  		
+		  		var posIndex = positions.indexOf(parseInt(sender.placeIndex));
+		  		positions.splice(posIndex, 1);
+
+		  	} else {
+					if (positions.length >= playerCount){
+						var removedIndex = positions.pop();
+						menuRenderer.menus[MenuStates.PlacesMenu][removedIndex].switchValue = false;
+					}	
+					positions.push(parseInt(sender.placeIndex));
+		  	}
+	  		console.log(positions.length);		  	
+		  	
+		  }
 		  ctrls.push(placeSwitch);
     }
     

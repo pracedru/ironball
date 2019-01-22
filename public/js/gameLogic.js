@@ -24,11 +24,13 @@ var places = [
   {x: 342, y: 569}		//18
 ];
 
+playerCount = 8;
+
 defaultPositions = {};
 
-defaultPositions['Balanced'] = [15, 14, 10, 9, 8, 4, 3, 0];         // 2, 3, 2
-defaultPositions['Defensive'] = [10, 9, 8, 6, 5, 4, 3, 0];          // 0, 1, 6
-defaultPositions['Aggressive'] = [15, 14, 12, 11, 8, 6, 5, 0];    // 5, 1, 1
+defaultPositions['Balanced'] = [0, 15, 14, 10, 9, 8, 4, 3];         // 2, 3, 2
+defaultPositions['Defensive'] = [0, 10, 9, 8, 6, 5, 4, 3];          // 0, 1, 6
+defaultPositions['Aggressive'] = [0, 15, 14, 12, 11, 8, 6, 5];    // 5, 1, 1
 
 function k2b(dk){
 	return (dk['a'] << 0) + (dk['s'] << 1) + (dk['d'] << 2) + (dk['w'] << 3) + (dk[' '] << 4);
@@ -44,6 +46,22 @@ function b2k(bk){
 	}
 	return downKeys;
 }
+
+var PickupItemTypes = {
+  Credit: 0,  
+  SpeedUpgrade: 1,
+  ThrowUpgrade: 2,
+  StamminaUpgrade: 3,
+  AccelerationUpgrade: 4,
+  KickUpgrade: 5,
+  IntelligenceUpgrade: 6,
+  EnduranceUpgrade: 7
+};
+
+function PickupItem(position, type){
+	this.pos = position;
+	this.type = type;
+} 
 
 function Player(defaultPosition = {x: 0.0, y: 0.0}, defaultDir = Math.PI/2, team = 1){
   this.defaultPosition = defaultPosition;
@@ -601,7 +619,11 @@ function GameLogics(){
   };
   this.checkPlayerKick = (player, otherPlayer) => {
     if (player !== otherPlayer){
-      if (otherPlayer.dist(player.pos)<otherPlayer.reach+player.reach){
+    	var kickPos = {
+    		x: player.pos.x + player.reach*Math.cos(player.dir),
+    		y: player.pos.y + player.reach*Math.sin(player.dir),
+    	}
+      if (otherPlayer.dist(kickPos)<player.reach){
         if(!otherPlayer.falling){
           otherPlayer.falling = true;
           otherPlayer.health -= player.strength;
@@ -716,4 +738,6 @@ if ( isServer ){
   exports.b2k = b2k;
   exports.k2b = k2b;
   exports.places = places;
+  exports.pickupItemTypes = PickupItemTypes;
+  exports.PickupItem = PickupItem;
 }

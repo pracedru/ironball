@@ -98,6 +98,7 @@ function createNewTeam() {
 }
 
 function init(){
+	localStorage.getItem("teamIndex");
 	teamIndex = localStorage.getItem("teamIndex");
 	if (teamIndex == undefined){
 		teamIndex = 0;

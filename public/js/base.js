@@ -364,6 +364,12 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
   }
 }
 
+function GetImage(path){
+	var image = new Image();
+  image.src = path;
+	return image;
+}
+
 var Animator = function(framePaths){
   this.frames = [];
   this.frameIndex = 0;

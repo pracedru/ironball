@@ -10,6 +10,17 @@ var ClientType = {
   Team2: 2,
   Spectator: 0
 };
+var pickupItemImages = [
+	GetImage("img/items/coins.png"),
+	GetImage("img/items/coins.png"),
+	GetImage("img/items/coins.png"),
+	GetImage("img/items/coins.png"),
+	GetImage("img/items/coins.png"),
+	GetImage("img/items/coins.png"),
+	GetImage("img/items/coins.png"),
+	GetImage("img/items/coins.png")
+];
+
 var animations = {};
 animations['player1Run'] = new Animator([
   "img/player1/run1.png",
@@ -179,7 +190,21 @@ gameRenderer.initAV = () => {
     gameRenderer.arenaMenuState = ArenaMenuStates.FormationsMenu;
   };
   
-  var ctrls = [];
+  gameRenderer.initFormationsMenu();
+  
+  /*
+  gameRenderer.arenaIDTextBox = new TextBox('img/txtbx.png', {x: 0.125, y: 0.18}, Control.Sizes["Wide"], "Invite friend to arena ID:", gameRenderer.arenaID.toString(), 32);
+  gameRenderer.arenaPlayAgainstAIBtn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.35}, Control.Sizes["Wide"], "Play against AI", 30, "dark");
+  gameRenderer.arenaPlayAgainstAIBtn.clicked = () => {
+    gameRenderer.playAgainstAI = true;
+    gameRenderer.ws.send(JSON.stringify({t: "arenaPlayAgainstAI"}));
+    
+  };
+  */
+};
+
+gameRenderer.initFormationsMenu = () => {
+	var ctrls = [];
   gameRenderer.arenaMenus[ArenaMenuStates.FormationsMenu] = ctrls;  
   ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
   ctrls[0].clicked = () => {    
@@ -198,21 +223,12 @@ gameRenderer.initAV = () => {
         frm: team.formations[sender.formationIndex].positions // defaultPositions[sender.text]        
       }
 			gameRenderer.ws.send(JSON.stringify(msg));
+			gameRenderer.arenaMenuSpeed.x = 0.3;
   	}
   	ctrls.push(btn);
   	counter++;
   }
-  
-  /*
-  gameRenderer.arenaIDTextBox = new TextBox('img/txtbx.png', {x: 0.125, y: 0.18}, Control.Sizes["Wide"], "Invite friend to arena ID:", gameRenderer.arenaID.toString(), 32);
-  gameRenderer.arenaPlayAgainstAIBtn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.35}, Control.Sizes["Wide"], "Play against AI", 30, "dark");
-  gameRenderer.arenaPlayAgainstAIBtn.clicked = () => {
-    gameRenderer.playAgainstAI = true;
-    gameRenderer.ws.send(JSON.stringify({t: "arenaPlayAgainstAI"}));
-    
-  };
-  */
-};
+}
 
 gameRenderer.isNavigating = () => {
   var isNavigating = false;
