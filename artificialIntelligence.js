@@ -1,5 +1,7 @@
 var gl = require('./public/js/gameLogic.js');
 /* global GameStates */
+var rdz = gl.rdz;
+var MsgTypes = gl.MsgTypes;
 
 function downKeysFromDirection(dx, dy){
   var downKeys = {a: false, s: false, d: false, w: false, ' ': false};
@@ -48,7 +50,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
   this.preGameReady = false;
   this.playersReady = false;
   this.aiOnly = true;
-  this.correctionNeededThresshold = 4;
+  this.correctionNeededThresshold = 2;
   this.update = () => {
   	var teamNo = this.gameLogic.team1 === this.team ? 1 : 2;
     if (this.gameLogic.state !== gl.GameStates.Playing) {
@@ -197,8 +199,8 @@ exports.TeamAI = function(gameLogic, team, arena) {
       if (!player.controlled && !player.falling){
         var msg = {};
         var downKeys = {a: false, s: false, d: false, w: false, ' ': false};
-        msg.pos = player.pos;
-        msg.dir = player.dir;
+		    msg.pos = rdz(player.pos);
+        msg.dir = rdz(player.dir);
         if (player.dist(player.targetPosition)>player.reach){
           var dx = player.targetPosition.x - player.pos.x;
           var dy = player.targetPosition.y - player.pos.y;
@@ -209,19 +211,21 @@ exports.TeamAI = function(gameLogic, team, arena) {
           }
           player.pos.x = player.targetPosition.x;
           player.pos.y = player.targetPosition.y;
-          msg.pos = player.targetPosition;          
-          msg.tdir = player.defaultDir;
-          player.targetDir = player.defaultDir;
+          msg.pos = rdz(player.targetPosition);
+          msg.tdir = rdz(player.defaultDir);
+          player.targetDir = rdz(player.defaultDir);
         }
 
-        msg.t = "playerInputUpdate";
+        msg.t = MsgTypes.PlayerInputUpdate;
         msg.pi = i;
         msg.tm = this.gameLogic.team1 === this.team ? 1 : 2;
-      	//console.log(downKeys);
         if (player.health > 0){
           if (player.evaluation && this.gameLogic.state === gl.GameStates.Playing){
             if (player.evaluation.close){            	
-              downKeys[' '] = true;              
+            	if (!downKeys[' ']){ 
+              	downKeys[' '] = true;
+              	inputChanged = [true, downKeys];
+              }              
             }
           }
           
@@ -229,18 +233,17 @@ exports.TeamAI = function(gameLogic, team, arena) {
           downKeys = gl.b2k(inputChanged[1]);
           if (player.evaluation && this.gameLogic.state === gl.GameStates.Playing){
             if (player.evaluation.close){
-              downKeys[' '] = true;              
+            	if (!downKeys[' ']){ 
+              	downKeys[' '] = true;
+              	inputChanged[0] = true;
+              }               
             }
           }
           if (inputChanged[0] || correctionNeeded){          
-           	//if (correctionNeeded) console.log("pu because correctionNeeded");
-           	//if (inputChanged[0]) console.log("pu because inputChanged");
           	msg.bk = gl.k2b(downKeys);
-          	//console.log(downKeys);
             this.arena.sendPlayerUpdate(msg); 
           } else {          
-          }
-          
+          }          
         }
       }
     }

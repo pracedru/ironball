@@ -2,6 +2,7 @@
 document.addEventListener("DOMContentLoaded", function(){
   init();
 });
+const VERSION = "0.1.0";
 var teamIndex = 0;
 var team = null;
 var playerImages = [];
@@ -98,18 +99,18 @@ function createNewTeam() {
 }
 
 function init(){
-	localStorage.getItem("teamIndex");
-	teamIndex = localStorage.getItem("teamIndex");
-	if (teamIndex == undefined){
-		teamIndex = 0;
+	var version = localStorage.getItem("version");
+	var teamIndex = 0;
+	
+	if (version == undefined || version != VERSION){		
 		team = createNewTeam();
 		localStorage.setItem("teamIndex", teamIndex);
 		saveTeam();
-		
+		localStorage.setItem("version", VERSION);
 	} else {
+		teamIndex = localStorage.getItem("teamIndex");
 		teamIndex = parseInt(teamIndex);
-		team = loadTeam(teamIndex);
-		
+		team = loadTeam(teamIndex);		
 	}
 
   canvas = document.getElementById("renderTarget");

@@ -177,7 +177,7 @@ gameRenderer.initAV = () => {
   ctrls[0].editable = false;
   ctrls[1].clicked = () => {
     gameRenderer.playAgainstAI = true;
-    gameRenderer.ws.send(JSON.stringify({t: "arenaPlayAgainstAI"}));    
+    gameRenderer.ws.send(JSON.stringify({t: MsgTypes.ArenaPlayAgainstAI}));    
     gameRenderer.arenaMenuSpeed.x = 0.3;
     gameRenderer.arenaMenuState = ArenaMenuStates.InGameMenu;
   };
@@ -192,15 +192,6 @@ gameRenderer.initAV = () => {
   
   gameRenderer.initFormationsMenu();
   
-  /*
-  gameRenderer.arenaIDTextBox = new TextBox('img/txtbx.png', {x: 0.125, y: 0.18}, Control.Sizes["Wide"], "Invite friend to arena ID:", gameRenderer.arenaID.toString(), 32);
-  gameRenderer.arenaPlayAgainstAIBtn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.35}, Control.Sizes["Wide"], "Play against AI", 30, "dark");
-  gameRenderer.arenaPlayAgainstAIBtn.clicked = () => {
-    gameRenderer.playAgainstAI = true;
-    gameRenderer.ws.send(JSON.stringify({t: "arenaPlayAgainstAI"}));
-    
-  };
-  */
 };
 
 gameRenderer.initFormationsMenu = () => {
@@ -219,7 +210,7 @@ gameRenderer.initFormationsMenu = () => {
 		btn.formationIndex = formationsIndex;
   	btn.clicked = (sender) => {
   		var msg = { 
-        t: "changeFormation", 
+        t: MsgTypes.ChangeFormation, 
         frm: team.formations[sender.formationIndex].positions // defaultPositions[sender.text]        
       }
 			gameRenderer.ws.send(JSON.stringify(msg));
@@ -274,7 +265,7 @@ gameRenderer.render = () => {
       if (gameRenderer.playerIndex !== closestPlayerIndex && currentDist > smallestDist + 150){
         gameRenderer.playerIndex = closestPlayerIndex;
         var msg = { 
-          t: "playerIsControlled", 
+          t: MsgTypes.PlayerIsControlled, 
           pi: gameRenderer.playerIndex, 
           bk: k2b(gameRenderer.downKeys)
         };
@@ -545,7 +536,7 @@ gameRenderer.setRenderer = () => {
   gameRenderer.ws.onopen = function()
   {
     var msg = {
-      t: "arenaConnection", 
+      t: MsgTypes.ArenaConnection, 
       tm: JSON.stringify(team),
       arenaID: gameRenderer.arenaID
     };
@@ -563,7 +554,7 @@ gameRenderer.setRenderer = () => {
   {    
     var msg = JSON.parse(evt.data);    
     switch (msg.t){
-      case "playerReturn":
+      case MsgTypes.PlayerReturn:
         var player = null;
         if (msg.tm === 1){
           player = gameRenderer.team1[msg.pi];
@@ -576,7 +567,7 @@ gameRenderer.setRenderer = () => {
         player.dir = msg.dir;
         gameRenderer.updatePlayerInput(player, msg.bk);
         break;
-      case "playerMelee":
+      case MsgTypes.PlayerMelee:
         var player = null;
         if (msg.tm === 1){
           player = gameRenderer.team1[msg.pi];
@@ -601,7 +592,7 @@ gameRenderer.setRenderer = () => {
           player.fallAudio.play();
         }
         break;
-      case "playerInputUpdate":
+      case MsgTypes.PlayerInputUpdate:
         var player = null;
         if (msg.tm === 1){
           player = gameRenderer.team1[msg.pi];
@@ -615,10 +606,10 @@ gameRenderer.setRenderer = () => {
           player.targetDir = msg.tdir;
           player.speed = 0;          
         }
-        //console.log(msg.downKeys); 
+//        console.log(b2k(msg.bk)); 
         gameRenderer.updatePlayerInput(player, msg.bk);        
         break;
-      case "playerPositionSync":
+      case MsgTypes.PlayerPositionSync:
         var player = null;
         if (msg.tm === 1){
           player = gameRenderer.team1[msg.pi];
@@ -628,7 +619,7 @@ gameRenderer.setRenderer = () => {
         player.posResidual.x = msg.pos.x*scale - player.pos.x;
         player.posResidual.y = msg.pos.y*scale - player.pos.y;
         break;
-      case "playerHealthChange":
+      case MsgTypes.PlayerHealthChange:
         var player = null;
         if (msg.tm === 1){
           player = gameRenderer.team1[msg.pi];
@@ -637,7 +628,7 @@ gameRenderer.setRenderer = () => {
         }
         player.health = msg.value;
         break;
-      case "ballHandlerChanged":
+      case MsgTypes.BallHandlerChanged:
         var player = null;
         if (msg.tm === 1){
           player = gameRenderer.team1[msg.pi];
@@ -656,19 +647,19 @@ gameRenderer.setRenderer = () => {
           }         
           gameRenderer.playerIndex = msg.pi;
           var msg = { 
-            t: "playerIsControlled", 
+            t: MsgTypes.PlayerIsControlled, 
             pi: gameRenderer.playerIndex, 
             bk: k2b(gameRenderer.downKeys)
           };
           gameRenderer.ws.send(JSON.stringify(msg));
         }
         break;
-      case "ballSync":
+      case MsgTypes.BallSync:
         gameRenderer.ballposResidual.x = msg.pos.x*scale - gameRenderer.ballpos.x;
         gameRenderer.ballposResidual.y = msg.pos.y*scale - gameRenderer.ballpos.y;
         gameRenderer.ballSpeed = msg.spd;
         break;
-      case "scoreUpdate":
+      case MsgTypes.ScoreUpdate:
         //console.log(msg);
         gameRenderer.score = msg.score;
         gameRenderer.crowdCheerAudio.play();
@@ -677,7 +668,7 @@ gameRenderer.setRenderer = () => {
           gameRenderer.restartGame();
         }
         break;
-      case "roundEnded":
+      case MsgTypes.RoundEnded:
         gameRenderer.roundStartTime = gameRenderer.currentTimeStamp;
         gameRenderer.switchSide();
         gameRenderer.restartGame();
@@ -690,25 +681,25 @@ gameRenderer.setRenderer = () => {
           history.back();
         }
         break;
-      case "changeGameState":
+      case MsgTypes.ChangeGameState:
       	if (gameRenderer.state == GameStates.PreGame && msg.state == GameStates.GetReady){
       		gameRenderer.arenaMenuState = ArenaMenuStates.InGameMenu;
       		gameRenderer.arenaMenuSpeed.x = 0.3;
       	}
         gameRenderer.setState(msg.state);
         break;
-      case "ballThrown":        
+      case MsgTypes.BallThrown:        
         gameRenderer.ballHandler = null;
         gameRenderer.ballSpeed = msg.bspd;
         gameRenderer.ballpos.x = msg.bp.x*scale;  
         gameRenderer.ballpos.y = msg.bp.y*scale;      
         gameRenderer.ballposResidual = {x: 0.0, y: 0.0, z: 0};
         break;
-      case "syncTeamNames":
+      case MsgTypes.SyncTeamNames:
         gameRenderer.teamName1 = msg.tn1;
         gameRenderer.teamName2 = msg.tn2;        
         break;
-      case "connected":
+      case MsgTypes.Connected:
       	console.log("connected");
         gameRenderer.clientType = msg.ct;
         gameRenderer.ballpos = msg.ballpos;
@@ -825,7 +816,7 @@ gameRenderer.updateUserInput = () => {
     var newInput = k2b(gameRenderer.downKeys); // JSON.stringify(gameRenderer.downKeys);
     if (newInput !== gameRenderer.lastInput){
       //console.log(newInput);
-      gameRenderer.ws.send(JSON.stringify({t: "userInputUpdate", pi: gameRenderer.playerIndex,  bk: newInput}));
+      gameRenderer.ws.send(JSON.stringify({t: MsgTypes.UserInputUpdate, pi: gameRenderer.playerIndex,  bk: newInput}));
       gameRenderer.lastInput = newInput;
     }
   }

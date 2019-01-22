@@ -1,7 +1,10 @@
 var WebSocketServer = require('ws').Server;
 var ArenaHandler = require('./arenahandler.js');
 var TournamentHandler = require('./tournamenthandler.js');
+var gl = require('./public/js/gameLogic.js');
 var wss = null;
+
+var MsgTypes = gl.MsgTypes;
 
 var arenaIDCounter = 1000;
 var tournamentIDCounter = 1000;
@@ -41,7 +44,7 @@ exports.gameWebSocketServer = function(server, app) {
 function onMessage(data) {  
   var msg = JSON.parse(data);  
   this.removeListener("message", onMessage);
-  if (msg.t === "arenaConnection"){
+  if (msg.t === MsgTypes.ArenaConnection){
     var arenaID = msg.arenaID;
     var arena = ArenaHandler.getArena(arenaID);
     if (arena === null){
@@ -49,7 +52,7 @@ function onMessage(data) {
     } else {
       arena.setSocket(this, msg);            
     }
-  } else if (msg.t === "tournamentConnection"){
+  } else if (msg.t === MsgTypes.TournamentConnection){
     //console.log("tournament connection!");    
     var tournamentID = msg.tournamentID;
     var tournament = TournamentHandler.getTournament(tournamentID);

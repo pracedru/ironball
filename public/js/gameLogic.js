@@ -32,6 +32,44 @@ defaultPositions['Balanced'] = [0, 15, 14, 10, 9, 8, 4, 3];         // 2, 3, 2
 defaultPositions['Defensive'] = [0, 10, 9, 8, 6, 5, 4, 3];          // 0, 1, 6
 defaultPositions['Aggressive'] = [0, 15, 14, 12, 11, 8, 6, 5];    // 5, 1, 1
 
+var MsgTypes = {
+	Connected: 0,
+	ArenaConnection: 1,	
+	ArenaPlayAgainstAI: 2,
+	UserInputUpdate: 3,
+	PlayerInputUpdate: 4,
+	PlayerIsControlled: 5,
+	PlayerMelee: 6,
+	PlayerHealthChange: 7,
+	PlayerPositionSync: 8,
+	BallHandlerChanged: 9,
+	BallThrown: 10,
+	BallSync: 11,
+	ChangeGameState: 12,
+	ChangeFormation: 13,
+	SyncTeamNames: 14,
+	ScoreUpdate: 15,
+	RoundEnded: 16,
+	TournamentConnection: 17
+}
+
+function reducePrecision(num){
+	return Math.round(num * 100) / 100;
+}
+
+function rdz(pos){
+	if (typeof pos == "number") return reducePrecision(pos);
+	var newPos = {
+		x: reducePrecision(pos.x),
+		y: reducePrecision(pos.y)
+	}
+	if ("z" in pos){
+		newPos.z = reducePrecision(pos.z);
+	}
+	return newPos;
+}
+
+
 function k2b(dk){
 	return (dk['a'] << 0) + (dk['s'] << 1) + (dk['d'] << 2) + (dk['w'] << 3) + (dk[' '] << 4);
 }
@@ -55,7 +93,8 @@ var PickupItemTypes = {
   AccelerationUpgrade: 4,
   KickUpgrade: 5,
   IntelligenceUpgrade: 6,
-  EnduranceUpgrade: 7
+  EnduranceUpgrade: 7,
+  HealtUpgrade: 8
 };
 
 function PickupItem(position, type){
@@ -231,13 +270,13 @@ function GameLogics(){
     if(isServer){
       var time = 90 - (this.currentTimeStamp - this.roundStartTime)/1000;
       if (time <= 0){
-        var msg = {t: "roundEnded"};
+        var msg = {t: MsgTypes.RoundEnded};
         this.eventCallBack(msg);
         this.round ++;
         this.switchSide();
         this.restartGame();
         this.state = GameStates.GetReady;
-        this.eventCallBack({ t: "changeGameState", state: GameStates.GetReady });
+        this.eventCallBack({ t: MsgTypes.ChangeGameState, state: GameStates.GetReady });
         this.roundStartTime = this.currentTimeStamp;
       }
     }
@@ -391,27 +430,27 @@ function GameLogics(){
   };
   this.playerPositionSync = (player) =>{
     var msg = this.getPlayerTeamAndIndex(player);
-    msg.t = "playerPositionSync";
-    msg.pos = player.pos;
+    msg.t = MsgTypes.PlayerPositionSync;
+    msg.pos = rdz(player.pos);
     this.eventCallBack(msg);
   };
   this.ballHandlerChanged = (player) =>{
     this.ballHandler = player;
     var msg = this.getPlayerTeamAndIndex(player);
-    msg.t = "ballHandlerChanged";
+    msg.t = MsgTypes.BallHandlerChanged;
     msg.pos = player.pos;
     this.eventCallBack(msg);
   };
   this.playerMelee = (player, otherPlayer) => {
     var msg = this.getPlayerTeamAndIndex(player);
     msg.op = this.getPlayerTeamAndIndex(otherPlayer);
-    msg.t = "playerMelee";
-    msg.op.pos = otherPlayer.pos;
+    msg.t = MsgTypes.PlayerMelee;
+    msg.op.pos = rdz(otherPlayer.pos);
     this.eventCallBack(msg);
   };
   this.playerHealthChange = (player, value) => {
     var msg = this.getPlayerTeamAndIndex(player);
-    msg.t = "playerHealthChange";
+    msg.t = MsgTypes.PlayerHealthChange;
     msg.value = value;
     this.eventCallBack(msg);
   };
@@ -425,7 +464,7 @@ function GameLogics(){
     this.ballSpeed.y = Math.sin(player.dir)*(player.throwSpeed+player.speed);
     this.ballSpeed.z = player.throwSpeed/2;
     var msg = {
-      t: "ballThrown",
+      t: MsgTypes.BallThrown,
       bp: this.ballpos,
       bspd: this.ballSpeed
     };
@@ -433,13 +472,13 @@ function GameLogics(){
   };
 
   this.updateScore = (restart) =>{
-    var msg = {t: "scoreUpdate", score: this.score, restart: restart};
+    var msg = {t: MsgTypes.ScoreUpdate, score: this.score, restart: restart};
     if (restart){
       this.restartGame();
     }
     this.eventCallBack(msg);
     this.state = GameStates.GetReady;
-    this.eventCallBack({ t: "changeGameState", state: GameStates.GetReady });
+    this.eventCallBack({ t: MsgTypes.ChangeGameState, state: GameStates.GetReady });
   };
 
   this.updatePlayer = (player) =>{
@@ -623,7 +662,7 @@ function GameLogics(){
     		x: player.pos.x + player.reach*Math.cos(player.dir),
     		y: player.pos.y + player.reach*Math.sin(player.dir),
     	}
-      if (otherPlayer.dist(kickPos)<player.reach){
+      if (otherPlayer.dist(kickPos)<player.reach*2){
         if(!otherPlayer.falling){
           otherPlayer.falling = true;
           otherPlayer.health -= player.strength;
@@ -721,7 +760,11 @@ function GameLogics(){
       }
       if (isServer){
         if (this.currentTimeStamp - this.ballSyncTime > 1000){
-          this.eventCallBack({t:"ballSync", pos: this.ballpos, spd: this.ballSpeed});
+          this.eventCallBack({
+          	t: MsgTypes.BallSync, 
+          	pos: rdz(this.ballpos), 
+          	spd: rdz(this.ballSpeed)
+        	});
           this.ballSyncTime = this.currentTimeStamp;
         }
       }
@@ -740,4 +783,6 @@ if ( isServer ){
   exports.places = places;
   exports.pickupItemTypes = PickupItemTypes;
   exports.PickupItem = PickupItem;
+  exports.rdz = rdz;
+  exports.MsgTypes = MsgTypes;
 }
