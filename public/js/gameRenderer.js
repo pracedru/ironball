@@ -278,7 +278,8 @@ gameRenderer.render = () => {
           pi: gameRenderer.playerIndex, 
           bk: k2b(gameRenderer.downKeys)
         };
-        gameRenderer.ws.send(JSON.stringify(msg));
+        if (gameRenderer.ws.readyState == gameRenderer.ws.OPEN)
+	        gameRenderer.ws.send(JSON.stringify(msg));
       }
     }
   }

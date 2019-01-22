@@ -206,12 +206,22 @@ exports.Arena = function(id) {
       	if (teamNo == 2) direction *= -1;
       	for (var i = 0; i < team.length; i++){
           var player = team[i];
-          var pos = {
-				    x: gl.places[msg.frm[i]].x,
-				    y: direction*gl.places[msg.frm[i]].y
-				  };
-          player.defaultPosition = pos;
+          var place = gl.places[msg.frm[i]];
+          if (player != null && place != null){
+          	var pos = {
+				    	x: gl.places[msg.frm[i]].x,
+				    	y: direction*gl.places[msg.frm[i]].y
+						};
+		        player.defaultPosition = pos;
+          }          
         }
+        var ai = null;
+        if (this.gameLogic.team1AI.team == team){
+        	ai = this.gameLogic.team1AI
+        } else {
+	        ai = this.gameLogic.team2AI
+        }
+        ai.playersReady = true;
       default:
         console.log(data);
     }

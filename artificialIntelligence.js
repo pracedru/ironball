@@ -50,10 +50,12 @@ exports.TeamAI = function(gameLogic, team, arena) {
   this.aiOnly = true;
   this.correctionNeededThresshold = 4;
   this.update = () => {
+  	var teamNo = this.gameLogic.team1 === this.team ? 1 : 2;
     if (this.gameLogic.state !== gl.GameStates.Playing) {
       if (this.gameLogic.state === gl.GameStates.PreGame){
-        var preGameReady = true;
-        var dir = this.team[7].defaultPosition.y / Math.abs(this.team[7].defaultPosition.y);
+        var preGameReady = true;        
+        var dir = (this.gameLogic.round%2) === 1 ?  -1 : 1;
+      	if (teamNo == 2) dir *= -1;
         for (var i = 0; i < this.team.length; i++){
           var player = this.team[i];
           var sepDist = 100;

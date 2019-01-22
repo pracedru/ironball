@@ -424,15 +424,18 @@ var menuRenderer = {
 					positions.push(parseInt(sender.placeIndex));
 		  	}
 	  		console.log(positions.length);		  	
-		  	
+		  	ctrls[places.length+2].value = (playerCount-positions.length).toString()+ "/" + playerCount;
 		  }
 		  ctrls.push(placeSwitch);
+		  
     }
     
     var backBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark");
     ctrls.push(backBtn);
     var saveBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.815}, Control.Sizes["Narrow"], "Save", 30, "dark");
     ctrls.push(saveBtn);
+    var placesCountTextbox = new TextBox('img/txtbxnarrow.png', {x: 0.325, y: 0.24}, Control.Sizes["Narrow"], "Places:", "0/8", 30, "dark");
+    ctrls.push(placesCountTextbox);            
     backBtn.clicked = () => { 
     	menuRenderer.state = MenuStates.FormationMenu;     	
     }
