@@ -53,11 +53,11 @@ exports.TeamAI = function(gameLogic, team, arena) {
   this.correctionNeededThresshold = 2;
   this.update = () => {
   	var teamNo = this.gameLogic.team1 === this.team ? 1 : 2;
+  	var dir = (this.gameLogic.round%2) === 1 ?  -1 : 1;
+  	if (teamNo == 2) dir *= -1;
     if (this.gameLogic.state !== gl.GameStates.Playing) {
       if (this.gameLogic.state === gl.GameStates.PreGame){
-        var preGameReady = true;        
-        var dir = (this.gameLogic.round%2) === 1 ?  -1 : 1;
-      	if (teamNo == 2) dir *= -1;
+        var preGameReady = true;                
         for (var i = 0; i < this.team.length; i++){
           var player = this.team[i];
           var sepDist = 100;
@@ -103,8 +103,17 @@ exports.TeamAI = function(gameLogic, team, arena) {
               if (player.dist(player.defaultPosition)>player.maxTravelDist){
                 player.evaluation.close = true;
               }
-              player.targetPosition.x = team[this.team.length-1].pos.x;
-              player.targetPosition.y = -team[this.team.length-1].pos.y*1.1;
+              player.targetPosition.x = 0;
+              player.targetPosition.y = -dir*850;
+              if (Math.abs(player.targetPosition.y - player.pos.y) > 300){
+              	if (player.pos.x >= 0 && player.pos.x < 80){
+              		player.targetPosition.y = player.pos.y-dir*100;
+              		player.targetPosition.x = 100;
+              	} else if (player.pos.x < 0 && player.pos.x > -80){
+              		player.targetPosition.y = player.pos.y-dir*100;
+              		player.targetPosition.x = -100;
+              	}
+              }
             } else {
               player.evaluation.close = false;
               player.targetPosition.x = player.defaultPosition.x;
