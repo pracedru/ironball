@@ -25,7 +25,7 @@ exports.gameWebSocketServer = function(server, app) {
     arenaIDCounter++;
     var arena = new ArenaHandler.Arena(arenaID);
     res.writeHead(200, {'Content-Type': 'application/json'});
-    res.write(JSON.stringify({type: "arenaCreated", arenaID}));
+    res.write(JSON.stringify({t: MsgTypes.ArenaCreated, arenaID}));
     return res.end();
   });
   
@@ -34,7 +34,7 @@ exports.gameWebSocketServer = function(server, app) {
     tournamentIDCounter++;
     var tournament = new TournamentHandler.Tournament(tournamentID);
     res.writeHead(200, {'Content-Type': 'application/json'});
-    res.write(JSON.stringify({type: "tournamentCreated", tournamentID}));
+    res.write(JSON.stringify({t: MsgTypes.TournamentCreated, tournamentID}));
     return res.end();
   });
   

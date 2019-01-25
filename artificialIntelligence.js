@@ -44,6 +44,7 @@ var Vector = function(position, direction) {
 };
 
 exports.TeamAI = function(gameLogic, team, arena) {
+	this.currentTimeStamp = Date.now();
   this.team = team;
   this.gameLogic = gameLogic;
   this.arena = arena;
@@ -52,6 +53,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
   this.aiOnly = true;
   this.correctionNeededThresshold = 2;
   this.update = () => {
+  	this.currentTimeStamp = Date.now();
   	var teamNo = this.gameLogic.team1 === this.team ? 1 : 2;
   	var dir = (this.gameLogic.round%2) === 1 ?  -1 : 1;
   	if (teamNo == 2) dir *= -1;
@@ -206,6 +208,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
       var player = this.team[i];
       var correctionNeeded = false;
       if (!player.controlled && !player.falling){
+      	
         var msg = {};
         var downKeys = {a: false, s: false, d: false, w: false, ' ': false};
 		    msg.pos = rdz(player.pos);
@@ -229,25 +232,36 @@ exports.TeamAI = function(gameLogic, team, arena) {
         msg.pi = i;
         msg.tm = this.gameLogic.team1 === this.team ? 1 : 2;
         if (player.health > 0){
-          if (player.evaluation && this.gameLogic.state === gl.GameStates.Playing){
-            if (player.evaluation.close){            	
-            	if (!downKeys[' ']){ 
-              	downKeys[' '] = true;
-              	inputChanged = [true, downKeys];
-              }              
-            }
-          }
-          
-          var inputChanged = this.gameLogic.updatePlayerInput(player, gl.k2b(downKeys));
-          downKeys = gl.b2k(inputChanged[1]);
-          if (player.evaluation && this.gameLogic.state === gl.GameStates.Playing){
-            if (player.evaluation.close){
-            	if (!downKeys[' ']){ 
-              	downKeys[' '] = true;
-              	inputChanged[0] = true;
-              }               
-            }
-          }
+        	//console.log("this.currentTimeStamp " + this.currentTimeStamp);
+        	//console.log("player.lastDecisionTimeStamp " + player.lastDecisionTimeStamp);
+        	var decisionTime = this.currentTimeStamp - player.lastDecisionTimeStamp;
+        	var decisionSpeed = (100 - player.intelligence)*10;
+        	var inputChanged = [false, downKeys]
+        	//console.log("decisionTime " + decisionTime);
+        	//console.log("decisionSpeed " + decisionSpeed);
+        	if (decisionTime>decisionSpeed || this.gameLogic.state === gl.GameStates.PreGame || this.gameLogic.state === gl.GameStates.GetReady){
+
+        		if (player.evaluation && this.gameLogic.state === gl.GameStates.Playing){
+		          if (player.evaluation.close){            	
+		          	if (!downKeys[' ']){ 
+		            	downKeys[' '] = true;
+		            	inputChanged = [true, downKeys];
+		            }              
+		          }
+		        }
+		        
+		        inputChanged = this.gameLogic.updatePlayerInput(player, gl.k2b(downKeys));
+		        downKeys = gl.b2k(inputChanged[1]);
+		        if (player.evaluation && this.gameLogic.state === gl.GameStates.Playing){
+		          if (player.evaluation.close){
+		          	if (!downKeys[' ']){ 
+		            	downKeys[' '] = true;
+		            	inputChanged[0] = true;
+		            }               
+		          }
+		        }
+        	}
+					if (inputChanged[0]) player.lastDecisionTimeStamp = this.currentTimeStamp;					          
           if (inputChanged[0] || correctionNeeded){          
           	msg.bk = gl.k2b(downKeys);
             this.arena.sendPlayerUpdate(msg); 

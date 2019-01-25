@@ -50,7 +50,9 @@ var MsgTypes = {
 	SyncTeamNames: 14,
 	ScoreUpdate: 15,
 	RoundEnded: 16,
-	TournamentConnection: 17
+	TournamentConnection: 17,
+	SpawnPickupItem: 18,
+	PickupItemTaken: 19
 }
 
 function reducePrecision(num){
@@ -85,7 +87,7 @@ function b2k(bk){
 	return downKeys;
 }
 
-var PickupItemTypes = {
+var PickupItemType = {
   Credit: 0,  
   SpeedUpgrade: 1,
   ThrowUpgrade: 2,
@@ -97,9 +99,23 @@ var PickupItemTypes = {
   HealtUpgrade: 8
 };
 
+var pickupItemCounter = 0;
+
 function PickupItem(position, type){
+	this.id = pickupItemCounter;
+	pickupItemCounter++;
 	this.pos = position;
 	this.type = type;
+	this.size = {x: 40, y: 30};		
+	switch (type) {
+		case PickupItemType.Credit:
+			this.size = {x: 30, y: 30};				
+			break;
+		case PickupItemType.HealtUpgrade:
+			this.size = {x: 45, y: 35};				
+			break;		
+	}
+	
 } 
 
 function Player(defaultPosition = {x: 0.0, y: 0.0}, defaultDir = Math.PI/2, team = 1){
@@ -111,12 +127,12 @@ function Player(defaultPosition = {x: 0.0, y: 0.0}, defaultDir = Math.PI/2, team
   this.targetDir = this.defaultDir;
   this.targetPosition = {x: defaultPosition.x, y: defaultPosition.y};
   this.speed = 0;
-  this.maxSpeed = 3;
-  this.throwSpeed = 6;
+  this.maxSpeed = 2.5;
+  this.throwSpeed = 5;
   this.strength = 6;
   this.acceleration = 0.08;
   this.maxTravelDist = 300;
-  this.intelligence = 20;
+  this.intelligence = 30;
   this.running = false;
   this.kicking = false;
   this.throwing = false;
@@ -132,6 +148,8 @@ function Player(defaultPosition = {x: 0.0, y: 0.0}, defaultDir = Math.PI/2, team
   this.name = "player";
   this.proximity = [];
   this.collisions = [];
+  this.lastDecisionTimeStamp = 0;
+  this.pickupItems = [];
   if (isClient){
     this.stepAudio = new GameAudio("snd/step.wav");
     this.whoshAudio = new GameAudio("snd/whosh.wav");
@@ -206,6 +224,7 @@ function GameLogics(){
   this.ballposResidual = {x: 0.0, y: 0.0, z: 0};
   this.ballSpeed = {x: 0.0, y: 0.0, z: 0.0};
   this.ballHandler = null;
+  this.pickupItems = [];
   this.lastTimeStamp = 0;
   this.currentTimeStamp = 0;
   this.deltaTime = 0;
@@ -264,6 +283,7 @@ function GameLogics(){
   };
   this.update = () => {
     this.currentTimeStamp = Date.now();
+
     this.deltaTime = this.currentTimeStamp - this.lastTimeStamp;
     var dt = this.deltaTime;
     this.lastTimeStamp = this.currentTimeStamp;
@@ -279,6 +299,7 @@ function GameLogics(){
         this.eventCallBack({ t: MsgTypes.ChangeGameState, state: GameStates.GetReady });
         this.roundStartTime = this.currentTimeStamp;
       }
+//w       var pickupItemChance = this.
     }
 
     if (this.state !== GameStates.Playing){
@@ -288,12 +309,39 @@ function GameLogics(){
     for (var i = 0; i < this.team1.length; i++){
       var player = this.team1[i];
       this.updatePlayer(player);
+      if(isServer){
+      	this.checkPickupItem(player);
+		  }
     }
     for (var i = 0; i < this.team2.length; i++){
       var player = this.team2[i];
       this.updatePlayer(player);
-    }
+      if(isServer){
+      	this.checkPickupItem(player);
+		  }
+    }		
   };
+  this.checkPickupItem = (player) => {
+  	var pickedItems = [];
+		for (j in this.pickupItems){											
+			var pickupItem = this.pickupItems[j];
+			var dist = player.dist(pickupItem.pos);					
+			if (dist<player.reach){
+				pickedItems.push(pickupItem);
+				var takeMsg = { 
+					t: MsgTypes.PickupItemTaken,
+					item: pickupItem
+				}				
+				this.eventCallBack(takeMsg);
+				player.pickupItems.push(pickupItem);
+			}					
+		}
+		for (j in pickedItems){	
+			var pickupItem = pickedItems[j];
+			var itemIndex = this.pickupItems.indexOf(pickupItem);
+			this.pickupItems.splice(itemIndex, 1);
+		}
+  }
   this.switchSide = () => {
     for (var i = 0; i < this.team1.length; i++){
       var p1 = this.team1[i];
@@ -307,7 +355,7 @@ function GameLogics(){
       p2.defaultDir += Math.PI;
       p2.defaultDir = p2.defaultDir % (2*Math.PI);
     }
-  };
+  }
   this.setState = (state) => {
     this.state = state;
     switch (state) {
@@ -781,7 +829,7 @@ if ( isServer ){
   exports.b2k = b2k;
   exports.k2b = k2b;
   exports.places = places;
-  exports.pickupItemTypes = PickupItemTypes;
+  exports.PickupItemType = PickupItemType;
   exports.PickupItem = PickupItem;
   exports.rdz = rdz;
   exports.MsgTypes = MsgTypes;

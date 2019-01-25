@@ -209,8 +209,7 @@ var menuRenderer = {
       request.responseType = 'json';
       request.open('GET', "createArena", true);      
       request.onload = function() {
-        console.log(request.response);
-        if (request.response.type === "arenaCreated"){
+        if (request.response.t === MsgTypes.ArenaCreated){
           gameRenderer.arenaID = request.response.arenaID;
           gameRenderer.setRenderer();
         }

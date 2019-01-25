@@ -18,6 +18,26 @@ exports.Arena = function(id) {
   this.gameLogic.arena = this;
   this.gameLogic.team1AI = new ai.TeamAI(this.gameLogic, this.gameLogic.team1, this);
   this.gameLogic.team2AI = new ai.TeamAI(this.gameLogic, this.gameLogic.team2, this);
+  
+  var creditItem = new gl.PickupItem({x: 200, y: 100}, gl.PickupItemType.Credit);
+  var medKitItem = new gl.PickupItem({x: 150, y: 100}, gl.PickupItemType.HealtUpgrade);
+  var kickUpgradeItem = new gl.PickupItem({x: 100, y: 100}, gl.PickupItemType.KickUpgrade);
+	var speedUpgradeItem = new gl.PickupItem({x: 50, y: 100}, gl.PickupItemType.SpeedUpgrade);
+	var intelligenceUpgradeItem = new gl.PickupItem({x: 0, y: 100}, gl.PickupItemType.IntelligenceUpgrade);
+	var throwUpgradeItem = new gl.PickupItem({x: -50, y: 100}, gl.PickupItemType.ThrowUpgrade);
+	var stamminaUpgradeItem = new gl.PickupItem({x: -100, y: 100}, gl.PickupItemType.StamminaUpgrade);
+	var accelerationUpgrade = new gl.PickupItem({x: -150, y: 100}, gl.PickupItemType.AccelerationUpgrade);
+	var enduranceUpgrade = new gl.PickupItem({x: -200, y: 100}, gl.PickupItemType.EnduranceUpgrade);
+  this.gameLogic.pickupItems.push(creditItem);
+  this.gameLogic.pickupItems.push(medKitItem);
+  this.gameLogic.pickupItems.push(speedUpgradeItem);
+  this.gameLogic.pickupItems.push(intelligenceUpgradeItem);
+  this.gameLogic.pickupItems.push(throwUpgradeItem);
+  this.gameLogic.pickupItems.push(stamminaUpgradeItem);
+  this.gameLogic.pickupItems.push(accelerationUpgrade);
+  this.gameLogic.pickupItems.push(enduranceUpgrade);
+  this.gameLogic.pickupItems.push(kickUpgradeItem);
+  
   this.gameLogic.eventCallBack = function (msg) {
     // var data = JSON.stringify(msg);
     // console.log(data);
@@ -65,7 +85,8 @@ exports.Arena = function(id) {
       teamName2: this.gameLogic.teamName2,      
       team1: this.gameLogic.team1,
       team2: this.gameLogic.team2,
-      score: this.gameLogic.score
+      score: this.gameLogic.score,
+      pickupItems: this.gameLogic.pickupItems
     }
     return gameState;
   };

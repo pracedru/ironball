@@ -12,14 +12,16 @@ var ClientType = {
 };
 var pickupItemImages = [
 	GetImage("img/items/coins.png"),
-	GetImage("img/items/coins.png"),
-	GetImage("img/items/coins.png"),
-	GetImage("img/items/coins.png"),
-	GetImage("img/items/coins.png"),
-	GetImage("img/items/coins.png"),
-	GetImage("img/items/coins.png"),
-	GetImage("img/items/coins.png")
+	GetImage("img/items/speedupgrade.png"), 
+	GetImage("img/items/throwupgrade.png"),
+	GetImage("img/items/stamminaupgrade.png"),
+	GetImage("img/items/accelerationupgrade.png"),
+	GetImage("img/items/kickupgrade.png"),
+	GetImage("img/items/intelligenceupgrade.png"),
+	GetImage("img/items/enduranceupgrade.png"),
+	GetImage("img/items/medkit.png")
 ];
+var pickupItemSounds = [];
 
 var animations = {};
 animations['player1Run'] = new Animator([
@@ -145,6 +147,8 @@ gameRenderer.initAV = () => {
   gameRenderer.arenaMenu.src = 'img/arenaMenu.png';
   gameRenderer.dir = new Image();
   gameRenderer.dir.src = 'img/dir.png';
+  gameRenderer.selected = new Image();
+  gameRenderer.selected.src = 'img/selected.png';
   gameRenderer.btn = new Image();
   gameRenderer.btn.src = 'img/btn.png';
   gameRenderer.plr1 = new Image();
@@ -159,16 +163,32 @@ gameRenderer.initAV = () => {
   gameRenderer.ball.src = 'img/ironball.png';
   gameRenderer.crowdCheerAudio = new GameAudio("snd/crowdCheer.wav", false);
   gameRenderer.ballAudio = new GameAudio("snd/ball.wav", false);
-  gameRenderer.pickupAudio = new GameAudio("snd/pickup.wav", false);
+  gameRenderer.pickupAudio = new GameAudio("snd/pickup.wav", false);  
   gameRenderer.whoshAudio = new GameAudio("snd/whosh.wav", false);
   gameRenderer.crowdAudio = new GameAudio("snd/crowd.wav", true);
   gameRenderer.beepAudio = new GameAudio("snd/beep.wav", false);
+  gameRenderer.scoreAudio = new GameAudio("snd/score.wav", false, 3);
   gameRenderer.getReadyAudio = new GameAudio("snd/getReady.wav", false);
   gameRenderer.goAudio = new GameAudio("snd/go.wav", false);
+
   animations['getReady'].size.x = canvas.width;
   animations['getReady'].size.y = canvas.width;
   gameRenderer.arenaID = 0;
   gameRenderer.arenaMenus = {};
+  
+  if (pickupItemSounds.length == 0){
+  	pickupItemSounds = [
+			new GameAudio("snd/coinsPickup.wav", false),
+			new GameAudio("snd/pickup.wav", false), 
+			new GameAudio("snd/pickup.wav", false),
+			new GameAudio("snd/pickup.wav", false),
+			new GameAudio("snd/pickup.wav", false)	,
+			new GameAudio("snd/pickup.wav", false),
+			new GameAudio("snd/pickup.wav", false),
+			new GameAudio("snd/pickup.wav", false),
+			new GameAudio("snd/medkitPickup.wav", false)
+		];
+  }
   
   var ctrls = [];
   gameRenderer.arenaMenus[ArenaMenuStates.SinglePlayerStartMenu] = ctrls;
@@ -240,6 +260,8 @@ gameRenderer.getTeam = () => {
 };
 
 gameRenderer.render = () => {
+  
+ 
   var team = gameRenderer.getTeam();
   
   if (team !== null && !gameRenderer.isNavigating() && gameRenderer.state === GameStates.Playing){
@@ -317,6 +339,11 @@ gameRenderer.render = () => {
     var sc = gameRenderer.arena.width/canvas.width;
     ctx.drawImage(gameRenderer.arena, -x*sc/s, -y*sc/s, canvas.width*sc/s, canvas.height*sc/s, 0, 0, canvas.width, canvas.height);
 
+		for (var i in gameRenderer.pickupItems){
+			var item = gameRenderer.pickupItems[i];
+			gameRenderer.renderItem(item, gameRenderer.camera.pos.x, gameRenderer.camera.pos.y);
+		}
+
     gameRenderer.animPlayers(gameRenderer.camera.pos.x, gameRenderer.camera.pos.y);
     gameRenderer.renderBall(gameRenderer.camera.pos.x, gameRenderer.camera.pos.y);
 
@@ -356,6 +383,23 @@ gameRenderer.render = () => {
 		gameRenderer.arenaMenuSpeed.x += (1.1-gameRenderer.arenaMenuPos.x)/50; 
 	}
 	gameRenderer.arenaMenuSpeed.x *= 0.8;
+
+	if (gameRenderer.playerIndex!=-1){
+		var selectedPlayer = gameRenderer.getTeam()[gameRenderer.playerIndex];
+		var selectItem = {
+			pos: {
+				x: selectedPlayer.pos.x/scale, 
+				y: selectedPlayer.pos.y/scale+30
+			}, 
+			image: gameRenderer.selected, 
+			size: {
+				x: 20, 
+				y: 15 
+			}
+		}
+		gameRenderer.renderItem(selectItem, gameRenderer.camera.pos.x, gameRenderer.camera.pos.y);
+	}
+	
 }
 gameRenderer.renderPointer = (camposx, camposy, cyoffset) => {
   var team = gameRenderer.getTeam();
@@ -376,7 +420,7 @@ gameRenderer.renderPointer = (camposx, camposy, cyoffset) => {
       ctx.lineTo(100, 50);
       ctx.lineTo(100, -50);
       //c2.lineTo(0, 90);
-      ctx.closePath();
+      ctx.closePath(); 
       ctx.fill();
       ctx.restore();
     }
@@ -664,6 +708,7 @@ gameRenderer.setRenderer = () => {
         gameRenderer.score = msg.score;
         gameRenderer.crowdCheerAudio.play();
         gameRenderer.beepAudio.play();
+        gameRenderer.scoreAudio.play();
         if (msg.restart){                              
           gameRenderer.restartGame();
         }
@@ -713,6 +758,12 @@ gameRenderer.setRenderer = () => {
         gameRenderer.score = msg.score;
         gameRenderer.state = msg.state;
         gameRenderer.playerIndex = -1;
+        gameRenderer.pickupItems = [];
+        for (var i in msg.pickupItems){
+        	var item = msg.pickupItems[i];
+        	item.image = pickupItemImages[item.type];
+        	gameRenderer.pickupItems.push(item);
+        }
         for (var i = 0; i < msg.team1.length; i++){
           gameRenderer.team1[i].sync(msg.team1[i]);
           gameRenderer.team2[i].sync(msg.team2[i]);
@@ -726,9 +777,14 @@ gameRenderer.setRenderer = () => {
  					gameRenderer.arenaMenus[ArenaMenuStates.SinglePlayerStartMenu][0].value = gameRenderer.arenaID.toString();
         }
         break;
-      
+      case MsgTypes.PickupItemTaken:
+      	var pickupItem = gameRenderer.removePickupItem(msg.item.id);
+      	pickupItemSounds[msg.item.type].play();
+      	break;
       default:
         console.log(evt.data);
+        var type = Object.keys(MsgTypes).find(key => MsgTypes[key] === msg.t)
+        console.log("type: " + type);
     }
   };
 
@@ -744,6 +800,24 @@ gameRenderer.setRenderer = () => {
   };
 };
 
+gameRenderer.getPickupItem = (id) => {
+	for (i in gameRenderer.pickupItems){
+		var pickupItem = gameRenderer.pickupItems[i];
+		if (pickupItem.id == id) return pickupItem;
+	}
+	return null;
+}
+
+gameRenderer.removePickupItem = (id) => {
+	for (i in gameRenderer.pickupItems){
+		var pickupItem = gameRenderer.pickupItems[i];
+		if (pickupItem.id == id){
+			gameRenderer.pickupItems.splice(i, 1);
+			return;
+		}
+	}
+
+}
 
 gameRenderer.unsetRenderer = () => {
   canvas.removeEventListener("touchstart", gameRenderer.touchStart);
@@ -912,9 +986,17 @@ gameRenderer.animPlayer = (camposx, camposy, player) => {
   ctx.restore();
 };
 
+gameRenderer.renderItem = (item, camposx, camposy) => {
+  
+  var pxpos = item.pos.x*scale + canvas.width/2 - camposx -item.size.y*scale/2;
+  var pypos = -item.pos.y*scale + canvas.height/2 + camposy - item.size.y*scale;
+  ctx.drawImage(item.image, pxpos, pypos, item.size.x*scale, item.size.y*scale);
+
+}
+
 gameRenderer.renderBall = (camposx, camposy) => {
   if (gameRenderer.ballHandler === null){
-    var ballsz = canvas.width/40*(1+gameRenderer.ballpos.z*0.2);
+    var ballsz = canvas.width/40*(1+gameRenderer.ballpos.z*1.5); 
     var pxpos = gameRenderer.ballpos.x + canvas.width/2 - camposx - ballsz;
     var pypos = -gameRenderer.ballpos.y + canvas.height/2 + camposy - ballsz;
 
@@ -924,4 +1006,4 @@ gameRenderer.renderBall = (camposx, camposy) => {
     var pypos = -gameRenderer.ballpos.y + canvas.height/2 + camposy - ballsz/2;
     ctx.drawImage(gameRenderer.ball, pxpos, pypos, ballsz, ballsz);
   }
-};
+}

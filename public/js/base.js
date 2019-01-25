@@ -16,12 +16,12 @@ Base.renderText = (txt, loc, size = 30, fill = "#000", stroke = null, strokeWidt
 };
 var audioBuffers = {};
 
-function GameAudio(path, loop = false){
+function GameAudio(path, loop = false, volume = 1){
   this.gain = aCtx.createGain();
   //targetAudio.source.connect(targetAudio.gain);
   this.gain.connect(aCtx.destination);
   this.loop = loop;
-  this.volume = 1;
+  this.volume = volume;
   this.pbr = 1;
   var request = new XMLHttpRequest();
   
