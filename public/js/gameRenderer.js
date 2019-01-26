@@ -778,8 +778,13 @@ gameRenderer.setRenderer = () => {
         }
         break;
       case MsgTypes.PickupItemTaken:
-      	var pickupItem = gameRenderer.removePickupItem(msg.item.id);
+      	gameRenderer.removePickupItem(msg.item.id);
       	pickupItemSounds[msg.item.type].play();
+      	if (msg.item.type == PickupItemType.HealthUpgrade){
+      		var player = msg.tm === 1 ?  gameRenderer.team1[msg.pi] : gameRenderer.team2[msg.pi];		     
+		      player.health = Math.min(100, player.health + 20);
+      	}
+
       	break;
       case MsgTypes.SpawnPickupItem:
       	var item = msg.item;

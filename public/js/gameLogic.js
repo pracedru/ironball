@@ -96,7 +96,7 @@ var PickupItemType = {
   KickUpgrade: 5,
   IntelligenceUpgrade: 6,
   EnduranceUpgrade: 7,
-  HealtUpgrade: 8
+  HealthUpgrade: 8
 };
 
 var pickupItemCounter = 0;
@@ -111,7 +111,7 @@ function PickupItem(position, type){
 		case PickupItemType.Credit:
 			this.size = {x: 30, y: 30};				
 			break;
-		case PickupItemType.HealtUpgrade:
+		case PickupItemType.HealthUpgrade:
 			this.size = {x: 45, y: 35};				
 			break;		
 	}
@@ -328,12 +328,17 @@ function GameLogics(){
 			var dist = player.dist(pickupItem.pos);					
 			if (dist<player.reach*1.5){
 				pickedItems.push(pickupItem);
-				var takeMsg = { 
-					t: MsgTypes.PickupItemTaken,
-					item: pickupItem
-				}				
+				var takeMsg = this.getPlayerTeamAndIndex(player);				 
+				takeMsg.t = MsgTypes.PickupItemTaken;
+				takeMsg.item = pickupItem;
+				
 				this.eventCallBack(takeMsg);
-				player.pickupItems.push(pickupItem);
+				if (pickupItem.type == PickupItemType.HealtUpgrade){
+					player.health = Math.min(player.health + 20, 100);
+				} else {
+					player.pickupItems.push(pickupItem);
+				}
+				
 			}					
 		}
 		for (j in pickedItems){	
