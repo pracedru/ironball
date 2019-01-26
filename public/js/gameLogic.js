@@ -326,7 +326,7 @@ function GameLogics(){
 		for (j in this.pickupItems){											
 			var pickupItem = this.pickupItems[j];
 			var dist = player.dist(pickupItem.pos);					
-			if (dist<player.reach){
+			if (dist<player.reach*1.5){
 				pickedItems.push(pickupItem);
 				var takeMsg = { 
 					t: MsgTypes.PickupItemTaken,

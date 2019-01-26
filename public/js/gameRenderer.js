@@ -167,7 +167,7 @@ gameRenderer.initAV = () => {
   gameRenderer.whoshAudio = new GameAudio("snd/whosh.wav", false);
   gameRenderer.crowdAudio = new GameAudio("snd/crowd.wav", true);
   gameRenderer.beepAudio = new GameAudio("snd/beep.wav", false);
-  gameRenderer.scoreAudio = new GameAudio("snd/score.wav", false, 3);
+  gameRenderer.scoreAudio = new GameAudio("snd/score.wav", false, 1);
   gameRenderer.getReadyAudio = new GameAudio("snd/getReady.wav", false);
   gameRenderer.goAudio = new GameAudio("snd/go.wav", false);
 
@@ -179,14 +179,14 @@ gameRenderer.initAV = () => {
   if (pickupItemSounds.length == 0){
   	pickupItemSounds = [
 			new GameAudio("snd/coinsPickup.wav", false),
-			new GameAudio("snd/pickup.wav", false), 
-			new GameAudio("snd/pickup.wav", false),
-			new GameAudio("snd/pickup.wav", false),
-			new GameAudio("snd/pickup.wav", false)	,
-			new GameAudio("snd/pickup.wav", false),
-			new GameAudio("snd/pickup.wav", false),
-			new GameAudio("snd/pickup.wav", false),
-			new GameAudio("snd/medkitPickup.wav", false)
+			new GameAudio("snd/pickupUpgrade.wav", false, 0.5), 
+			new GameAudio("snd/pickupUpgrade.wav", false, 0.5),
+			new GameAudio("snd/pickupUpgrade.wav", false, 0.5),
+			new GameAudio("snd/pickupUpgrade.wav", false, 0.5),
+			new GameAudio("snd/pickupUpgrade.wav", false, 0.5),
+			new GameAudio("snd/pickupUpgrade.wav", false, 0.5),
+			new GameAudio("snd/pickupUpgrade.wav", false, 0.5),
+			new GameAudio("snd/medkitPickup.wav", false, 0.5)
 		];
   }
   
@@ -780,6 +780,11 @@ gameRenderer.setRenderer = () => {
       case MsgTypes.PickupItemTaken:
       	var pickupItem = gameRenderer.removePickupItem(msg.item.id);
       	pickupItemSounds[msg.item.type].play();
+      	break;
+      case MsgTypes.SpawnPickupItem:
+      	var item = msg.item;
+      	item.image = pickupItemImages[item.type];
+      	gameRenderer.pickupItems.push(item);
       	break;
       default:
         console.log(evt.data);

@@ -7,6 +7,9 @@ var MsgTypes = gl.MsgTypes;
 
 exports.Arena = function(id) {
   this.id = id;
+  this.nextSpawnTime = Date.now() + 10000;
+  this.maxSpawnTime = 10;
+  this.minSpawnTime = 5;
   this.team1Socket = null;
   this.team2Socket = null;
   this.playAgainstAI = false;
@@ -19,28 +22,7 @@ exports.Arena = function(id) {
   this.gameLogic.team1AI = new ai.TeamAI(this.gameLogic, this.gameLogic.team1, this);
   this.gameLogic.team2AI = new ai.TeamAI(this.gameLogic, this.gameLogic.team2, this);
   
-  var creditItem = new gl.PickupItem({x: 200, y: 100}, gl.PickupItemType.Credit);
-  var medKitItem = new gl.PickupItem({x: 150, y: 100}, gl.PickupItemType.HealtUpgrade);
-  var kickUpgradeItem = new gl.PickupItem({x: 100, y: 100}, gl.PickupItemType.KickUpgrade);
-	var speedUpgradeItem = new gl.PickupItem({x: 50, y: 100}, gl.PickupItemType.SpeedUpgrade);
-	var intelligenceUpgradeItem = new gl.PickupItem({x: 0, y: 100}, gl.PickupItemType.IntelligenceUpgrade);
-	var throwUpgradeItem = new gl.PickupItem({x: -50, y: 100}, gl.PickupItemType.ThrowUpgrade);
-	var stamminaUpgradeItem = new gl.PickupItem({x: -100, y: 100}, gl.PickupItemType.StamminaUpgrade);
-	var accelerationUpgrade = new gl.PickupItem({x: -150, y: 100}, gl.PickupItemType.AccelerationUpgrade);
-	var enduranceUpgrade = new gl.PickupItem({x: -200, y: 100}, gl.PickupItemType.EnduranceUpgrade);
-  this.gameLogic.pickupItems.push(creditItem);
-  this.gameLogic.pickupItems.push(medKitItem);
-  this.gameLogic.pickupItems.push(speedUpgradeItem);
-  this.gameLogic.pickupItems.push(intelligenceUpgradeItem);
-  this.gameLogic.pickupItems.push(throwUpgradeItem);
-  this.gameLogic.pickupItems.push(stamminaUpgradeItem);
-  this.gameLogic.pickupItems.push(accelerationUpgrade);
-  this.gameLogic.pickupItems.push(enduranceUpgrade);
-  this.gameLogic.pickupItems.push(kickUpgradeItem);
-  
   this.gameLogic.eventCallBack = function (msg) {
-    // var data = JSON.stringify(msg);
-    // console.log(data);
     try{
       this.arena.sendPlayerUpdate(msg);
       if (msg.t === MsgTypes.ChangeGameState && msg.state === gl.GameStates.GetReady){
@@ -299,6 +281,23 @@ exports.Arena = function(id) {
     this.gameLogic.team1AI.update();
     this.gameLogic.team2AI.update();
     this.gameLogic.update();
+    
+
+  	var spawnProp = (Date.now() - this.lastPickupItemSpawnTimeStamp) / this.spawnTimeThresshold;
+  	if (this.gameLogic.currentTimeStamp>this.nextSpawnTime){  	
+  		var type = Math.round(Math.random()*(Object.keys(gl.PickupItemType).length-1));
+  		var pos = randomArenaPosition();
+  		var pickupItem = new gl.PickupItem(pos, type);
+  		var spawnMsg = {
+  			t: MsgTypes.SpawnPickupItem,
+  			item: pickupItem
+  		}
+  		this.sendPlayerUpdate(spawnMsg);
+  		this.gameLogic.pickupItems.push(pickupItem);
+  		
+  		var dt = this.maxSpawnTime-this.minSpawnTime;
+  		this.nextSpawnTime = Date.now() + randomRangedSigned(dt*500) + (this.minSpawnTime+dt/2)*1000;  		
+  	}
 
     if (!this.recycled){
       setTimeout(this.update, 50, 'update');
@@ -307,6 +306,19 @@ exports.Arena = function(id) {
   setTimeout(this.update, 50, 'update');
 	console.log("Arena created " + this.id); 
 };
+
+function randomRangedSigned(range){
+	var sign = Math.random()<0.5 ? -1 : 1;
+	return Math.random()*range*sign;
+}
+
+function randomArenaPosition(){
+	var pos = {
+		x: randomRangedSigned(400), 
+		y: randomRangedSigned(800)
+	}
+	return pos;
+}
 
 exports.getArena = function(id) {
   if (id in arenas){
