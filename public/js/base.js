@@ -1,6 +1,7 @@
 /* global aCtx, ctx, scale, canvas */
 
 isClient = true;
+hasTabbed = false;
 
 var Base = {};
 Base.renderText = (txt, loc, size = 30, fill = "#000", stroke = null, strokeWidth = scale, font = "sans") => {
@@ -13,7 +14,7 @@ Base.renderText = (txt, loc, size = 30, fill = "#000", stroke = null, strokeWidt
     ctx.strokeStyle = stroke;
     ctx.strokeText(txt,loc.x,loc.y);
   }
-};
+}
 var audioBuffers = {};
 
 function GameAudio(path, loop = false, volume = 1){
@@ -98,10 +99,15 @@ var Control = function(loc, size){
     if (this.inside(loc)){
       if (this.pressed === false){
         this.pressed = true;
-        if (this.pressAudio) this.pressAudio.play();
-        if (navigator.vibrate){            
-          navigator.vibrate(25);            
+        if (hasTabbed){
+		      if (this.pressAudio) this.pressAudio.play();
+		      if (navigator.vibrate){            
+		        navigator.vibrate(25);            
+		      }
+        } else {
+        	hasTabbed = true;
         }
+        
       }
     } else {
       if (this.pressed === true){

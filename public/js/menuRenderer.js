@@ -538,11 +538,11 @@ var menuRenderer = {
   connectTournament: (id, destinationMenu) => {
     localStorage.setItem("playerCount", 0);
     localStorage.setItem("poolSize", 4);
-    menuRenderer.tournament.ws = new WebSocket("ws://" + location.host);
+    menuRenderer.tournament.ws = new WebSocket("wss://" + location.host);
     menuRenderer.tournament.ws.onopen = function()
     {
       var msg = {
-        type: "tournamentConnection", 
+        t: MsgTypes.TournamentConnection, 
         teamName: localStorage.teamName,
         tournamentID: id
       };

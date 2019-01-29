@@ -576,7 +576,7 @@ gameRenderer.setRenderer = () => {
   gameRenderer.beepAudio.play(0);  
   currentRenderer = gameRenderer;
     
-  gameRenderer.ws = new WebSocket("ws://" + location.host);  
+  gameRenderer.ws = new WebSocket("wss://" + location.host);  
   gameRenderer.ws.onopen = function()
   {
     var msg = {
@@ -930,7 +930,7 @@ gameRenderer.animPlayers = (camposx, camposy) => {
   }
 };
 gameRenderer.animPlayer = (camposx, camposy, player) => {
-  var plrw = canvas.width/5;
+  var plrw = canvas.width/6;
   var plrh = plrw;
   var pxpos = player.pos.x + canvas.width/2 - camposx;
   var pypos = -player.pos.y + canvas.height/2 + camposy;
@@ -1006,7 +1006,7 @@ gameRenderer.renderItem = (item, camposx, camposy) => {
 
 gameRenderer.renderBall = (camposx, camposy) => {
   if (gameRenderer.ballHandler === null){
-    var ballsz = canvas.width/40*(1+gameRenderer.ballpos.z*1.5); 
+    var ballsz = canvas.width/50*(1+gameRenderer.ballpos.z*1.5); 
     var pxpos = gameRenderer.ballpos.x + canvas.width/2 - camposx - ballsz;
     var pypos = -gameRenderer.ballpos.y + canvas.height/2 + camposy - ballsz;
 

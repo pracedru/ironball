@@ -30,6 +30,8 @@ var nameAdjectives = [
   "Pretty",
   "Frail", 
   "Lovely",
+  "Fickle",
+  "Smooth",
   ""
 ];
 
@@ -56,7 +58,11 @@ var nameNouns = [
   "Bubbles",
   "Sweeties",  
   "Pearls",
-  "Darlings"
+  "Darlings",
+  "Snowflakes",
+  "Tenderness",
+  "Softness",
+  "Pretties"
 ];
 
 
