@@ -6,14 +6,12 @@ var bodyParser = require('body-parser');
 var useTLSEncryption = true;
 var port = 8888;
 var app = express();
-/*var server = app.listen(8888, function () {
-  console.log('Ironball listening on port 8888!');
-});*/
+
 if (useTLSEncryption){
 	var https = require('https');
 	var fs = require('fs');
 	var key = fs.readFileSync('tls/privkey.pem');
-	var cert = fs.readFileSync( 'tls/cert.pem' );
+	var cert = fs.readFileSync( 'tls/fullchain.pem' );
 	var options = {
 		key: key,
 		cert: cert

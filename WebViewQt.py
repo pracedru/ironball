@@ -11,7 +11,7 @@ app = QApplication(sys.argv)
 class WebView(QWebEngineView):
 	def __init__(self, parent):
 		QWebEngineView.__init__(self, parent)
-		self.load(QUrl("http://www.pracedru.dk:8889"))
+		self.load(QUrl("https://www.pracedru.dk:8889"))
 
 
 class MainWindow(QWidget):
