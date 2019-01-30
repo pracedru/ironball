@@ -3,11 +3,16 @@ var isClient = !isServer;
 var scale = isClient ? scale : 1;
 
 if (isServer){
+	var misc = require('./misc.js');
 	var Player = require('./player.js').Player;
+	var b2k = misc.b2k;
+	var k2b = misc.k2b;
+	var Vertex3 = misc.Vertex3;
+	var Vertex2 = misc.Vertex2;
 }
 
 var places = [
-  {x: 0, y: -760},			//0 goalee
+  {x: 0, y: -760},		//0 goalee
   {x: -260, y: -708},	//1
   {x: 260, y: -708},	//2
   {x: -140, y: -628},	//3
@@ -59,37 +64,7 @@ var MsgTypes = {
 	PickupItemTaken: 19
 }
 
-function reducePrecision(num){
-	return Math.round(num * 100) / 100;
-}
 
-function rdz(pos){
-	if (typeof pos == "number") return reducePrecision(pos);
-	var newPos = {
-		x: reducePrecision(pos.x),
-		y: reducePrecision(pos.y)
-	}
-	if ("z" in pos){
-		newPos.z = reducePrecision(pos.z);
-	}
-	return newPos;
-}
-
-
-function k2b(dk){
-	return (dk['a'] << 0) + (dk['s'] << 1) + (dk['d'] << 2) + (dk['w'] << 3) + (dk[' '] << 4);
-}
-
-function b2k(bk){
-	var downKeys = {
-		a: (bk & 0b1)>0, 
-		s: (bk & 0b10)>0, 
-		d: (bk & 0b100)>0, 
-		w: (bk & 0b1000)>0, 
-		' ': (bk & 0b10000)>0
-	}
-	return downKeys;
-}
 
 var PickupItemType = {
   Credit: 0,  
@@ -140,9 +115,9 @@ var GameStates = {
 
 function GameLogics(){
   this.lastTouch = {x: 0, y: 0};
-  this.ballpos = {x: 0.0, y: 0.0, z: 0};
-  this.ballposResidual = {x: 0.0, y: 0.0, z: 0};
-  this.ballSpeed = {x: 0.0, y: 0.0, z: 0.0};
+  this.ballpos = new Vertex3(0,0,0);// {x: 0.0, y: 0.0, z: 0};
+  this.ballposResidual = new Vertex3(0,0,0); // {x: 0.0, y: 0.0, z: 0};
+  this.ballSpeed = new Vertex3(0,0,0); //{x: 0.0, y: 0.0, z: 0.0};
   this.ballHandler = null;
   this.pickupItems = [];
   this.lastTimeStamp = 0;
@@ -161,19 +136,19 @@ function GameLogics(){
     this.team2 = [];
     this.teamName1 = "Team 1";
     this.teamName2 = "Team 2";
-    var defaultFormation = defaultPositions['Balanced']; //team.formations[team.defaultFormation];
+    var defaultFormation = defaultPositions['Balanced']; 
     for (var i = 0; i < 8; i++){
-    	
-      var pos = {
-        x: places[defaultFormation[i]].x*scale,
-        y: places[defaultFormation[i]].y*scale
-      };
-      this.team1.push(new Player(pos, Math.PI/2));
-      pos = {
-        x: places[defaultFormation[i]].x*scale,
-        y: -places[defaultFormation[i]].y*scale
-      };
-      this.team2.push(new Player(pos, -Math.PI/2, 2));
+    	var placeIndex = defaultFormation[i];
+      var pos = new Vertex2(places[placeIndex].x*scale, places[placeIndex].y*scale);      
+      var newYellowPlayer = new Player(pos, Math.PI/2)
+      newYellowPlayer.isGoalee = (placeIndex === 0);
+      newYellowPlayer.maxTravelDist = placeIndex === 0 ? 80 : 300;
+      this.team1.push(newYellowPlayer);
+      pos = new Vertex2(places[placeIndex].x*scale, -places[placeIndex].y*scale);      
+      var newBluePlayer = new Player(pos, -Math.PI/2, 2)
+      newBluePlayer.isGoalee = (placeIndex === 0);
+      newBluePlayer.maxTravelDist = placeIndex === 0 ? 80 : 300;
+      this.team2.push(newBluePlayer);
     }
     
     this.lastTimeStamp = Date.now();
@@ -393,21 +368,21 @@ function GameLogics(){
   this.playerPositionSync = (player) =>{
     var msg = this.getPlayerTeamAndIndex(player);
     msg.t = MsgTypes.PlayerPositionSync;
-    msg.pos = rdz(player.pos);
+    msg.pos = player.pos.round(2);
     this.eventCallBack(msg);
   };
   this.ballHandlerChanged = (player) =>{
     this.ballHandler = player;
     var msg = this.getPlayerTeamAndIndex(player);
     msg.t = MsgTypes.BallHandlerChanged;
-    msg.pos = player.pos;
+    msg.pos = player.pos.round(2);
     this.eventCallBack(msg);
   };
   this.playerMelee = (player, otherPlayer) => {
     var msg = this.getPlayerTeamAndIndex(player);
     msg.op = this.getPlayerTeamAndIndex(otherPlayer);
     msg.t = MsgTypes.PlayerMelee;
-    msg.op.pos = rdz(otherPlayer.pos);
+    msg.op.pos = otherPlayer.pos.round(2);
     this.eventCallBack(msg);
   };
   this.playerHealthChange = (player, value) => {
@@ -427,8 +402,8 @@ function GameLogics(){
     this.ballSpeed.z = player.throwSpeed/2;
     var msg = {
       t: MsgTypes.BallThrown,
-      bp: this.ballpos,
-      bspd: this.ballSpeed
+      bp: this.ballpos.round(2),
+      bspd: this.ballSpeed.round(2)
     };
     this.eventCallBack(msg);
   };
@@ -614,7 +589,7 @@ function GameLogics(){
       player.pos.y += Math.sin(angle)*overlap;
       player.collisions.push(otherPlayer);
     }
-    if (dist < mindist*2){
+    if (dist < mindist*3){
       player.proximity.push(otherPlayer);
     }
   };
@@ -692,7 +667,7 @@ function GameLogics(){
               team = (this.round%2) === 1 ?  2 : 1;
             }
             this.scored(team);
-            return;
+            //return;
           } else {
             console.log(this.ballpos);
           }
@@ -724,8 +699,8 @@ function GameLogics(){
         if (this.currentTimeStamp - this.ballSyncTime > 1000){
           this.eventCallBack({
           	t: MsgTypes.BallSync, 
-          	pos: rdz(this.ballpos), 
-          	spd: rdz(this.ballSpeed)
+          	pos: this.ballpos.round(2), 
+          	spd: this.ballSpeed.round(2)
         	});
           this.ballSyncTime = this.currentTimeStamp;
         }
@@ -740,11 +715,8 @@ function GameLogics(){
 if (isServer){
   exports.GameLogics = GameLogics;
   exports.GameStates = GameStates;
-  exports.b2k = b2k;
-  exports.k2b = k2b;
   exports.places = places;
   exports.PickupItemType = PickupItemType;
   exports.PickupItem = PickupItem;
-  exports.rdz = rdz;
   exports.MsgTypes = MsgTypes;
 }

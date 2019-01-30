@@ -1,14 +1,21 @@
 var isServer = typeof isClient !== "undefined" ? !isClient : true;
 var isClient = !isServer;
 
+if (isServer){
+	var misc = require('./misc.js');
+	var Vertex2 = misc.Vertex2;
+	var Vertex3 = misc.Vertex3;
+}
+
 function Player(defaultPosition = {x: 0.0, y: 0.0}, defaultDir = Math.PI/2, team = 1){
   this.defaultPosition = defaultPosition;
-  this.pos = {x: defaultPosition.x, y: defaultPosition.y};
-  this.posResidual = {x: 0.0, y: 0.0};
+  this.pos = new Vertex2(defaultPosition.x, defaultPosition.y);
+  this.posResidual = new Vertex2(0, 0);
+	this.isGoalee = false;
   this.dir = 0.0;
   this.defaultDir = defaultDir;
   this.targetDir = this.defaultDir;
-  this.targetPosition = {x: defaultPosition.x, y: defaultPosition.y};
+  this.targetPosition = new Vertex2(defaultPosition.x, defaultPosition.y);
   this.speed = 0;
   this.maxSpeed = 2.5;
   this.throwSpeed = 5;
@@ -71,9 +78,12 @@ function Player(defaultPosition = {x: 0.0, y: 0.0}, defaultDir = Math.PI/2, team
   };
   this.sync = (playerData) => {
     this.defaultDir = playerData.defaultDir;
-    this.defaultPosition = playerData.defaultPosition;
-    this.targetPosition = playerData.targetPosition;
-    this.pos = playerData.pos;
+    this.defaultPosition.x = playerData.defaultPosition.x;
+    this.defaultPosition.y = playerData.defaultPosition.y;
+    this.targetPosition.x = playerData.targetPosition.x;
+    this.targetPosition.y = playerData.targetPosition.y;
+    this.pos.x = playerData.pos.x;
+    this.pos.y = playerData.pos.y;
     this.dir = playerData.dir;
     this.health = playerData.health;
     this.speed = playerData.speed;

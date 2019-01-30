@@ -1,7 +1,9 @@
 var gl = require('./public/js/gameLogic.js');
-/* global GameStates */
-var rdz = gl.rdz;
+var misc = require('./public/js/misc.js');
+
+var rdz = misc.reducePrecision;
 var MsgTypes = gl.MsgTypes;
+var Vector = misc.Vector;
 
 function downKeysFromDirection(dx, dy){
   var downKeys = {a: false, s: false, d: false, w: false, ' ': false};
@@ -23,25 +25,7 @@ function downKeysFromDirection(dx, dy){
   return downKeys;
 }
 
-var Vector = function(position, direction) {
-  this.pos = position;
-  this.dir = direction;    
-  this.intersects = (otherVector) => {
-    var ax = this.pos.x;
-    var ay = this.pos.y;
-    var bx = this.dir.x;
-    var by = this.dir.y;
-    var cx = otherVector.pos.x;
-    var cy = otherVector.pos.y;
-    var dx = otherVector.dir.x;
-    var dy = otherVector.dir.y;     
-    var num = ((cy - ay) * bx - (cx - ax) * by);
-    var den = (dx * by - dy * bx);        
-    if (den === 0) return null;
-    var M = num / den;
-    return {x: cx + dx*M, y: cy + dy*M}; 
-  };
-};
+
 
 exports.TeamAI = function(gameLogic, team, arena) {
 	this.currentTimeStamp = Date.now();
@@ -51,7 +35,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
   this.preGameReady = false;
   this.playersReady = false;
   this.aiOnly = true;
-  this.correctionNeededThresshold = 2;
+  this.correctionNeededThresshold = 1;
   this.update = () => {
   	this.currentTimeStamp = Date.now();
   	var teamNo = this.gameLogic.team1 === this.team ? 1 : 2;
@@ -143,13 +127,13 @@ exports.TeamAI = function(gameLogic, team, arena) {
               player.targetPosition.x = this.gameLogic.ballpos.x;
               player.targetPosition.y = this.gameLogic.ballpos.y;
             } else {
-              if (i !== 7){
+              if (!player.isGoalee){
                 player.targetPosition.x = player.defaultPosition.x;
                 player.targetPosition.y = player.defaultPosition.y;
               } else {
                 var otherDist = player.dist(this.gameLogic.ballHandler.pos);
                 var pivot = {x: 0, y: 0};
-                pivot.y = player.defaultPosition.y*1.1;
+                pivot.y = player.defaultPosition.y*1.3;
                 var dx = this.gameLogic.ballHandler.pos.x - pivot.x;
                 var dy = this.gameLogic.ballHandler.pos.y - pivot.y;
                 var v2 = new Vector(pivot, {x: dx, y: dy});
@@ -160,6 +144,9 @@ exports.TeamAI = function(gameLogic, team, arena) {
                   if (true){//(dist<otherDist){
                     player.targetPosition.x = p.x;
                     player.targetPosition.y = p.y;
+                    if (Math.abs(this.gameLogic.ballHandler.pos.x)<100){
+	                    player.targetPosition.x = this.gameLogic.ballHandler.pos.x
+                    }
                   }
                 }
               }
@@ -185,7 +172,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
           var p = v1.intersects(v2);
           if (p !== null){
             var dist = player.dist(p);          
-            if (dist<player.maxTravelDist && dist > 50){
+            if (dist<player.maxTravelDist){
               player.targetPosition.x = p.x;
               player.targetPosition.y = p.y;
             }
@@ -211,8 +198,8 @@ exports.TeamAI = function(gameLogic, team, arena) {
       	
         var msg = {};
         var downKeys = {a: false, s: false, d: false, w: false, ' ': false};
-		    msg.pos = rdz(player.pos);
-        msg.dir = rdz(player.dir);
+		    msg.pos = player.pos.round(2);
+        msg.dir = rdz(player.dir, 2);
         if (player.dist(player.targetPosition)>player.reach){
           var dx = player.targetPosition.x - player.pos.x;
           var dy = player.targetPosition.y - player.pos.y;
@@ -223,22 +210,20 @@ exports.TeamAI = function(gameLogic, team, arena) {
           }
           player.pos.x = player.targetPosition.x;
           player.pos.y = player.targetPosition.y;
-          msg.pos = rdz(player.targetPosition);
-          msg.tdir = rdz(player.defaultDir);
-          player.targetDir = rdz(player.defaultDir);
+          msg.pos = player.targetPosition.round(2);
+          msg.tdir = rdz(player.defaultDir, 2);
+          player.targetDir = rdz(player.defaultDir, 2);
         }
 
         msg.t = MsgTypes.PlayerInputUpdate;
         msg.pi = i;
         msg.tm = this.gameLogic.team1 === this.team ? 1 : 2;
         if (player.health > 0){
-        	//console.log("this.currentTimeStamp " + this.currentTimeStamp);
-        	//console.log("player.lastDecisionTimeStamp " + player.lastDecisionTimeStamp);
+
         	var decisionTime = this.currentTimeStamp - player.lastDecisionTimeStamp;
         	var decisionSpeed = (100 - player.intelligence)*10;
         	var inputChanged = [false, downKeys]
-        	//console.log("decisionTime " + decisionTime);
-        	//console.log("decisionSpeed " + decisionSpeed);
+
         	if (decisionTime>decisionSpeed || this.gameLogic.state === gl.GameStates.PreGame || this.gameLogic.state === gl.GameStates.GetReady){
 
         		if (player.evaluation && this.gameLogic.state === gl.GameStates.Playing){
@@ -250,8 +235,8 @@ exports.TeamAI = function(gameLogic, team, arena) {
 		          }
 		        }
 		        
-		        inputChanged = this.gameLogic.updatePlayerInput(player, gl.k2b(downKeys));
-		        downKeys = gl.b2k(inputChanged[1]);
+		        inputChanged = this.gameLogic.updatePlayerInput(player, misc.k2b(downKeys));
+		        downKeys = misc.b2k(inputChanged[1]);
 		        if (player.evaluation && this.gameLogic.state === gl.GameStates.Playing){
 		          if (player.evaluation.close){
 		          	if (!downKeys[' ']){ 
@@ -263,7 +248,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
         	}
 					if (inputChanged[0]) player.lastDecisionTimeStamp = this.currentTimeStamp;					          
           if (inputChanged[0] || correctionNeeded){          
-          	msg.bk = gl.k2b(downKeys);
+          	msg.bk = misc.k2b(downKeys);
             this.arena.sendPlayerUpdate(msg); 
           } else {          
           }          

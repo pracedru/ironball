@@ -1,8 +1,10 @@
 var gl = require('./public/js/gameLogic.js');
 var ai = require("./artificialIntelligence.js");
+var misc = require('./public/js/misc.js');
+
+var rdz = misc.reducePrecision;
 var arenas = {};
 
-var rdz = gl.rdz;
 var MsgTypes = gl.MsgTypes;
 
 exports.Arena = function(id) {
@@ -154,8 +156,8 @@ exports.Arena = function(id) {
           if (player===undefined){
             console.log(msg.pi);
           }
-          msg.pos = rdz(player.pos);
-          msg.dir = rdz(player.dir);
+          msg.pos = player.pos.round(2);
+          msg.dir = rdz(player.dir, 2);
           this.sendPlayerUpdate(msg);
         } 
         break;
@@ -178,8 +180,8 @@ exports.Arena = function(id) {
             var newmsg = {
             	bk: 0,
             	t: MsgTypes.PlayerInputUpdate,
-            	pos: rdz(player.pos),
-            	dir: rdz(player.dir),
+            	pos: player.pos.round(2),
+            	dir: rdz(player.dir, 2),
             	pi: i,
             	tm: teamNo
             }
@@ -191,8 +193,8 @@ exports.Arena = function(id) {
             var newmsg = {
             	bk: msg.bk,
             	t: MsgTypes.PlayerInputUpdate,
-            	pos: rdz(player.pos),
-            	dir: rdz(player.dir),
+            	pos: player.pos.round(2),
+            	dir: rdz(player.dir, 2),
             	pi: i,
             	tm: teamNo
             }                 
@@ -213,6 +215,8 @@ exports.Arena = function(id) {
       	if (teamNo == 2) direction *= -1;
       	for (var i = 0; i < team.length; i++){
           var player = team[i];
+          player.isGoalee = msg.frm[i] === 0;
+          player.maxTravelDist = msg.frm[i] === 0 ? 80 : 300;
           var place = gl.places[msg.frm[i]];
           if (player != null && place != null){
           	var pos = {
