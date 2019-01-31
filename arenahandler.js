@@ -216,7 +216,7 @@ exports.Arena = function(id) {
       	for (var i = 0; i < team.length; i++){
           var player = team[i];
           player.isGoalee = msg.frm[i] === 0;
-          player.maxTravelDist = msg.frm[i] === 0 ? 80 : 300;
+          player.maxTravelDist = msg.frm[i] === 0 ? 111 : 300;
           var place = gl.places[msg.frm[i]];
           if (player != null && place != null){
           	var pos = {

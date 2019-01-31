@@ -142,12 +142,12 @@ function GameLogics(){
       var pos = new Vertex2(places[placeIndex].x*scale, places[placeIndex].y*scale);      
       var newYellowPlayer = new Player(pos, Math.PI/2)
       newYellowPlayer.isGoalee = (placeIndex === 0);
-      newYellowPlayer.maxTravelDist = placeIndex === 0 ? 80 : 300;
+      newYellowPlayer.maxTravelDist = placeIndex === 0 ? 111 : 300;
       this.team1.push(newYellowPlayer);
       pos = new Vertex2(places[placeIndex].x*scale, -places[placeIndex].y*scale);      
       var newBluePlayer = new Player(pos, -Math.PI/2, 2)
       newBluePlayer.isGoalee = (placeIndex === 0);
-      newBluePlayer.maxTravelDist = placeIndex === 0 ? 80 : 300;
+      newBluePlayer.maxTravelDist = placeIndex === 0 ? 111 : 300;
       this.team2.push(newBluePlayer);
     }
     
@@ -217,7 +217,7 @@ function GameLogics(){
 				takeMsg.item = pickupItem;
 				
 				this.eventCallBack(takeMsg);
-				if (pickupItem.type == PickupItemType.HealtUpgrade){
+				if (pickupItem.type == PickupItemType.HealthUpgrade){
 					player.health = Math.min(player.health + 20, 100);
 				} else {
 					player.pickupItems.push(pickupItem);

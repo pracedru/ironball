@@ -14,7 +14,10 @@ function Vertex2(x, y){
 	this.dist = (other)=>{
     var dx = other.x-this.x;
     var dy = other.y-this.y;
-    return Math.sqrt(dx*dx+dy*dy);
+    return Math.sqrt(dx**2+dy**2);
+  }
+  this.magn = () => {
+  	return Math.sqrt(this.x**2+this.y**2);
   }
 }
 
@@ -33,6 +36,9 @@ function Vertex3(x, y, z){
     	dz = other.z-this.z;
     } 
     return Math.sqrt(dx**2+dy**2+dz**2);
+  }
+  this.magn = () => {
+  	return Math.sqrt(this.x**2+this.y**2+this.z**2);
   }
 }
 

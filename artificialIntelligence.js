@@ -90,7 +90,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
                 player.evaluation.close = true;
               }
               player.targetPosition.x = 0;
-              player.targetPosition.y = -dir*850;
+              player.targetPosition.y = -dir*835;
               if (Math.abs(player.targetPosition.y - player.pos.y) > 300){
               	if (player.pos.x >= 0 && player.pos.x < 80){
               		player.targetPosition.y = player.pos.y-dir*100;
@@ -133,7 +133,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
               } else {
                 var otherDist = player.dist(this.gameLogic.ballHandler.pos);
                 var pivot = {x: 0, y: 0};
-                pivot.y = player.defaultPosition.y*1.3;
+                pivot.y = player.defaultPosition.y*1.25;
                 var dx = this.gameLogic.ballHandler.pos.x - pivot.x;
                 var dy = this.gameLogic.ballHandler.pos.y - pivot.y;
                 var v2 = new Vector(pivot, {x: dx, y: dy});
@@ -177,16 +177,9 @@ exports.TeamAI = function(gameLogic, team, arena) {
               player.targetPosition.y = p.y;
             }
           }
-        }
-        var player = this.team[7];
-        var v1 = new Vector(player.pos, {x: 1, y: 0});
-        var v2 = new Vector(this.gameLogic.ballpos, this.gameLogic.ballSpeed);
-        var p = v1.intersects(v2);
-        if (p !== null){
-          var dist = player.dist(p);          
-          if (dist<200){
-            player.targetPosition.x = p.x;
-            player.targetPosition.y = p.y;
+          if (this.gameLogic.ballSpeed.magn() < 3 && this.gameLogic.ballpos.dist(player.pos)<player.maxTravelDist){
+          	player.targetPosition.x = this.gameLogic.ballpos.x;
+            player.targetPosition.y = this.gameLogic.ballpos.y;
           }
         }
       }
