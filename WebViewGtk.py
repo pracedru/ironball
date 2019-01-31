@@ -14,7 +14,7 @@ webview = WebKit2.WebView()
 webview.connect("load-failed", on_load_failed)
 window.add(webview)
 
-#webview.load_uri("http://www.pracedru.dk:8889/index.html")
+#webview.load_uri("https://www.pracedru.dk:8889/index.html")
 webview.load_uri("https://www.w3schools.com/html/html5_canvas.asp")
 
 
