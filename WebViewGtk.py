@@ -17,9 +17,6 @@ window.add(webview)
 #webview.load_uri("https://www.pracedru.dk:8889/index.html")
 webview.load_uri("https://www.w3schools.com/html/html5_canvas.asp")
 
-
-
-
 window.show_all()
 Gtk.main()
 
