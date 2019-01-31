@@ -11,7 +11,7 @@ app = QApplication(sys.argv)
 class WebView(QWebEngineView):
 	def __init__(self, parent):
 		QWebEngineView.__init__(self, parent)
-		self.load(QUrl("https://www.pracedru.dk:8889"))
+		self.load(QUrl("https://www.pracedru.dk:8888"))
 
 
 class MainWindow(QWidget):
@@ -38,6 +38,8 @@ class MainWindow(QWidget):
 
 
 mw = MainWindow()
+
 mw.showFullScreen()				# fullscreen On phone
 #mw.show()								# windowed On desktop
+
 app.exec_()
