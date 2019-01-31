@@ -38,6 +38,6 @@ class MainWindow(QWidget):
 
 
 mw = MainWindow()
-#mw.showFullScreen()		# fullscreen On phone
-mw.show()								# windowed On desktop
+mw.showFullScreen()				# fullscreen On phone
+#mw.show()								# windowed On desktop
 app.exec_()
