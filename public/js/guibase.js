@@ -3,6 +3,17 @@
 isClient = true;
 hasTabbed = false;
 
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js').then(function(reg){
+    console.log("Service worker registered.");
+  }).catch(function(err) {
+    console.log("Service worker not registered. This happened: ", err)
+  });
+}
+
+
+
 var Base = {};
 Base.renderText = (txt, loc, size = 30, fill = "#000", stroke = null, strokeWidth = scale, font = "sans") => {
   ctx.textAlign = "center";

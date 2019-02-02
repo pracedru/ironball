@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import *
 
 app = QApplication(sys.argv)
 
+
 class WebView(QWebEngineView):
 	def __init__(self, parent):
 		QWebEngineView.__init__(self, parent)
@@ -38,7 +39,6 @@ class MainWindow(QWidget):
 
 
 mw = MainWindow()
-
 mw.showFullScreen()				# fullscreen On phone
 #mw.show()								# windowed On desktop
 
