@@ -132,6 +132,7 @@ gameRenderer.initAV = () => {
   gameRenderer.arenaMenuPos = {x: 1, y: 0};
   gameRenderer.arenaMenuSpeed = {x: 0, y: 0};
   gameRenderer.arenaMenuState = 0;
+  gameRenderer.handsOff = false;
   gameRenderer.lastLoc = {x:0, y:0};
   gameRenderer.downKeys = {};
   gameRenderer.downKeys['w'] = false;
@@ -348,14 +349,12 @@ gameRenderer.render = () => {
     gameRenderer.renderBall(gameRenderer.camera.pos.x, gameRenderer.camera.pos.y);
 
     btnSize = Math.min(canvas.width, canvas.height)/2;
-    if (gameRenderer.clientType !== ClientType.Spectator){
+    if (gameRenderer.clientType !== ClientType.Spectator && !gameRenderer.handsOff){
       ctx.drawImage(gameRenderer.dir, 0, canvas.height-btnSize, btnSize, btnSize);
       ctx.drawImage(gameRenderer.btn, canvas.width -btnSize, canvas.height-btnSize, btnSize, btnSize);
     }    
     gameRenderer.renderTexts();
-    if (gameRenderer.state === GameStates.Playing && gameRenderer.playerIndex !== -1){
-      gameRenderer.renderPointer(gameRenderer.camera.pos.x, gameRenderer.camera.pos.y, cyoffset);
-    }
+    
     animations["getReady"].render();
     if (gameRenderer.state === GameStates.PreGame && !gameRenderer.playAgainstAI){
       //gameRenderer.arenaIDTextBox.render();
@@ -384,7 +383,7 @@ gameRenderer.render = () => {
 	}
 	gameRenderer.arenaMenuSpeed.x *= 0.8;
 
-	if (gameRenderer.playerIndex!=-1){
+	if (gameRenderer.playerIndex!=-1 && !gameRenderer.handsOff){
 		var selectedPlayer = gameRenderer.getTeam()[gameRenderer.playerIndex];
 		var selectItem = {
 			pos: {
@@ -398,6 +397,9 @@ gameRenderer.render = () => {
 			}
 		}
 		gameRenderer.renderItem(selectItem, gameRenderer.camera.pos.x, gameRenderer.camera.pos.y);
+		if (gameRenderer.state === GameStates.Playing){
+      gameRenderer.renderPointer(gameRenderer.camera.pos.x, gameRenderer.camera.pos.y, cyoffset);
+    }
 	}
 	
 }
@@ -556,6 +558,8 @@ gameRenderer.keyUp = (e)=>{
 gameRenderer.setRenderer = () => {
   history.pushState({state: "gameRenderer"}, "game", "index.html");
   gameRenderer.playAgainstAI = false;
+  gameRenderer.playerIndex = -1;
+  gameRenderer.ballHandler = null;
   if (currentRenderer !== undefined){
     currentRenderer.unsetRenderer();
   }
@@ -582,7 +586,8 @@ gameRenderer.setRenderer = () => {
     var msg = {
       t: MsgTypes.ArenaConnection, 
       tm: JSON.stringify(team),
-      arenaID: gameRenderer.arenaID
+      arenaID: gameRenderer.arenaID,
+      handsOff: gameRenderer.handsOff
     };
     gameRenderer.ws.send(JSON.stringify(msg));
     console.log("Connection request is sent...");
@@ -733,7 +738,8 @@ gameRenderer.setRenderer = () => {
       	}
         gameRenderer.setState(msg.state);
         break;
-      case MsgTypes.BallThrown:        
+      case MsgTypes.BallThrown:      
+      	console.log("BallThrown"); 
         gameRenderer.ballHandler = null;
         gameRenderer.ballSpeed = msg.bspd;
         gameRenderer.ballpos.x = msg.bp.x*scale;  
@@ -1006,7 +1012,7 @@ gameRenderer.renderItem = (item, camposx, camposy) => {
 
 gameRenderer.renderBall = (camposx, camposy) => {
   if (gameRenderer.ballHandler === null){
-    var ballsz = canvas.width/50*(1+gameRenderer.ballpos.z*1.5); 
+    var ballsz = canvas.width/50*(1+gameRenderer.ballpos.z*0.5); 
     var pxpos = gameRenderer.ballpos.x + canvas.width/2 - camposx - ballsz;
     var pypos = -gameRenderer.ballpos.y + canvas.height/2 + camposy - ballsz;
 

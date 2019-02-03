@@ -7,6 +7,7 @@ exports.Tournament = function(id) {
   this.arenas = [];
   this.poolSize = 2;
   tournaments[this.id] = this;
+  console.log("tournament created: " + id);
   this.checkRecycle = () => {
     if (this.participantSockets.length === 0){
       console.log("Tournament recycled");
@@ -14,7 +15,7 @@ exports.Tournament = function(id) {
       this.arenas = [];
       this.recycled = true;      
     }
-  };
+  }
   
   this.onParticipantMessage = (data) => { 
     var msg = JSON.parse(data); 
@@ -28,15 +29,15 @@ exports.Tournament = function(id) {
         }        
         break;
     }            
-  };
+  }
   
   this.getTournamentState = () => {
     return {
       id: this.id,
       playerCount: this.participantSockets.length,
       poolSize: this.poolSize
-    };
-  };
+    }
+  }
   
   this.addSocket = (webSocket, msg) => {    
     webSocket.tournament = this;
@@ -54,7 +55,7 @@ exports.Tournament = function(id) {
     tournamentState.type = "connected";
     webSocket.send(JSON.stringify(tournamentState));
     this.onTournamentStateChanged();
-  };
+  }
   
   this.onTournamentStateChanged = () => {
     var tournamentState = this.getTournamentState();
@@ -68,15 +69,15 @@ exports.Tournament = function(id) {
         
       }
     }    
-  };
+  }
   
   this.update = () => {    
     if (!this.recycled){
       setTimeout(this.update, 500, 'update');
     }
-  };
+  }
   setTimeout(this.update, 500, 'update');
-};
+}
 
 exports.getTournament = function(id) {
   if (id in tournaments){
@@ -84,4 +85,4 @@ exports.getTournament = function(id) {
   } else{
     return null;
   }
-};
+}

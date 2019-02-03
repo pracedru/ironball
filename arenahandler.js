@@ -9,7 +9,7 @@ var MsgTypes = gl.MsgTypes;
 
 exports.Arena = function(id) {
   this.id = id;
-  this.nextSpawnTime = Date.now() + 10000;
+  this.nextSpawnTime = Date.now() + 2000;
   this.maxSpawnTime = 10;
   this.minSpawnTime = 5;
   this.team1Socket = null;
@@ -44,6 +44,7 @@ exports.Arena = function(id) {
   };
   this.setSocket = (webSocket, msg) => {
   	//console.log(msg);
+  	
     if(this.team1Socket===null){
       this.setTeam1Socket(webSocket, msg);
     } else if(this.team2Socket===null){
@@ -87,11 +88,16 @@ exports.Arena = function(id) {
     });
     var team = JSON.parse(msg.tm);
     this.gameLogic.teamName1 = team.name;
+    this.handsOff = msg.handsOff;
     var gameState = this.getGameState();
     gameState.t = MsgTypes.Connected;
     gameState.ct = 1;        
-    webSocket.send(JSON.stringify(gameState));    
-    this.gameLogic.team1AI.aiOnly = false;
+    webSocket.send(JSON.stringify(gameState));   
+    if (this.handsOff) 
+    	this.gameLogic.team1AI.aiOnly = true;
+    else
+    	this.gameLogic.team1AI.aiOnly = false;
+    
     this.syncTeamNames();
   };
   this.setTeam2Socket = function(webSocket, msg){
@@ -107,11 +113,17 @@ exports.Arena = function(id) {
     });
     var team = JSON.parse(msg.tm);
     this.gameLogic.teamName2 = team.name;
+    //this.handsOff = msg.handsOff;
     var gameState = this.getGameState();
     gameState.t = MsgTypes.Connected;
     gameState.ct = 2;    
     webSocket.send(JSON.stringify(gameState));
-    this.gameLogic.team2AI.aiOnly = false;
+    
+    if (this.handsOff) 
+    	this.gameLogic.team1AI.aiOnly = true;
+    else
+    	this.gameLogic.team1AI.aiOnly = false;
+    
     this.syncTeamNames();
   }; 
   this.setSpectatorSocket = function(webSocket, msg){
@@ -133,9 +145,16 @@ exports.Arena = function(id) {
     var teamNo = 1;
     this.arena.onTeamMessage(teamNo, team, data);
   };
+  
   this.onTeam2Message = function(data){
     var team = this.arena.gameLogic.team2;
     var teamNo = 2;
+    this.arena.onTeamMessage(teamNo, team, data);
+  };
+
+	this.onSpectatorMessage = function(data){
+ 		var team = null;
+    var teamNo = 0;
     this.arena.onTeamMessage(teamNo, team, data);
   };
 
@@ -145,7 +164,8 @@ exports.Arena = function(id) {
     //console.log(msg); 
     if (msg.pi === -1) return;    
     switch (msg.t){
-      case MsgTypes.UserInputUpdate:      	
+      case MsgTypes.UserInputUpdate:  
+      	if (this.handsOff) break;    	
         if (this.gameLogic.state === 1){	        
           var player = team[msg.pi];
           this.gameLogic.updatePlayerInput(player, msg.bk);
@@ -173,6 +193,7 @@ exports.Arena = function(id) {
         this.sendPlayerUpdate(msg);
         break;
       case MsgTypes.PlayerIsControlled:
+      	if (this.handsOff) break;
         for (var i = 0; i < team.length; i++){
           var player = team[i];
           if (player.controlled && parseInt(msg.pi) != i){
@@ -216,7 +237,7 @@ exports.Arena = function(id) {
       	for (var i = 0; i < team.length; i++){
           var player = team[i];
           player.isGoalee = msg.frm[i] === 0;
-          player.maxTravelDist = msg.frm[i] === 0 ? 111 : 300;
+          player.maxTravelDist = msg.frm[i] === 0 ? 150 : 500;
           var place = gl.places[msg.frm[i]];
           if (player != null && place != null){
           	var pos = {
@@ -264,9 +285,7 @@ exports.Arena = function(id) {
     }
   };
 
-  this.onSpectatorMessage = function(msg){
-    //console.log("on spec msg " + msg);
-  };
+  
   this.update = () => {
     if (this.gameLogic.state === gl.GameStates.PreGame){
       if (this.gameLogic.team1AI.preGameReady && this.gameLogic.team2AI.preGameReady){
@@ -288,7 +307,7 @@ exports.Arena = function(id) {
     
 
   	var spawnProp = (Date.now() - this.lastPickupItemSpawnTimeStamp) / this.spawnTimeThresshold;
-  	if (this.gameLogic.currentTimeStamp>this.nextSpawnTime){  	
+  	if (this.gameLogic.currentTimeStamp>this.nextSpawnTime && this.gameLogic.state === gl.GameStates.Playing){  	
   		var type = Math.round(Math.random()*(Object.keys(gl.PickupItemType).length-1));
   		var pos = randomArenaPosition();
   		var pickupItem = new gl.PickupItem(pos, type);

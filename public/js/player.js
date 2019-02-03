@@ -78,12 +78,12 @@ function Player(defaultPosition = {x: 0.0, y: 0.0}, defaultDir = Math.PI/2, team
   };
   this.sync = (playerData) => {
     this.defaultDir = playerData.defaultDir;
-    this.defaultPosition.x = playerData.defaultPosition.x;
-    this.defaultPosition.y = playerData.defaultPosition.y;
-    this.targetPosition.x = playerData.targetPosition.x;
-    this.targetPosition.y = playerData.targetPosition.y;
-    this.pos.x = playerData.pos.x;
-    this.pos.y = playerData.pos.y;
+    this.defaultPosition.x = playerData.defaultPosition.x*scale;
+    this.defaultPosition.y = playerData.defaultPosition.y*scale;
+    this.targetPosition.x = playerData.targetPosition.x*scale;
+    this.targetPosition.y = playerData.targetPosition.y*scale;
+    this.pos.x = playerData.pos.x*scale;
+    this.pos.y = playerData.pos.y*scale;
     this.dir = playerData.dir;
     this.health = playerData.health;
     this.speed = playerData.speed;

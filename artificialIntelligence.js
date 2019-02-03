@@ -214,7 +214,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
         if (player.health > 0){
 
         	var decisionTime = this.currentTimeStamp - player.lastDecisionTimeStamp;
-        	var decisionSpeed = (100 - player.intelligence)*10;
+        	var decisionSpeed = (100 - player.intelligence)*(8 + Math.random()*8) ;
         	var inputChanged = [false, downKeys]
 
         	if (decisionTime>decisionSpeed || this.gameLogic.state === gl.GameStates.PreGame || this.gameLogic.state === gl.GameStates.GetReady){

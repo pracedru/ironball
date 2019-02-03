@@ -142,13 +142,24 @@ function GameLogics(){
       var pos = new Vertex2(places[placeIndex].x*scale, places[placeIndex].y*scale);      
       var newYellowPlayer = new Player(pos, Math.PI/2)
       newYellowPlayer.isGoalee = (placeIndex === 0);
-      newYellowPlayer.maxTravelDist = placeIndex === 0 ? 111 : 300;
+      newYellowPlayer.maxTravelDist = placeIndex === 0 ? 150 : 500;
       this.team1.push(newYellowPlayer);
       pos = new Vertex2(places[placeIndex].x*scale, -places[placeIndex].y*scale);      
       var newBluePlayer = new Player(pos, -Math.PI/2, 2)
       newBluePlayer.isGoalee = (placeIndex === 0);
-      newBluePlayer.maxTravelDist = placeIndex === 0 ? 111 : 300;
+      newBluePlayer.maxTravelDist = placeIndex === 0 ? 150 : 500;
       this.team2.push(newBluePlayer);
+
+      var sepDist = 75;      
+      var teamOffset = 500;
+      newYellowPlayer.pos.x = ((i*sepDist)%(sepDist*4))*scale - 1.5*sepDist*scale;
+      newYellowPlayer.pos.y = -(Math.floor((i/4))*sepDist+75)*scale - teamOffset*scale; 
+			newYellowPlayer.dir = Math.PI;
+      
+      newBluePlayer.pos.x = ((i*sepDist)%(sepDist*4))*scale - 1.5*sepDist*scale; 
+      newBluePlayer.pos.y = (Math.floor((i/4))*sepDist+75) + teamOffset;
+			newBluePlayer.dir = 0;
+      
     }
     
     this.lastTimeStamp = Date.now();
@@ -384,13 +395,13 @@ function GameLogics(){
     msg.t = MsgTypes.PlayerMelee;
     msg.op.pos = otherPlayer.pos.round(2);
     this.eventCallBack(msg);
-  };
+  }
   this.playerHealthChange = (player, value) => {
     var msg = this.getPlayerTeamAndIndex(player);
     msg.t = MsgTypes.PlayerHealthChange;
     msg.value = value;
     this.eventCallBack(msg);
-  };
+  }
 
   this.ballThrown = (player) => {
     this.ballHandler = null;
@@ -404,9 +415,9 @@ function GameLogics(){
       t: MsgTypes.BallThrown,
       bp: this.ballpos.round(2),
       bspd: this.ballSpeed.round(2)
-    };
+    }
     this.eventCallBack(msg);
-  };
+  }
 
   this.updateScore = (restart) =>{
     var msg = {t: MsgTypes.ScoreUpdate, score: this.score, restart: restart};
@@ -416,7 +427,7 @@ function GameLogics(){
     this.eventCallBack(msg);
     this.state = GameStates.GetReady;
     this.eventCallBack({ t: MsgTypes.ChangeGameState, state: GameStates.GetReady });
-  };
+  }
 
   this.updatePlayer = (player) =>{
     player.proximity = [];
@@ -589,7 +600,7 @@ function GameLogics(){
       player.pos.y += Math.sin(angle)*overlap;
       player.collisions.push(otherPlayer);
     }
-    if (dist < mindist*3){
+    if (dist < mindist*4){
       player.proximity.push(otherPlayer);
     }
   };
@@ -709,6 +720,7 @@ function GameLogics(){
     } else {
       this.ballpos.x = this.ballHandler.pos.x;
       this.ballpos.y = this.ballHandler.pos.y;
+      this.ballpos.z = 1;
     }
   };
 }

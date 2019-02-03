@@ -16,96 +16,9 @@ MenuStates = {
   TournamentLobbyMenu: 13,
   FormationsMenu: 14,
   FormationMenu: 15,
-  PlacesMenu: 16
+  PlacesMenu: 16,
+  TeamManagerMenu: 17
 };
-
-var PlayersScreen = function (surfaceimg, loc, size){    
-  Screen.call(this, surfaceimg, loc, size);
-  this.currentPlayerIndex = 0;
-  this.imgs = [];
-  this.moveDistance = 0;
-  this.moveSpeed = 0;
-  this.releaseAudio = new GameAudio("snd/btnRelease.wav", false);
-  
-	for (var i = 0; i < 8; i++){
-		pl = team.players[i];
-		var img = new Image();
-		if (pl.imageData!=null){
-			img.src = pl.imageData;
-		} else {
-			img.src = "img/default.png";	
-		}
-		
-		this.imgs.push(img);
-	}
-	
-	this.updateText = ()=>{
-		pl = team.players[this.currentPlayerIndex];
-		this.texts = [];
-		this.texts.push({ font: "monospace", pos: {x: 0, y: 0.75}, caption: "Name", text: pl.firstName + ' ' + pl.lastName, height: 20});
-		this.texts.push({ font: "monospace", pos: {x: 0, y: 0.80}, caption: "Age", text: pl.age, height: 20});
-		this.texts.push({ font: "monospace", pos: {x: 0, y: 0.85}, caption: "Gender",  text: pl.gender, height: 20});
-		this.texts.push({ font: "monospace", pos: {x: 0, y: 0.9}, caption: "Motto", text: pl.motto, height: 20});
-	}
-	
-	this.updateText();
-  this.renderContents = () =>{
-  	if (!this.pressed && (this.moveSpeed != 0 || this.moveDistance != 0)){
-  		this.moveDistance += this.moveSpeed;
-	  	this.updatePlayerIndex();
-  		this.moveSpeed -= this.moveDistance/100;
-  		this.moveSpeed *= 0.91;
-  	}  
-	  var size = { x: this.size.x * canvas.width, y: this.size.y * canvas.height };
-    var loc = { x: this.loc.x * canvas.width, y: this.loc.y * canvas.height };
-  	this.renderText(size, loc);
-		var offset = 308*scale*this.moveDistance/35;		
-  	ctx.drawImage(this.imgs[this.currentPlayerIndex], loc.x + 20*scale + offset, loc.y + 20*scale, 268*scale, 268*scale);  
-  	  	
-  }
-  this.renderText = (size, loc) => {
-    for (var i = 0; i < this.texts.length; i++){
-      var text = this.texts[i].caption + ": " + this.texts[i].text;
-      var height = this.texts[i].height;
-      var font = this.texts[i].font;
-      var pos = this.texts[i].pos;
-      var x = pos.x * size.x; 
-      var y = pos.y * size.y;
-      x += loc.x + 20*scale;
-      y += loc.y + 20*scale;
-      ctx.font = height*scale + "px " + font;
-      
-      ctx.fillStyle="#fec";
-      ctx.textAlign="start"; 
-      ctx.fillText(text, x, y);
-    }  
-  };
-  this.released = () => { 
-  	
-  };
-  this.updatePlayerIndex = () => {
-  	if (Math.abs(this.moveDistance)>30){
-  		if (this.moveDistance>0){
-  			this.currentPlayerIndex++;
-  			if (this.currentPlayerIndex == 8)
-  				this.currentPlayerIndex = 0;
-  		} else {
-	  		this.currentPlayerIndex--;
-  			if (this.currentPlayerIndex == -1)
-  				this.currentPlayerIndex = 7;
-  		}
-  		this.moveDistance -= this.moveSpeed;
-  		this.moveDistance *= -1;
-  		this.updateText();
-  		this.releaseAudio.play();
-  	}
-  };
-  this.moved = (loc, delta) => {   	
-  	this.moveDistance += delta.x;
-  	this.moveSpeed = delta.x;
-  	this.updatePlayerIndex();
-  };
-}
 
 var Pool = function (slots, loc) {
   this.slots = slots;
@@ -183,6 +96,7 @@ var menuRenderer = {
     menuRenderer.initFormationsMenu();
     menuRenderer.initFormationMenu();
     menuRenderer.initPlacesMenu();
+    menuRenderer.initManagerMenu();
   },
   initMainMenu: () => {
     var mmctrls = [];
@@ -203,19 +117,21 @@ var menuRenderer = {
     sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "New Arena", 30, "dark"));
     sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Join Arena", 30, "dark"));    
     sfmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
-    sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.33}, Control.Sizes["Wide"], "Best of 3", 30, "dark"));
-    sfmctrls[0].clicked = () => {
+    sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.33}, Control.Sizes["Wide"], "Hands Off", 30, "dark"));
+		sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.46}, Control.Sizes["Wide"], "Best of 3", 30, "dark"));
+		sfmctrls[0].clicked = () => {
       var request = new XMLHttpRequest();
       request.responseType = 'json';
       request.open('GET', "createArena", true);      
       request.onload = function() {
         if (request.response.t === MsgTypes.ArenaCreated){
           gameRenderer.arenaID = request.response.arenaID;
+          gameRenderer.handsOff = false;
           gameRenderer.setRenderer();
         }
-      };
+      }
       request.send();
-    };
+    }
     sfmctrls[1].clicked = () => { 
       modalShow("Arena", 100);
       modalAccept = () => {
@@ -225,8 +141,25 @@ var menuRenderer = {
           gameRenderer.arenaID = arenaID;
           gameRenderer.setRenderer();
         } 
-      };
-    };
+      }
+    }
+    sfmctrls[3].clicked = () => { 
+      var request = new XMLHttpRequest();
+      request.responseType = 'json';
+      request.open('GET', "createArena", true);      
+      request.onload = function() {
+        if (request.response.t === MsgTypes.ArenaCreated){
+          gameRenderer.arenaID = request.response.arenaID;
+          gameRenderer.handsOff = true;
+          gameRenderer.setRenderer();
+        }
+      }
+      request.send();
+    }
+    sfmctrls[4].clicked = () => { 
+    	menuRenderer.connectTournament(0, MenuStates.TeamManagerMenu);
+    	menuRenderer.renderScreen = true;
+    }
     sfmctrls[2].clicked = () => { menuRenderer.state = MenuStates.MainMenu; };
   },
   initJoinArenaMenu: () => {
@@ -442,6 +375,22 @@ var menuRenderer = {
     	saveTeam();
     }
   },
+  initManagerMenu: () => {
+  	var ctrls = [];
+  	menuRenderer.menus[MenuStates.TeamManagerMenu] = ctrls;
+  	var backBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark");
+    ctrls.push(backBtn);
+    var doneBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.815}, Control.Sizes["Narrow"], "Done", 30, "dark");
+    ctrls.push(doneBtn);
+    ctrls.push(new ManagerScreen('img/screentall.png', {x: 0.125, y: 0.07}, {x: 0.75, y: 0.7}));
+  	backBtn.clicked = () => {
+  		menuRenderer.renderScreen = false;
+  		menuRenderer.state = MenuStates.SingleFightMenu; 
+      menuRenderer.tournament.ws.close();
+      menuRenderer.tournament.ws = null;
+  	}
+  	
+  },
   initSetupMenu: () => {
     var stpmctrls = [];
     menuRenderer.menus[MenuStates.SetupMenu] = stpmctrls;
@@ -557,7 +506,7 @@ var menuRenderer = {
       if (evt.srcElement===menuRenderer.tournament.ws){ 
         // This indicates that the current tournament connection was closed
         menuRenderer.tournament.ws = null;
-        menuRenderer.state = MenuStates.TournamentMenu;
+        menuRenderer.state = MenuStates.MainMenu;
       }
     } 
   },
