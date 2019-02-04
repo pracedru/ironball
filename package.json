@@ -14,6 +14,7 @@
     "cookie-parser": "*",
     "express": "*",
     "express-validation": "*",
+    "uuid": "*",
     "ws": "^3.2.0"
   }
 }

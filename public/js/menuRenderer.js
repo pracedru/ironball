@@ -216,7 +216,7 @@ var menuRenderer = {
       if (poolSize !== ""){
         poolSize = parseInt(poolSize);          
         var msg = {
-          type: "poolSizeChanged", 
+          t: MsgTypes.PoolSizeChanged, 
           poolSize: poolSize            
         }
         menuRenderer.tournament.ws.send(JSON.stringify(msg));

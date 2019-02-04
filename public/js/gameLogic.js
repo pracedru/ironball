@@ -61,7 +61,12 @@ var MsgTypes = {
 	RoundEnded: 16,
 	TournamentConnection: 17,
 	SpawnPickupItem: 18,
-	PickupItemTaken: 19
+	PickupItemTaken: 19,
+	TournamentStateChanged: 20,
+	TeamUpgradesChanged: 21,
+	TeamIdChanged: 22,
+	PoolSizeChanged: 23,
+	PlayerUpgrade: 24
 }
 
 
@@ -731,4 +736,5 @@ if (isServer){
   exports.PickupItemType = PickupItemType;
   exports.PickupItem = PickupItem;
   exports.MsgTypes = MsgTypes;
+  exports.playerCount = playerCount;
 }
