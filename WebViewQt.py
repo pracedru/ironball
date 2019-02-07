@@ -8,12 +8,15 @@ from PyQt5.QtWidgets import *
 
 app = QApplication(sys.argv)
 
+debug = True;
 
 class WebView(QWebEngineView):
 	def __init__(self, parent):
 		QWebEngineView.__init__(self, parent)
-		self.load(QUrl("https://www.pracedru.dk:8888"))
-
+		if debug:
+			self.load(QUrl("https://www.pracedru.dk:8889"))
+		else:
+			self.load(QUrl("https://www.pracedru.dk:8888"))
 
 class MainWindow(QWidget):
 	def __init__(self):
@@ -39,7 +42,9 @@ class MainWindow(QWidget):
 
 
 mw = MainWindow()
-mw.showFullScreen()				# fullscreen On phone
-#mw.show()								# windowed On desktop
+if (debug):
+	mw.show()													# fullscreen On phone
+else:
+	mw.showFullScreen()								# windowed On desktop
 
 app.exec_()

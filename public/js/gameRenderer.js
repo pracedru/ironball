@@ -122,7 +122,8 @@ ArenaMenuStates = {
   SinglePlayerStartMenu: 0,
   InGameMenu: 1,
   TacticsMenu: 2,
-  FormationsMenu: 3
+  FormationsMenu: 3,
+  WaitForOpponentMenu: 4
 }
 
 gameRenderer.initAV = () => {
@@ -211,6 +212,11 @@ gameRenderer.initAV = () => {
     gameRenderer.arenaMenuState = ArenaMenuStates.FormationsMenu;
   };
   
+  
+  var ctrls = [];
+  gameRenderer.arenaMenus[ArenaMenuStates.WaitForOpponentMenu] = ctrls;
+  ctrls.push(new TextBox('img/txtbx.png', {x: 0.125, y: 0.18}, Control.Sizes["Wide"], "Wait for:", "Opponent", 32));
+  ctrls[0].editable = false;
   gameRenderer.initFormationsMenu();
   
 };
@@ -588,11 +594,11 @@ gameRenderer.setRenderer = () => {
       tm: JSON.stringify(team),
       arenaID: gameRenderer.arenaID,
       handsOff: gameRenderer.handsOff
-    };
+    }
     gameRenderer.ws.send(JSON.stringify(msg));
     console.log("Connection request is sent...");
     gameRenderer.connected = true;
-  };
+  }
   
   /**
    * onmessage recieves messages from the server to interpret.
@@ -739,12 +745,19 @@ gameRenderer.setRenderer = () => {
         gameRenderer.setState(msg.state);
         break;
       case MsgTypes.BallThrown:      
-      	console.log("BallThrown"); 
+      	//console.log("BallThrown"); 
+      	//console.log(evt.data); 
+        var bh = gameRenderer.ballHandler;
+        gameRenderer.ballSpeed = msg.spd;
+        gameRenderer.ballpos.x = bh.pos.x;   
+        gameRenderer.ballpos.y = bh.pos.y;   
+        gameRenderer.ballpos.z = msg.bp.z;     
         gameRenderer.ballHandler = null;
-        gameRenderer.ballSpeed = msg.bspd;
-        gameRenderer.ballpos.x = msg.bp.x*scale;  
-        gameRenderer.ballpos.y = msg.bp.y*scale;      
-        gameRenderer.ballposResidual = {x: 0.0, y: 0.0, z: 0};
+        gameRenderer.ballposResidual = {
+        	x: msg.bp.x*scale - bh.pos.x, 
+        	y: msg.bp.y*scale - bh.pos.y, 
+        	z: 0
+        };
         break;
       case MsgTypes.SyncTeamNames:
         gameRenderer.teamName1 = msg.tn1;
@@ -778,7 +791,7 @@ gameRenderer.setRenderer = () => {
         	gameRenderer.arenaMenuState = ArenaMenuStates.InGameMenu;
  					gameRenderer.arenaMenuSpeed.x = 0.3;
         } else {
-        	gameRenderer.arenaMenuState = ArenaMenuStates.SinglePlayerStartMenu;
+        	gameRenderer.arenaMenuState = ArenaMenuStates.WaitForOpponentMenu;
  					gameRenderer.arenaMenuSpeed.x = -0.3;
  					gameRenderer.arenaMenus[ArenaMenuStates.SinglePlayerStartMenu][0].value = gameRenderer.arenaID.toString();
         }

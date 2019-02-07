@@ -225,7 +225,7 @@ exports.Arena = function(id) {
           }
         }        
         break;
-      case MsgTypes.ArenaPlayAgainstAI:           
+      case MsgTypes.PlayAgainstAI:           
         this.gameLogic.teamName2 = "Steel Fury";        
         this.syncTeamNames();       
         this.playAgainstAI = true;

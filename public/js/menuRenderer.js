@@ -17,7 +17,8 @@ MenuStates = {
   FormationsMenu: 14,
   FormationMenu: 15,
   PlacesMenu: 16,
-  TeamManagerMenu: 17
+  TeamManagerMenu: 17,
+  InvitePlayerMenu: 18
 };
 
 var Pool = function (slots, loc) {
@@ -97,11 +98,12 @@ var menuRenderer = {
     menuRenderer.initFormationMenu();
     menuRenderer.initPlacesMenu();
     menuRenderer.initManagerMenu();
+    menuRenderer.initInvitePlayerMenu();
   },
   initMainMenu: () => {
     var mmctrls = [];
     menuRenderer.menus[MenuStates.MainMenu] = mmctrls;    
-    mmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "Single Fight", 30, "dark"));
+    mmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "Single Match", 30, "dark"));
     mmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Tournament", 30, "dark"));
     mmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.33}, Control.Sizes["Narrow"], "Team", 30, "dark"));
     mmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.51, y: 0.33}, Control.Sizes["Narrow"], "Score", 30, "dark"));
@@ -157,10 +159,34 @@ var menuRenderer = {
       request.send();
     }
     sfmctrls[4].clicked = () => { 
-    	menuRenderer.connectTournament(0, MenuStates.TeamManagerMenu);
-    	menuRenderer.renderScreen = true;
+    	menuRenderer.connectTournament(0, MenuStates.InvitePlayerMenu, GameTypes.SingleMatch);
     }
     sfmctrls[2].clicked = () => { menuRenderer.state = MenuStates.MainMenu; };
+  },
+  initInvitePlayerMenu: () => {
+  	var ctrls = [];
+  	menuRenderer.menus[MenuStates.InvitePlayerMenu] = ctrls;
+  	var backBtn = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"); 
+  	var inviteAddressTxt = new TextBox('img/txtbx.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "Invite friend to", {name: "tournamentID"}, 25, "dark");
+  	var playAgainstAIBtn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Play against AI", 30, "dark");
+  	inviteAddressTxt.editable = false;
+  	backBtn.clicked = () => {
+  		menuRenderer.state = MenuStates.SingleFightMenu; 
+		  menuRenderer.tournament.ws.close();
+		  menuRenderer.tournament.ws = null;
+  	}
+  	playAgainstAIBtn.clicked = () => {
+  		var msg = {
+  			t: MsgTypes.PlayAgainstAI
+  		}
+  		var data = JSON.stringify(msg);
+  		menuRenderer.tournament.ws.send(data);
+  		menuRenderer.state = MenuStates.TeamManagerMenu;
+  		menuRenderer.renderScreen = true;
+  	}
+  	ctrls.push(inviteAddressTxt);
+  	ctrls.push(backBtn);
+  	ctrls.push(playAgainstAIBtn);
   },
   initJoinArenaMenu: () => {
     var jamctrls = [];
@@ -188,7 +214,9 @@ var menuRenderer = {
     };
     tnmctrls[0].clicked = () => {
       if (menuRenderer.tournament.ws !== null){
-        menuRenderer.tournament.ws.close();
+        menuRenderer.state = MenuStates.SingleFightMenu; 
+		    menuRenderer.tournament.ws.close();
+		    menuRenderer.tournament.ws = null;
       }
       menuRenderer.connectTournament(0, MenuStates.NewTournamentMenu)
     };
@@ -389,7 +417,9 @@ var menuRenderer = {
       menuRenderer.tournament.ws.close();
       menuRenderer.tournament.ws = null;
   	}
-  	
+  	doneBtn.clicked = () => {
+  		menuRenderer.tournament.onDoneClicked();
+  	}
   },
   initSetupMenu: () => {
     var stpmctrls = [];
@@ -473,18 +503,18 @@ var menuRenderer = {
     	playerRenderer.setRenderer(); 
     	var playersScreen = menuRenderer.menus[MenuStates.PlayersMenu][2];
     	playerRenderer.playerImage = playersScreen.imgs[playersScreen.currentPlayerIndex];
-    };
+    }
     ctrls[6].changed = (oldval, newval) => { 
     	var playersScreen = menuRenderer.menus[MenuStates.PlayersMenu][2];
     	team.players[playersScreen.currentPlayerIndex].motto = newval;
     	playersScreen.updateText();
     	saveTeam();
-    };
+    }
   },
   ctrls: () => {
     return menuRenderer.menus[menuRenderer.state];
   },  
-  connectTournament: (id, destinationMenu) => {
+  connectTournament: (id, destinationMenu, gameType) => {
     localStorage.setItem("playerCount", 0);
     localStorage.setItem("poolSize", 4);
     menuRenderer.tournament.ws = new WebSocket("wss://" + location.host);
@@ -493,13 +523,14 @@ var menuRenderer = {
       var msg = {
         t: MsgTypes.TournamentConnection, 
         teamName: localStorage.teamName,
-        tournamentID: id
-      };
+        tournamentID: id,
+        gameType: gameType
+      }
       menuRenderer.tournament.ws.send(JSON.stringify(msg));
       console.log("Connection request is sent...");
       menuRenderer.tournament.connected = true;
       menuRenderer.state = destinationMenu;
-    };
+    }
     menuRenderer.tournament.ws.onmessage = menuRenderer.tournament.onmessage;
     menuRenderer.tournament.ws.onclose = (evt) => {        
       menuRenderer.tournament.onclose();  

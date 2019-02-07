@@ -5,7 +5,7 @@ hasTabbed = false;
 
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js').then(function(reg){
+  navigator.serviceWorker.register('sw.js').then(function(reg){
     console.log("Service worker registered.");
   }).catch(function(err) {
     console.log("Service worker not registered. This happened: ", err)
@@ -30,20 +30,16 @@ var audioBuffers = {};
 
 function GameAudio(path, loop = false, volume = 1){
   this.gain = aCtx.createGain();
-  //targetAudio.source.connect(targetAudio.gain);
   this.gain.connect(aCtx.destination);
   this.loop = loop;
   this.volume = volume;
   this.pbr = 1;
   var request = new XMLHttpRequest();
   
-  
-  //console.log("before buffer load");
   this.play = () => {
     this.source = aCtx.createBufferSource();
     this.source.buffer = audioBuffers[this.path];
     this.source.connect(this.gain);
-    //this.gain.connect(aCtx.destination);
     this.gain.gain.value = this.volume;
     this.source.loop = this.loop;
     this.source.playbackRate.value = this.pbr;

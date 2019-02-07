@@ -52,15 +52,14 @@ function onMessage(data) {
     } else {
       arena.setSocket(this, msg);            
     }
-  } else if (msg.t === MsgTypes.TournamentConnection){
-    //console.log("tournament connection!");    
+  } else if (msg.t === MsgTypes.TournamentConnection){    
     var tournamentID = msg.tournamentID;
     var tournament = TournamentHandler.getTournament(tournamentID);
     if (tournament === null){
-      //console.log("tournament not found! creating new tournament");
       var tournamentID = tournamentIDCounter;
       tournamentIDCounter++;
       var tournament = new TournamentHandler.Tournament(tournamentID);
+      tournament.gameType = msg.gameType;
       tournament.addSocket(this, msg); 
     } else {
       tournament.addSocket(this, msg); 

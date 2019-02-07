@@ -1,6 +1,6 @@
 var ManagerScreen = function (surfaceimg, loc, size){    
   Screen.call(this, surfaceimg, loc, size)
-  this.currentPlayerIndex = 0;
+  this.currentPlayerIndex = playerCount;
   this.imgs = [];
   this.texts = [];
   this.moveDistance = 0;
@@ -8,7 +8,8 @@ var ManagerScreen = function (surfaceimg, loc, size){
   this.credit = 100;
   this.selectedDiscipline = PickupItemType.ThrowUpgrade;
   this.releaseAudio = new GameAudio("snd/btnRelease.wav", false);
-  this.kachingAudio = new GameAudio("snd/kaching.wav", false);
+  this.teamImg = new Image();
+  this.teamImg.src = "img/team.png";
   for (var i = 0; i < 8; i++){
 		pl = team.players[i];
 		var img = new Image();
@@ -19,13 +20,18 @@ var ManagerScreen = function (surfaceimg, loc, size){
 		}
 		this.imgs.push(img);
 	}
+	this.imgs.push(this.teamImg);
 	
 	this.updateText = ()=>{
-		pl = team.players[this.currentPlayerIndex];
+		if (this.currentPlayerIndex < playerCount)
+			pl = team.players[this.currentPlayerIndex];
+		else
+			pl = {firstName: "Team", lastName: ""};
 		if (menuRenderer.tournament.team === null) return;
-		var upgrade = menuRenderer.tournament.team.upgrades[this.currentPlayerIndex];
+		var tm = menuRenderer.tournament.team;
+		var upgrade = tm.upgrades[this.currentPlayerIndex];
 		this.texts = [];
-		this.texts.push({ font: "monospace", pos: {x: 0, y: 0.40}, caption: "Credit", text: this.credit.toString(), height: 20});
+		this.texts.push({ font: "monospace", pos: {x: 0, y: 0.40}, caption: "Credit", text: tm.credits.toString(), height: 20});
 		this.texts.push({ font: "monospace", pos: {x: 0, y: 0.50}, caption: "Name", text: pl.firstName + ' ' + pl.lastName, height: 20});
 		this.texts.push({ font: "monospace", pos: {x: 0, y: 0.55}, caption: "Speed", value: upgrade[PickupItemType.SpeedUpgrade], height: 20, type: PickupItemType.SpeedUpgrade});
 		this.texts.push({ font: "monospace", pos: {x: 0, y: 0.60}, caption: "Throw", value: upgrade[PickupItemType.ThrowUpgrade], height: 20, type: PickupItemType.ThrowUpgrade});
@@ -99,12 +105,12 @@ var ManagerScreen = function (surfaceimg, loc, size){
   	if (Math.abs(this.moveDistance)>30){
   		if (this.moveDistance>0){
   			this.currentPlayerIndex++;
-  			if (this.currentPlayerIndex == 8)
+  			if (this.currentPlayerIndex == playerCount+1)
   				this.currentPlayerIndex = 0;
   		} else {
 	  		this.currentPlayerIndex--;
   			if (this.currentPlayerIndex == -1)
-  				this.currentPlayerIndex = 7;
+  				this.currentPlayerIndex = playerCount;
   		}
   		this.moveDistance -= this.moveSpeed;
   		this.moveDistance *= -1;
@@ -112,7 +118,7 @@ var ManagerScreen = function (surfaceimg, loc, size){
   		this.releaseAudio.play();
   	}
   }
-  this.touchStart = (loc) => {
+  this.clicked = (sender, loc) => {
   	var size = { x: this.size.x * canvas.width, y: this.size.y * canvas.height };
   	
   	relpos = (loc.y - this.loc.y*canvas.height-5*scale)/size.y;

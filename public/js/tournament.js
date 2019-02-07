@@ -5,17 +5,16 @@ var Tournament = function(){
   this.teamId = 0;
   this.team = null;
   this.playerUpgrades = {};
-  
+  this.kachingAudio = new GameAudio("snd/kaching.wav", false);
   this.onmessage = (evt) => {
     var msg = JSON.parse(evt.data);
     //console.log(evt.data);
     switch (msg.t){
       case MsgTypes.Connected:
-
         localStorage.setItem("tournamentID", msg.id);
         this.teamId = msg.teamId;
         this.team = msg.team;
-        console.log(JSON.stringify(this));
+        
         menuRenderer.menus[MenuStates.TeamManagerMenu][2].updateText();
         break;
       case MsgTypes.TournamentStateChanged:
@@ -23,18 +22,36 @@ var Tournament = function(){
         localStorage.setItem("poolSize", msg.poolSize);
         break;
       case MsgTypes.TeamUpgradesChanged:
-      	console.log(evt.data);
-      	this.team = msg.team;
-      	menuRenderer.menus[MenuStates.TeamManagerMenu][2].updateText();
+      	//console.log(evt.data);
+      	if (this.team.id === msg.team.id){
+      		this.team = msg.team;
+      		menuRenderer.menus[MenuStates.TeamManagerMenu][2].updateText();
+      		this.kachingAudio.play();
+      	}
+      	
       	break;
       case MsgTypes.TeamIdChanged:
       	
       	break;
+      case MsgTypes.ArenaCreated:
+      	gameRenderer.arenaID = msg.id;
+        gameRenderer.handsOff = false;
+        gameRenderer.setRenderer();
+        
+      	break;
+      default:
+      	console.log(evt.data);
     }
   }
-  this.onclose = function()
-  {
+  this.onclose = () => {
     console.log("Connection to tournament is closed...");    
+  }
+  this.onDoneClicked = () => {
+  	var msg = {
+  		t: MsgTypes.TeamManagementDone
+  	}
+  	var data = JSON.stringify(msg);
+  	this.ws.send(data);
   }
 }
 

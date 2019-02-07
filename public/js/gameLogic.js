@@ -44,7 +44,7 @@ defaultPositions['Aggressive'] = [0, 15, 14, 12, 11, 8, 6, 5];    // 5, 1, 1
 var MsgTypes = {
 	Connected: 0,
 	ArenaConnection: 1,	
-	ArenaPlayAgainstAI: 2,
+	PlayAgainstAI: 2,
 	UserInputUpdate: 3,
 	PlayerInputUpdate: 4,
 	PlayerIsControlled: 5,
@@ -66,10 +66,16 @@ var MsgTypes = {
 	TeamUpgradesChanged: 21,
 	TeamIdChanged: 22,
 	PoolSizeChanged: 23,
-	PlayerUpgrade: 24
+	PlayerUpgrade: 24,
+	TeamManagementDone: 25,
+	ArenaCreated: 26
 }
 
-
+var GameTypes = {
+	SingleMatch: 0,
+	Tournament: 1,
+	Campaign: 2
+}
 
 var PickupItemType = {
   Credit: 0,  
@@ -81,7 +87,7 @@ var PickupItemType = {
   IntelligenceUpgrade: 6,
   EnduranceUpgrade: 7,
   HealthUpgrade: 8
-};
+}
 
 var pickupItemCounter = 0;
 
@@ -99,7 +105,6 @@ function PickupItem(position, type){
 			this.size = {x: 45, y: 35};				
 			break;		
 	}
-	
 } 
 
 var Rounds = {
@@ -380,20 +385,20 @@ function GameLogics(){
       player.running = false;      
     }
     return [changed, k2b(downKeys)];
-  };
+  }
   this.playerPositionSync = (player) =>{
     var msg = this.getPlayerTeamAndIndex(player);
     msg.t = MsgTypes.PlayerPositionSync;
     msg.pos = player.pos.round(2);
     this.eventCallBack(msg);
-  };
+  }
   this.ballHandlerChanged = (player) =>{
     this.ballHandler = player;
     var msg = this.getPlayerTeamAndIndex(player);
     msg.t = MsgTypes.BallHandlerChanged;
     msg.pos = player.pos.round(2);
     this.eventCallBack(msg);
-  };
+  }
   this.playerMelee = (player, otherPlayer) => {
     var msg = this.getPlayerTeamAndIndex(player);
     msg.op = this.getPlayerTeamAndIndex(otherPlayer);
@@ -419,7 +424,7 @@ function GameLogics(){
     var msg = {
       t: MsgTypes.BallThrown,
       bp: this.ballpos.round(2),
-      bspd: this.ballSpeed.round(2)
+      spd: this.ballSpeed.round(2)
     }
     this.eventCallBack(msg);
   }
@@ -737,4 +742,5 @@ if (isServer){
   exports.PickupItem = PickupItem;
   exports.MsgTypes = MsgTypes;
   exports.playerCount = playerCount;
+  exports.GameTypes = GameTypes;
 }
