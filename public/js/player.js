@@ -1,10 +1,17 @@
 var isServer = typeof isClient !== "undefined" ? !isClient : true;
 var isClient = !isServer;
 
+
+var PickupItemType = null;
+
 if (isServer){
 	var misc = require('./misc.js');
 	var Vertex2 = misc.Vertex2;
 	var Vertex3 = misc.Vertex3;
+}
+
+function setPickupItemType(pickupItemType){
+	PickupItemType = pickupItemType;
 }
 
 function Player(defaultPosition = {x: 0.0, y: 0.0}, defaultDir = Math.PI/2, team = 1){
@@ -20,9 +27,11 @@ function Player(defaultPosition = {x: 0.0, y: 0.0}, defaultDir = Math.PI/2, team
   this.maxSpeed = 2.5;
   this.throwSpeed = 5;
   this.strength = 6;
-  this.acceleration = 0.08;
+  this.acceleration = 0.04;
   this.maxTravelDist = 300;
   this.intelligence = 30;
+  this.stammina = 100;
+  this.kickForce = 100;
   this.running = false;
   this.kicking = false;
   this.throwing = false;
@@ -92,9 +101,28 @@ function Player(defaultPosition = {x: 0.0, y: 0.0}, defaultDir = Math.PI/2, team
     this.name = playerData.name;
     this.animFrameTime = Date.now();
     this.animFrameIndex = 0;
+    this.maxSpeed = playerData.maxSpeed;
+    this.throwSpeed = playerData.throwSpeed;
+    this.animFrameRate = this.maxSpeed*3.5;
+    this.stammina = playerData.stammina;
+    this.kickForce = playerData.kickForce;
+    
+    
+    
   };
+  this.setUpgrades = (upgrades) => {
+  	this.maxSpeed = upgrades[PickupItemType.SpeedUpgrade]*2.5/100;
+  	this.throwSpeed = upgrades[PickupItemType.ThrowUpgrade]*5/100;
+  	this.stammina = upgrades[PickupItemType.StamminaUpgrade];
+  	this.acceleration = upgrades[PickupItemType.AccelerationUpgrade]*0.04/100;
+  	this.stammina = upgrades[PickupItemType.KickUpgrade];
+  	
+  	this.health = upgrades[PickupItemType.HealthUpgrade];
+  	this.animFrameRate = this.maxSpeed*3.5;
+  } 
 }
 
 if ( isServer ){
 	exports.Player = Player;
+	exports.setPickupItemType = setPickupItemType;
 }

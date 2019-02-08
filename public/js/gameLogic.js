@@ -2,9 +2,23 @@ var isServer = typeof isClient !== "undefined" ? !isClient : true;
 var isClient = !isServer;
 var scale = isClient ? scale : 1;
 
+var PickupItemType = {
+  Credit: 0,  
+  SpeedUpgrade: 1,
+  ThrowUpgrade: 2,
+  StamminaUpgrade: 3,
+  AccelerationUpgrade: 4,
+  KickUpgrade: 5,
+  IntelligenceUpgrade: 6,
+  EnduranceUpgrade: 7,
+  HealthUpgrade: 8
+}
+
 if (isServer){
 	var misc = require('./misc.js');
-	var Player = require('./player.js').Player;
+	var pl = require('./player.js');
+	pl.setPickupItemType(PickupItemType);
+	var Player = pl.Player;
 	var b2k = misc.b2k;
 	var k2b = misc.k2b;
 	var Vertex3 = misc.Vertex3;
@@ -77,17 +91,7 @@ var GameTypes = {
 	Campaign: 2
 }
 
-var PickupItemType = {
-  Credit: 0,  
-  SpeedUpgrade: 1,
-  ThrowUpgrade: 2,
-  StamminaUpgrade: 3,
-  AccelerationUpgrade: 4,
-  KickUpgrade: 5,
-  IntelligenceUpgrade: 6,
-  EnduranceUpgrade: 7,
-  HealthUpgrade: 8
-}
+
 
 var pickupItemCounter = 0;
 

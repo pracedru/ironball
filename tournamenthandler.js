@@ -61,28 +61,7 @@ exports.Tournament = function(id) {
         }        
         break;
 			case MsgTypes.PlayerUpgrade:
-      	//console.log(data);
-      	var teamChanged = false;
-      	var price = 5;
-      	var upgrade = 5;
-      	if (msg.pi === gl.playerCount){
-      		for (var i = 0; i < gl.playerCount; i++){
-      			if (ws.team.credits >= price){
-		    			teamChanged = true;
-		    			ws.team.upgrades[i][msg.ut] += upgrade;
-		  				ws.team.upgrades[gl.playerCount][msg.ut] += upgrade/gl.playerCount;
-		  				ws.team.credits -= price;
-		  			}	
-      		}
-      	} else {
-      		if (ws.team.credits >= price){
-      			teamChanged = true;
-      			ws.team.upgrades[msg.pi][msg.ut] += upgrade;
-      			ws.team.upgrades[gl.playerCount][msg.ut] += upgrade/gl.playerCount;
-    				ws.team.credits -= price;
-    			}		
-      	}
-      	if (teamChanged) this.onTeamUpgradesChanged(ws.team);
+      	this.handlePlayerUpgrade(msg, ws);
       	break; 	
       case MsgTypes.TeamManagementDone:
       	var arenaID = this.id.toString() + "." + this.arenaCounter;
@@ -91,6 +70,12 @@ exports.Tournament = function(id) {
       	var msg = {
       		t: MsgTypes.ArenaCreated,
       		id: arenaID
+      	}
+      	var players = arena.gameLogic.team1;
+      	for (var i in players){
+      		var player = players[i];
+      		var upgrades = ws.team.upgrades[i];
+      		player.setUpgrades(upgrades)
       	}
       	var data = JSON.stringify(msg);
       	ws.send(data);
@@ -107,6 +92,34 @@ exports.Tournament = function(id) {
       default:
       	console.log(data);
     }            
+  }
+  
+  this.handlePlayerUpgrade = (msg, ws) => {
+  	var teamChanged = false;
+  	var price = 5;
+  	var upgrade = 5;
+  	if (msg.pi === gl.playerCount){
+  		for (var i = 0; i < gl.playerCount; i++){
+  			if (ws.team.credits >= price){
+  				var limited = false;
+  				if (msg.ut === PickupItemType.HealthUpgrade && ws.team.upgrades[i][msg.ut]>=100) limited = true; 
+    			if (!limited){
+    				teamChanged = true;
+		  			ws.team.upgrades[i][msg.ut] += upgrade;
+						ws.team.upgrades[gl.playerCount][msg.ut] += upgrade/gl.playerCount;
+						ws.team.credits -= price;
+    			}
+  			}	
+  		}
+  	} else {
+  		if (ws.team.credits >= price){
+  			teamChanged = true;
+  			ws.team.upgrades[msg.pi][msg.ut] += upgrade;
+  			ws.team.upgrades[gl.playerCount][msg.ut] += upgrade/gl.playerCount;
+				ws.team.credits -= price;
+			}		
+  	}
+  	if (teamChanged) this.onTeamUpgradesChanged(ws.team);
   }
   
   this.getTournamentState = () => {

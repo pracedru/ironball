@@ -135,11 +135,11 @@ var menuRenderer = {
       request.send();
     }
     sfmctrls[1].clicked = () => { 
-      modalShow("Arena", 100);
+      modalShow("Invitation", 100);
       modalAccept = () => {
-        var arenaID = document.getElementById('modalInput').value;
-        if (arenaID !== ""){
-          arenaID = parseInt(arenaID);
+        var tournamentID = document.getElementById('modalInput').value;
+        if (tournamentID !== ""){
+          tournamentID = parseInt(tournamentID);
           gameRenderer.arenaID = arenaID;
           gameRenderer.setRenderer();
         } 
