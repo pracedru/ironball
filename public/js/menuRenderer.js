@@ -116,12 +116,17 @@ var menuRenderer = {
   initSingleFightMenu: () => {
     var sfmctrls = [];
     menuRenderer.menus[MenuStates.SingleFightMenu] = sfmctrls;
-    sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "New Arena", 30, "dark"));
-    sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Join Arena", 30, "dark"));    
-    sfmctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
-    sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.33}, Control.Sizes["Wide"], "Hands Off", 30, "dark"));
-		sfmctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.46}, Control.Sizes["Wide"], "Best of 3", 30, "dark"));
-		sfmctrls[0].clicked = () => {
+    var newMatchButton = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "New Match", 30, "dark");
+    var joinMatchButton = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Join Match", 30, "dark");
+    var newHandsOffMatchButton = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.33}, Control.Sizes["Wide"], "Hands Off", 30, "dark");
+    var backButton = new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"); 
+    var testButton = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.46}, Control.Sizes["Wide"], "Test", 30, "dark");
+    sfmctrls.push(newMatchButton);
+    sfmctrls.push(joinMatchButton);    
+    sfmctrls.push(newHandsOffMatchButton);
+    sfmctrls.push(backButton);
+		sfmctrls.push(testButton);
+		newMatchButton.clicked = () => {
       var request = new XMLHttpRequest();
       request.responseType = 'json';
       request.open('GET', "createArena", true);      
@@ -134,7 +139,7 @@ var menuRenderer = {
       }
       request.send();
     }
-    sfmctrls[1].clicked = () => { 
+    joinMatchButton.clicked = () => { 
       modalShow("Invitation", 100);
       modalAccept = () => {
         var tournamentID = document.getElementById('modalInput').value;
@@ -145,7 +150,7 @@ var menuRenderer = {
         } 
       }
     }
-    sfmctrls[3].clicked = () => { 
+    newHandsOffMatchButton.clicked = () => { 
       var request = new XMLHttpRequest();
       request.responseType = 'json';
       request.open('GET', "createArena", true);      
@@ -158,10 +163,10 @@ var menuRenderer = {
       }
       request.send();
     }
-    sfmctrls[4].clicked = () => { 
+    testButton.clicked = () => { 
     	menuRenderer.connectTournament(0, MenuStates.InvitePlayerMenu, GameTypes.SingleMatch);
     }
-    sfmctrls[2].clicked = () => { menuRenderer.state = MenuStates.MainMenu; };
+    backButton.clicked = () => { menuRenderer.state = MenuStates.MainMenu; };
   },
   initInvitePlayerMenu: () => {
   	var ctrls = [];
