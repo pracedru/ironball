@@ -85,6 +85,7 @@ var Control = function(loc, size){
   this.changed = (oldValue, newValue) => {  };
   this.lastTouchLocation = {x: 0, y:0};
   this.resizeEventHandler = () => { }
+  this.oldScale = scale;
   resizeEventHandlers.push(() => { this.resizeEventHandler(); });
   this.inside = (touchLoc) => {
     if (this.enabled){
@@ -177,7 +178,6 @@ var Button = function (btnimg, btnpressimg, loc, size, text = "Button", fontHeig
   this.fontColor = fontColor;
   this.fontColors = { red: ["#865", "#311", "#f96", "#721"], blue: ["#566", "#113", "#6ef", "#127"], black: ["#000", null, "#000", null],  dark: ["#0009", null, "#0009", null]};
   this.pressed = false;
-  this.oldScale = scale;
   this.fontHeight = fontHeight === null ? this.size.y/3 : fontHeight*scale/canvas.height;  
   this.render = () => {
     if (this.enabled){
@@ -236,7 +236,7 @@ var TextBox = function (txtimg, loc, size, caption = "TextBox", text = "null", f
     if (typeof this.value === "string" ||  typeof this.value === "number"){
       if (this.text !== value){
         changed = true;
-        this.value = value;      
+        this.value = value;        
       }      
     } else {
       if (localStorage.getItem(this.value.name) !== value){
@@ -257,6 +257,11 @@ var TextBox = function (txtimg, loc, size, caption = "TextBox", text = "null", f
     var text = this.getValue();
     Base.renderText(text,{x: loc.x+size.x/2, y: loc.y+this.fontHeight/3 + 1.8*size.y/3}, this.fontHeight, "#ac6", "#330");
     Base.renderText(this.caption,{x: loc.x+size.x/2, y: loc.y+this.fontHeight/3 + 1*size.y/4}, this.fontHeight/2, "#ac6", "#ac6");
+  }
+  this.resizeEventHandler = () => { 
+  	this.fontHeight /= this.oldScale;
+		this.fontHeight *= scale; 
+		this.oldScale = scale;
   }
 }
 

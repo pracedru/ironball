@@ -39,6 +39,7 @@ var places = [
 var playerCount = 8;
 var defaultPositions = {};
 var upgradeCounter = 0;
+var roundTime = 9;
 
 defaultPositions['Balanced'] = [0, 15, 14, 10, 9, 8, 4, 3];         // 2, 3, 2
 defaultPositions['Defensive'] = [0, 10, 9, 8, 6, 5, 4, 3];          // 0, 1, 6
@@ -193,7 +194,7 @@ function GameLogics(){
     var dt = this.deltaTime;
     this.lastTimeStamp = this.currentTimeStamp;
     if(isServer){
-      var time = 90 - (this.currentTimeStamp - this.roundStartTime)/1000;
+      var time = roundTime - (this.currentTimeStamp - this.roundStartTime)/1000;
       if (time <= 0){
         var msg = {t: MsgTypes.RoundEnded};
         this.eventCallBack(msg);

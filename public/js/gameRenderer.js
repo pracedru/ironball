@@ -25,69 +25,69 @@ var upgradeSounds = [];
 
 var animations = {};
 animations['player1Run'] = new Animator([
-  "img/player1/run1.png",
-  "img/player1/run2.png",
-  "img/player1/run3.png",
-  "img/player1/run4.png",
-  "img/player1/run5.png",
-  "img/player1/run6.png",
-  "img/player1/run7.png",
-  "img/player1/run8.png"]
+  "img/player1/sm_run1.png",
+  "img/player1/sm_run2.png",
+  "img/player1/sm_run3.png",
+  "img/player1/sm_run4.png",
+  "img/player1/sm_run5.png",
+  "img/player1/sm_run6.png",
+  "img/player1/sm_run7.png",
+  "img/player1/sm_run8.png"]
 );
 
 animations['player1Throw'] = new Animator([
-  "img/player1/throw1.png",
-  "img/player1/throw2.png",
-  "img/player1/throw3.png",
-  "img/player1/throw4.png",
-  "img/player1/throw5.png",
-  "img/player1/throw6.png"]
+  "img/player1/sm_throw1.png",
+  "img/player1/sm_throw2.png",
+  "img/player1/sm_throw3.png",
+  "img/player1/sm_throw4.png",
+  "img/player1/sm_throw5.png",
+  "img/player1/sm_throw6.png"]
 );
 
 animations['player1Fall'] = new Animator([
-  "img/player1/idle.png",
-  "img/player1/fall1.png",
-  "img/player1/fall2.png",
-  "img/player1/fall3.png",
-  "img/player1/fall4.png"]
+  "img/player1/sm_idle.png",
+  "img/player1/sm_fall1.png",
+  "img/player1/sm_fall2.png",
+  "img/player1/sm_fall3.png",
+  "img/player1/sm_fall4.png"]
 );
 animations['player1Kick'] = new Animator([
-  "img/player1/idle.png",
-  "img/player1/run1.png",
-  "img/player1/run2.png",
-  "img/player1/run3.png"]
+  "img/player1/sm_idle.png",
+  "img/player1/sm_run1.png",
+  "img/player1/sm_run2.png",
+  "img/player1/sm_run3.png"]
 );
 
 animations['player2Run'] = new Animator([
-  "img/player2/run1.png",
-  "img/player2/run2.png",
-  "img/player2/run3.png",
-  "img/player2/run4.png",
-  "img/player2/run5.png",
-  "img/player2/run6.png",
-  "img/player2/run7.png",
-  "img/player2/run8.png"]
+  "img/player2/sm_run1.png",
+  "img/player2/sm_run2.png",
+  "img/player2/sm_run3.png",
+  "img/player2/sm_run4.png",
+  "img/player2/sm_run5.png",
+  "img/player2/sm_run6.png",
+  "img/player2/sm_run7.png",
+  "img/player2/sm_run8.png"]
 );
 animations['player2Throw'] = new Animator([
-  "img/player2/throw1.png",
-  "img/player2/throw2.png",
-  "img/player2/throw3.png",
-  "img/player2/throw4.png",
-  "img/player2/throw5.png",
-  "img/player2/throw6.png"]
+  "img/player2/sm_throw1.png",
+  "img/player2/sm_throw2.png",
+  "img/player2/sm_throw3.png",
+  "img/player2/sm_throw4.png",
+  "img/player2/sm_throw5.png",
+  "img/player2/sm_throw6.png"]
 );
 animations['player2Fall'] = new Animator([
-  "img/player2/idle.png",
-  "img/player2/fall1.png",
-  "img/player2/fall2.png",
-  "img/player2/fall3.png",
-  "img/player2/fall4.png"]
+  "img/player2/sm_idle.png",
+  "img/player2/sm_fall1.png",
+  "img/player2/sm_fall2.png",
+  "img/player2/sm_fall3.png",
+  "img/player2/sm_fall4.png"]
 );
 animations['player2Kick'] = new Animator([
-  "img/player2/idle.png",
-  "img/player2/run1.png",
-  "img/player2/run2.png",
-  "img/player2/run3.png"]
+  "img/player2/sm_idle.png",
+  "img/player2/sm_run1.png",
+  "img/player2/sm_run2.png",
+  "img/player2/sm_run3.png"]
 );
 
 animations['getReady'] = new Animator([
@@ -144,9 +144,9 @@ gameRenderer.initAV = () => {
   gameRenderer.lastInput = null;
   gameRenderer.connected = false;
   gameRenderer.arena = new Image();
-  gameRenderer.arena.src = 'img/ArenaFull.jpg';
+  gameRenderer.arena.src = 'img/sm_ArenaFull.jpg';
   gameRenderer.arenaMenu = new Image();
-  gameRenderer.arenaMenu.src = 'img/arenaMenu.png';
+  gameRenderer.arenaMenu.src = 'img/sm_arenaMenu.png';
   gameRenderer.dir = new Image();
   gameRenderer.dir.src = 'img/dir.png';
   gameRenderer.selected = new Image();
@@ -154,15 +154,15 @@ gameRenderer.initAV = () => {
   gameRenderer.btn = new Image();
   gameRenderer.btn.src = 'img/btn.png';
   gameRenderer.plr1 = new Image();
-  gameRenderer.plr1.src = 'img/player1/idle.png';
+  gameRenderer.plr1.src = 'img/player1/sm_idle.png';
   gameRenderer.plr2 = new Image();
-  gameRenderer.plr2.src = 'img/player2/idle.png';
+  gameRenderer.plr2.src = 'img/player2/sm_idle.png';
   gameRenderer.ballHandlerRing = new Image();
   gameRenderer.ballHandlerRing.src = 'img/ballHandler.png';
   gameRenderer.plrshadow = new Image();
-  gameRenderer.plrshadow.src = 'img/player/shadow.png';
+  gameRenderer.plrshadow.src = 'img/sm_shadow.png';
   gameRenderer.ball = new Image();
-  gameRenderer.ball.src = 'img/ironball.png';
+  gameRenderer.ball.src = 'img/sm_ironball.png';
   gameRenderer.crowdCheerAudio = new GameAudio("snd/crowdCheer.wav", false);
   gameRenderer.ballAudio = new GameAudio("snd/ball.wav", false);
   gameRenderer.pickupAudio = new GameAudio("snd/pickup.wav", false);  
@@ -206,8 +206,8 @@ gameRenderer.initAV = () => {
   
   var ctrls = [];
   gameRenderer.arenaMenus[ArenaMenuStates.InGameMenu] = ctrls;
-  ctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "Formations", 30, "dark"));
-  ctrls.push(new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Tactics", 30, "dark"));
+  ctrls.push(new Button('img/sm_wbtn.png', 'img/sm_wbtnpress.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "Formations", 30, "dark"));
+  ctrls.push(new Button('img/sm_wbtn.png', 'img/sm_wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Tactics", 30, "dark"));
   ctrls[0].clicked = () => {    
     gameRenderer.arenaMenuState = ArenaMenuStates.FormationsMenu;
   };
@@ -224,7 +224,7 @@ gameRenderer.initAV = () => {
 gameRenderer.initFormationsMenu = () => {
 	var ctrls = [];
   gameRenderer.arenaMenus[ArenaMenuStates.FormationsMenu] = ctrls;  
-  ctrls.push(new Button('img/nbtn.png', 'img/nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
+  ctrls.push(new Button('img/sm_nbtn.png', 'img/sm_nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"));
   ctrls[0].clicked = () => {    
     gameRenderer.arenaMenuState = ArenaMenuStates.InGameMenu;
   };
@@ -233,7 +233,7 @@ gameRenderer.initFormationsMenu = () => {
   	var formation = team.formations[formationsIndex];
   	var positionsName = formation.name;
   	var pos = formation.positions;
-  	var btn = new Button('img/wbtn.png', 'img/wbtnpress.png', {x: 0.125, y: 0.065+counter*0.125}, Control.Sizes["Wide"], positionsName, 30, "dark"); 
+  	var btn = new Button('img/sm_wbtn.png', 'img/sm_wbtnpress.png', {x: 0.125, y: 0.065+counter*0.125}, Control.Sizes["Wide"], positionsName, 30, "dark"); 
 		btn.formationIndex = formationsIndex;
   	btn.clicked = (sender) => {
   		var msg = { 
@@ -427,7 +427,6 @@ gameRenderer.renderPointer = (camposx, camposy, cyoffset) => {
       ctx.moveTo(150, 0);
       ctx.lineTo(100, 50);
       ctx.lineTo(100, -50);
-      //c2.lineTo(0, 90);
       ctx.closePath(); 
       ctx.fill();
       ctx.restore();
@@ -447,7 +446,7 @@ gameRenderer.renderTexts = () => {
   gameRenderer.renderText(gameRenderer.teamName2, {x: xloc, y: yloc}, fontsize, teamColor, "#333");
   gameRenderer.renderText(gameRenderer.score.team2, {x: xloc, y: yloc+fontsize}, fontsize, teamColor, "#333");
   xloc = canvas.width/2;
-  var time = 90 - (gameRenderer.currentTimeStamp - gameRenderer.roundStartTime)/1000;
+  var time = roundTime - (gameRenderer.currentTimeStamp - gameRenderer.roundStartTime)/1000;
   gameRenderer.renderText(time.toFixed(0), {x: xloc, y: yloc+fontsize}, fontsize, "#bbb", "#333");
 };
 gameRenderer.renderText = (txt, loc, size = 30, fill = "#000", stroke = null, strokeWidth = scale) => {

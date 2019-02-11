@@ -304,8 +304,6 @@ exports.Arena = function(id) {
     this.gameLogic.team1AI.update();
     this.gameLogic.team2AI.update();
     this.gameLogic.update();
-    
-
   	
   	if (this.gameLogic.currentTimeStamp>this.nextSpawnTime && this.gameLogic.state === gl.GameStates.Playing){  	
   		var type = Math.round(Math.random()*(Object.keys(gl.UpgradeTypes).length-1));
