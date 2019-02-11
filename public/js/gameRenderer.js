@@ -10,7 +10,7 @@ var ClientType = {
   Team2: 2,
   Spectator: 0
 };
-var pickupItemImages = [
+var upgradeImages = [
 	GetImage("img/items/coins.png"),
 	GetImage("img/items/speedupgrade.png"), 
 	GetImage("img/items/throwupgrade.png"),
@@ -21,7 +21,7 @@ var pickupItemImages = [
 	GetImage("img/items/enduranceupgrade.png"),
 	GetImage("img/items/medkit.png")
 ];
-var pickupItemSounds = [];
+var upgradeSounds = [];
 
 var animations = {};
 animations['player1Run'] = new Animator([
@@ -178,8 +178,8 @@ gameRenderer.initAV = () => {
   gameRenderer.arenaID = 0;
   gameRenderer.arenaMenus = {};
   
-  if (pickupItemSounds.length == 0){
-  	pickupItemSounds = [
+  if (upgradeSounds.length == 0){
+  	upgradeSounds = [
 			new GameAudio("snd/coinsPickup.wav", false),
 			new GameAudio("snd/pickupUpgrade.wav", false, 0.5), 
 			new GameAudio("snd/pickupUpgrade.wav", false, 0.5),
@@ -346,8 +346,8 @@ gameRenderer.render = () => {
     var sc = gameRenderer.arena.width/canvas.width;
     ctx.drawImage(gameRenderer.arena, -x*sc/s, -y*sc/s, canvas.width*sc/s, canvas.height*sc/s, 0, 0, canvas.width, canvas.height);
 
-		for (var i in gameRenderer.pickupItems){
-			var item = gameRenderer.pickupItems[i];
+		for (var i in gameRenderer.upgrades){
+			var item = gameRenderer.upgrades[i];
 			gameRenderer.renderItem(item, gameRenderer.camera.pos.x, gameRenderer.camera.pos.y);
 		}
 
@@ -777,11 +777,11 @@ gameRenderer.setRenderer = () => {
         gameRenderer.score = msg.score;
         gameRenderer.state = msg.state;
         gameRenderer.playerIndex = -1;
-        gameRenderer.pickupItems = [];
-        for (var i in msg.pickupItems){
-        	var item = msg.pickupItems[i];
-        	item.image = pickupItemImages[item.type];
-        	gameRenderer.pickupItems.push(item);
+        gameRenderer.upgrades = [];
+        for (var i in msg.upgrades){
+        	var upgrade = msg.upgrades[i];
+        	upgrade.image = upgradeImages[upgrade.type];
+        	gameRenderer.upgrades.push(upgrade);
         }
         for (var i = 0; i < msg.team1.length; i++){
           gameRenderer.team1[i].sync(msg.team1[i]);
@@ -796,19 +796,19 @@ gameRenderer.setRenderer = () => {
  					gameRenderer.arenaMenus[ArenaMenuStates.SinglePlayerStartMenu][0].value = gameRenderer.arenaID.toString();
         }
         break;
-      case MsgTypes.PickupItemTaken:
-      	gameRenderer.removePickupItem(msg.item.id);
-      	pickupItemSounds[msg.item.type].play();
-      	if (msg.item.type == PickupItemType.HealthUpgrade){
+      case MsgTypes.UpgradeTaken:
+      	gameRenderer.removeUpgrade(msg.upg.id);
+      	upgradeSounds[msg.upg.type].play();
+      	if (msg.upg.type == UpgradeTypes.HealthUpgrade){
       		var player = msg.tm === 1 ?  gameRenderer.team1[msg.pi] : gameRenderer.team2[msg.pi];		     
 		      player.health = Math.min(100, player.health + 20);
       	}
 
       	break;
-      case MsgTypes.SpawnPickupItem:
-      	var item = msg.item;
-      	item.image = pickupItemImages[item.type];
-      	gameRenderer.pickupItems.push(item);
+      case MsgTypes.SpawnUpgrade:
+      	var upgrade = msg.upg;
+      	upgrade.image = upgradeImages[upgrade.type];
+      	gameRenderer.upgrades.push(upgrade);
       	break;
       default:
         console.log(evt.data);
@@ -829,19 +829,19 @@ gameRenderer.setRenderer = () => {
   };
 };
 
-gameRenderer.getPickupItem = (id) => {
-	for (i in gameRenderer.pickupItems){
-		var pickupItem = gameRenderer.pickupItems[i];
-		if (pickupItem.id == id) return pickupItem;
+gameRenderer.getUpgrade = (id) => {
+	for (i in gameRenderer.upgrades){
+		var upgrade = gameRenderer.upgrades[i];
+		if (upgrade.id == id) return upgrade;
 	}
 	return null;
 }
 
-gameRenderer.removePickupItem = (id) => {
-	for (i in gameRenderer.pickupItems){
-		var pickupItem = gameRenderer.pickupItems[i];
-		if (pickupItem.id == id){
-			gameRenderer.pickupItems.splice(i, 1);
+gameRenderer.removeUpgrade = (id) => {
+	for (i in gameRenderer.upgrades){
+		var upgrade = gameRenderer.upgrades[i];
+		if (upgrade.id == id){
+			gameRenderer.upgrades.splice(i, 1);
 			return;
 		}
 	}

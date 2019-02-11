@@ -3,7 +3,7 @@ var Tournament = function(){
   this.connected = false;
   this.ws = null;
   this.teamId = 0;
-  this.team = null;
+  this.teamUpgrades = null;
   this.playerUpgrades = {};
   this.kachingAudio = new GameAudio("snd/kaching.wav", false);
   this.onmessage = (evt) => {
@@ -13,18 +13,22 @@ var Tournament = function(){
       case MsgTypes.Connected:
         localStorage.setItem("tournamentID", msg.id);
         this.teamId = msg.teamId;
-        this.team = msg.team;
+        this.teamUpgrades = msg.teamUpgrades;
         
         menuRenderer.menus[MenuStates.TeamManagerMenu][2].updateText();
         break;
       case MsgTypes.TournamentStateChanged:
         localStorage.setItem("playerCount", msg.playerCount);
         localStorage.setItem("poolSize", msg.poolSize);
+        if (msg.gt === GameTypes.SingleMatch && msg.playerCount >= 2){
+        	menuRenderer.state = MenuStates.TeamManagerMenu;
+        	menuRenderer.renderScreen = true;
+        }
         break;
       case MsgTypes.TeamUpgradesChanged:
       	//console.log(evt.data);
-      	if (this.team.id === msg.team.id){
-      		this.team = msg.team;
+      	if (this.teamUpgrades.id === msg.teamUpgrades.id){
+      		this.teamUpgrades = msg.teamUpgrades;
       		menuRenderer.menus[MenuStates.TeamManagerMenu][2].updateText();
       		this.kachingAudio.play();
       	}

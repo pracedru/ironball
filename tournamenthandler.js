@@ -3,24 +3,23 @@ const gl = require('./public/js/gameLogic.js');
 const ah = require('./arenahandler.js');
 var tournaments = {};
 var MsgTypes = gl.MsgTypes;
-var PickupItemType = gl.PickupItemType;
+var UpgradeTypes = gl.UpgradeTypes;
 var GameTypes = gl.GameTypes;
 
-var Team = function(id){
+var TeamUpgrades = function(id){
 	this.id = id;
 	this.credits = 500;
 	this.upgrades = [];
 	for (var i = 0; i < gl.playerCount+1; i++){
 		var upgrade = {};
-		upgrade[PickupItemType.SpeedUpgrade] = 100;
-		upgrade[PickupItemType.ThrowUpgrade] = 100;
-		upgrade[PickupItemType.StamminaUpgrade] = 100;
-		upgrade[PickupItemType.AccelerationUpgrade] = 100;
-		upgrade[PickupItemType.KickUpgrade] = 100;
-		upgrade[PickupItemType.IntelligenceUpgrade] = 100;
-		upgrade[PickupItemType.EnduranceUpgrade] = 100;
-		upgrade[PickupItemType.HealthUpgrade] = 100;
-		
+		upgrade[UpgradeTypes.SpeedUpgrade] = 100;
+		upgrade[UpgradeTypes.ThrowUpgrade] = 100;
+		upgrade[UpgradeTypes.StaminaUpgrade] = 100;
+		upgrade[UpgradeTypes.AccelerationUpgrade] = 100;
+		upgrade[UpgradeTypes.KickUpgrade] = 100;
+		upgrade[UpgradeTypes.IntelligenceUpgrade] = 100;
+		upgrade[UpgradeTypes.EnduranceUpgrade] = 100;
+		upgrade[UpgradeTypes.HealthUpgrade] = 100;		
 		this.upgrades.push(upgrade);
 	}
 }
@@ -51,7 +50,6 @@ exports.Tournament = function(id) {
   
   this.onParticipantMessage = (data, ws) => { 
     var msg = JSON.parse(data); 
-    //console.log(data);
     switch (msg.t){
       case MsgTypes.PoolSizeChanged:
         var poolSize = Math.min(4, Math.max(2, parseInt(msg.poolSize)));        
@@ -64,9 +62,18 @@ exports.Tournament = function(id) {
       	this.handlePlayerUpgrade(msg, ws);
       	break; 	
       case MsgTypes.TeamManagementDone:
-      	var arenaID = this.id.toString() + "." + this.arenaCounter;
-      	this.arenaCounter++; 
-      	var arena = new ah.Arena(arenaID);
+      	//var arenaID = this.id.toString() + "." + this.arenaCounter;
+      	var arena = null;
+      	if (this.gameType === GameTypes.SingleMatch)
+      	{
+      		var arenaID = this.id.toString() + ".0";
+      		arena = ah.getArena(arenaID);
+      		if (arena === null){
+      			arena = new ah.Arena(arenaID);
+      			this.arenaCounter++;
+      		}
+      	}
+      	
       	var msg = {
       		t: MsgTypes.ArenaCreated,
       		id: arenaID
@@ -74,7 +81,7 @@ exports.Tournament = function(id) {
       	var players = arena.gameLogic.team1;
       	for (var i in players){
       		var player = players[i];
-      		var upgrades = ws.team.upgrades[i];
+      		var upgrades = ws.teamUpgrades.upgrades[i];
       		player.setUpgrades(upgrades)
       	}
       	var data = JSON.stringify(msg);
@@ -100,42 +107,43 @@ exports.Tournament = function(id) {
   	var upgrade = 5;
   	if (msg.pi === gl.playerCount){
   		for (var i = 0; i < gl.playerCount; i++){
-  			if (ws.team.credits >= price){
+  			if (ws.teamUpgrades.credits >= price){
   				var limited = false;
-  				if (msg.ut === PickupItemType.HealthUpgrade && ws.team.upgrades[i][msg.ut]>=100) limited = true; 
+  				if (msg.ut === UpgradeTypes.HealthUpgrade && ws.teamUpgrades.upgrades[i][msg.ut]>=100) limited = true; 
     			if (!limited){
     				teamChanged = true;
-		  			ws.team.upgrades[i][msg.ut] += upgrade;
-						ws.team.upgrades[gl.playerCount][msg.ut] += upgrade/gl.playerCount;
-						ws.team.credits -= price;
+		  			ws.teamUpgrades.upgrades[i][msg.ut] += upgrade;
+						ws.teamUpgrades.upgrades[gl.playerCount][msg.ut] += upgrade/gl.playerCount;
+						ws.teamUpgrades.credits -= price;
     			}
   			}	
   		}
   	} else {
-  		if (ws.team.credits >= price){
+  		if (ws.teamUpgrades.credits >= price){
   			teamChanged = true;
-  			ws.team.upgrades[msg.pi][msg.ut] += upgrade;
-  			ws.team.upgrades[gl.playerCount][msg.ut] += upgrade/gl.playerCount;
-				ws.team.credits -= price;
+  			ws.teamUpgrades.upgrades[msg.pi][msg.ut] += upgrade;
+  			ws.teamUpgrades.upgrades[gl.playerCount][msg.ut] += upgrade/gl.playerCount;
+				ws.teamUpgrades.credits -= price;
+				
 			}		
   	}
-  	if (teamChanged) this.onTeamUpgradesChanged(ws.team);
+  	if (teamChanged) this.onTeamUpgradesChanged(ws.teamUpgrades);
   }
   
   this.getTournamentState = () => {
     return {
       id: this.id,
       playerCount: Object.keys(this.participantSockets).length,
-      poolSize: this.poolSize
+      poolSize: this.poolSize,
+      gt: this.gameType
     }
   }
   
   this.addSocket = (webSocket, msg) => {    
     webSocket.tournament = this;
     webSocket.teamId = genUUID();
-    webSocket.team = new Team(webSocket.teamId);
+    webSocket.teamUpgrades = new TeamUpgrades(webSocket.teamId);
     webSocket.tournament = this;
-    //console.log(webSocket.teamId);
     this.participantSockets[webSocket.teamId] = webSocket;
    
     webSocket.on("message", onParticipantMessage);
@@ -146,11 +154,10 @@ exports.Tournament = function(id) {
       this.checkRecycle(); 
     });
     var tournamentState = this.getTournamentState();
-    tournamentState.team = webSocket.team;
+    tournamentState.teamUpgrades = webSocket.teamUpgrades;
     tournamentState.t = MsgTypes.Connected;
     webSocket.send(JSON.stringify(tournamentState));
     this.onTournamentStateChanged();
-    //console.log(this);
   }
   
   this.onTournamentStateChanged = () => {
@@ -168,10 +175,10 @@ exports.Tournament = function(id) {
     }    
   }
   
-  this.onTeamUpgradesChanged = (team) => {
+  this.onTeamUpgradesChanged = (teamUpgrades) => {
     var msg = {};
     msg.t = MsgTypes.TeamUpgradesChanged;
-    msg.team = team;
+    msg.teamUpgrades = teamUpgrades;
     
     for (var i in this.participantSockets){
       try {

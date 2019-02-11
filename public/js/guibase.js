@@ -77,13 +77,15 @@ var Control = function(loc, size){
   this.size.y = size.y;
   this.enabled = true;
   this.pressed = false;
-  this.clicked = (sender, loc) => { /*console.log("dud control clicked: " + JSON.stringify(loc));*/ };  
-  this.internalClicked = (loc) => { /*console.log("dud control clicked: " + JSON.stringify(loc));*/ };  
-  this.released = () => { /*console.log("dud control released")*/ };
-  this.moved = (loc, delta) => { /*console.log("dud control moved")*/ };
-  this.render = () => { /*console.log("nothing to render")*/ };
-  this.changed = (oldValue, newValue) => { console.log("control changed from: " + oldValue + " to: " + newValue) };
+  this.clicked = (sender, loc) => {  };  
+  this.internalClicked = (loc) => {  };  
+  this.released = () => {  };
+  this.moved = (loc, delta) => {  };
+  this.render = () => {  };
+  this.changed = (oldValue, newValue) => {  };
   this.lastTouchLocation = {x: 0, y:0};
+  this.resizeEventHandler = () => { }
+  resizeEventHandlers.push(() => { this.resizeEventHandler(); });
   this.inside = (touchLoc) => {
     if (this.enabled){
       var size = { x: this.size.x * canvas.width, y: this.size.y * canvas.height };
@@ -175,6 +177,7 @@ var Button = function (btnimg, btnpressimg, loc, size, text = "Button", fontHeig
   this.fontColor = fontColor;
   this.fontColors = { red: ["#865", "#311", "#f96", "#721"], blue: ["#566", "#113", "#6ef", "#127"], black: ["#000", null, "#000", null],  dark: ["#0009", null, "#0009", null]};
   this.pressed = false;
+  this.oldScale = scale;
   this.fontHeight = fontHeight === null ? this.size.y/3 : fontHeight*scale/canvas.height;  
   this.render = () => {
     if (this.enabled){
@@ -197,7 +200,12 @@ var Button = function (btnimg, btnpressimg, loc, size, text = "Button", fontHeig
   		this.switchValue = !this.switchValue;
   	}
   }
-};
+  this.resizeEventHandler = () => { 
+  	this.fontHeight /= this.oldScale;
+		this.fontHeight *= scale; 
+		this.oldScale = scale;
+  }
+}
 
 var TextBox = function (txtimg, loc, size, caption = "TextBox", text = "null", fontHeight = null){
   Control.call(this, loc, size);
@@ -219,9 +227,9 @@ var TextBox = function (txtimg, loc, size, caption = "TextBox", text = "null", f
           document.getElementById('modalInput').value = this.emptyInputAlternate();
         }
         this.setValue(document.getElementById('modalInput').value);        
-      };    
+      }  
     }    
-  };
+  }
   this.setValue = (value) => {
     var changed = false;
     var oldValue = this.getValue();
@@ -238,10 +246,10 @@ var TextBox = function (txtimg, loc, size, caption = "TextBox", text = "null", f
     }  
     if (changed) this.changed(oldValue, value);
     return changed;
-  };
+  }
   this.getValue = () => {
     return typeof this.value === "string" || this.value === "number" ? this.value : localStorage.getItem(this.value.name);
-  };
+  }
   this.render = () => {
     var size = { x: this.size.x * canvas.width, y: this.size.y * canvas.height };
     var loc = { x: this.loc.x * canvas.width, y: this.loc.y * canvas.height };
@@ -249,8 +257,8 @@ var TextBox = function (txtimg, loc, size, caption = "TextBox", text = "null", f
     var text = this.getValue();
     Base.renderText(text,{x: loc.x+size.x/2, y: loc.y+this.fontHeight/3 + 1.8*size.y/3}, this.fontHeight, "#ac6", "#330");
     Base.renderText(this.caption,{x: loc.x+size.x/2, y: loc.y+this.fontHeight/3 + 1*size.y/4}, this.fontHeight/2, "#ac6", "#ac6");
-  };  
-};
+  }
+}
 
 var NUDBox  = function (txtimg, loc, size, caption = "TextBox", text = "null", fontHeight = null){
   TextBox.call(this, txtimg, loc, size, caption, text, fontHeight);
@@ -264,7 +272,7 @@ var NUDBox  = function (txtimg, loc, size, caption = "TextBox", text = "null", f
     var right = "►";
     Base.renderText(left,{x: loc.x+size.x/6, y: loc.y+this.fontHeight/3 + 2*size.y/4}, this.fontHeight, "#ac6", "#ac6");
     Base.renderText(right,{x: loc.x+5*size.x/6, y: loc.y+this.fontHeight/3 + 2*size.y/4}, this.fontHeight, "#ac6", "#ac6");
-  };
+  }
   this.clicked = () => {
     if (this.enabled) {
       if (this.insideCenter(this.lastTouchLocation)){
@@ -275,7 +283,7 @@ var NUDBox  = function (txtimg, loc, size, caption = "TextBox", text = "null", f
         this.setValue(parseInt(this.getValue())+1);
       }
     }
-  };
+  }
   this.insideCenter = (touchLoc) => {
     if (this.enabled){
       var size = { x: this.size.x * canvas.width, y: this.size.y * canvas.height };
@@ -291,7 +299,7 @@ var NUDBox  = function (txtimg, loc, size, caption = "TextBox", text = "null", f
       }  
     }    
     return false;
-  };  
+  }
   this.insideLeft = (touchLoc) => {
     if (this.enabled){
       var size = { x: this.size.x * canvas.width, y: this.size.y * canvas.height };
@@ -307,7 +315,7 @@ var NUDBox  = function (txtimg, loc, size, caption = "TextBox", text = "null", f
       }  
     }    
     return false;
-  };  
+  }
   this.insideRight = (touchLoc) => {
     if (this.enabled){
       var size = { x: this.size.x * canvas.width, y: this.size.y * canvas.height };
@@ -323,7 +331,7 @@ var NUDBox  = function (txtimg, loc, size, caption = "TextBox", text = "null", f
       }  
     }    
     return false;
-  };  
+  }
 }
 
 var Screen = function (surfaceimg, loc, size) {  
@@ -340,7 +348,7 @@ var Screen = function (surfaceimg, loc, size) {
   
   this.renderContents = () =>{
   }
-};
+}
 
 
 function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
@@ -622,7 +630,7 @@ var Filters = {
     return c.toDataURL();
     //return c.toDataURL("image/webp", 0.85);
   }  
-};
+}
 
 
 

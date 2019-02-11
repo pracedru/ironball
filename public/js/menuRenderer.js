@@ -127,7 +127,9 @@ var menuRenderer = {
     sfmctrls.push(backButton);
 		sfmctrls.push(testButton);
 		newMatchButton.clicked = () => {
-      var request = new XMLHttpRequest();
+			menuRenderer.connectTournament(0, MenuStates.InvitePlayerMenu, GameTypes.SingleMatch);
+
+			/*var request = new XMLHttpRequest();
       request.responseType = 'json';
       request.open('GET', "createArena", true);      
       request.onload = function() {
@@ -137,16 +139,18 @@ var menuRenderer = {
           gameRenderer.setRenderer();
         }
       }
-      request.send();
+      request.send();*/
     }
     joinMatchButton.clicked = () => { 
       modalShow("Invitation", 100);
       modalAccept = () => {
         var tournamentID = document.getElementById('modalInput').value;
         if (tournamentID !== ""){
-          tournamentID = parseInt(tournamentID);
+        	menuRenderer.connectTournament(tournamentID, MenuStates.TeamManagerMenu, GameTypes.SingleMatch);
+          
+          /*tournamentID = parseInt(tournamentID);
           gameRenderer.arenaID = arenaID;
-          gameRenderer.setRenderer();
+          gameRenderer.setRenderer();*/
         } 
       }
     }
@@ -535,6 +539,9 @@ var menuRenderer = {
       console.log("Connection request is sent...");
       menuRenderer.tournament.connected = true;
       menuRenderer.state = destinationMenu;
+      if (destinationMenu === MenuStates.TeamManagerMenu){
+      	menuRenderer.renderScreen = true;
+      }
     }
     menuRenderer.tournament.ws.onmessage = menuRenderer.tournament.onmessage;
     menuRenderer.tournament.ws.onclose = (evt) => {        

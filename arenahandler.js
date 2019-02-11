@@ -71,7 +71,7 @@ exports.Arena = function(id) {
       team1: this.gameLogic.team1,
       team2: this.gameLogic.team2,
       score: this.gameLogic.score,
-      pickupItems: this.gameLogic.pickupItems
+      upgrades: this.gameLogic.upgrades
     }
     return gameState;
   };
@@ -306,17 +306,17 @@ exports.Arena = function(id) {
     this.gameLogic.update();
     
 
-  	var spawnProp = (Date.now() - this.lastPickupItemSpawnTimeStamp) / this.spawnTimeThresshold;
+  	
   	if (this.gameLogic.currentTimeStamp>this.nextSpawnTime && this.gameLogic.state === gl.GameStates.Playing){  	
-  		var type = Math.round(Math.random()*(Object.keys(gl.PickupItemType).length-1));
+  		var type = Math.round(Math.random()*(Object.keys(gl.UpgradeTypes).length-1));
   		var pos = randomArenaPosition();
-  		var pickupItem = new gl.PickupItem(pos, type);
+  		var upgrade = new gl.Upgrade(pos, type);
   		var spawnMsg = {
-  			t: MsgTypes.SpawnPickupItem,
-  			item: pickupItem
+  			t: MsgTypes.SpawnUpgrade,
+  			upg: upgrade
   		}
   		this.sendPlayerUpdate(spawnMsg);
-  		this.gameLogic.pickupItems.push(pickupItem);
+  		this.gameLogic.upgrades.push(upgrade);
   		
   		var dt = this.maxSpawnTime-this.minSpawnTime;
   		this.nextSpawnTime = Date.now() + randomRangedSigned(dt*500) + (this.minSpawnTime+dt/2)*1000;  		

@@ -2,27 +2,16 @@ var isServer = typeof isClient !== "undefined" ? !isClient : true;
 var isClient = !isServer;
 var scale = isClient ? scale : 1;
 
-var PickupItemType = {
-  Credit: 0,  
+var UpgradeTypes = {
+  CreditUpgrade: 0,  
   SpeedUpgrade: 1,
   ThrowUpgrade: 2,
-  StamminaUpgrade: 3,
+  StaminaUpgrade: 3,
   AccelerationUpgrade: 4,
   KickUpgrade: 5,
   IntelligenceUpgrade: 6,
   EnduranceUpgrade: 7,
   HealthUpgrade: 8
-}
-
-if (isServer){
-	var misc = require('./misc.js');
-	var pl = require('./player.js');
-	pl.setPickupItemType(PickupItemType);
-	var Player = pl.Player;
-	var b2k = misc.b2k;
-	var k2b = misc.k2b;
-	var Vertex3 = misc.Vertex3;
-	var Vertex2 = misc.Vertex2;
 }
 
 var places = [
@@ -47,13 +36,13 @@ var places = [
   {x: 342, y: 569}		//18
 ];
 
-playerCount = 8;
-
-defaultPositions = {};
+var playerCount = 8;
+var defaultPositions = {};
+var upgradeCounter = 0;
 
 defaultPositions['Balanced'] = [0, 15, 14, 10, 9, 8, 4, 3];         // 2, 3, 2
 defaultPositions['Defensive'] = [0, 10, 9, 8, 6, 5, 4, 3];          // 0, 1, 6
-defaultPositions['Aggressive'] = [0, 15, 14, 12, 11, 8, 6, 5];    // 5, 1, 1
+defaultPositions['Aggressive'] = [0, 15, 14, 12, 11, 8, 6, 5];      // 5, 1, 1
 
 var MsgTypes = {
 	Connected: 0,
@@ -74,8 +63,8 @@ var MsgTypes = {
 	ScoreUpdate: 15,
 	RoundEnded: 16,
 	TournamentConnection: 17,
-	SpawnPickupItem: 18,
-	PickupItemTaken: 19,
+	SpawnUpgrade: 18,
+	UpgradeTaken: 19,
 	TournamentStateChanged: 20,
 	TeamUpgradesChanged: 21,
 	TeamIdChanged: 22,
@@ -91,21 +80,17 @@ var GameTypes = {
 	Campaign: 2
 }
 
-
-
-var pickupItemCounter = 0;
-
-function PickupItem(position, type){
-	this.id = pickupItemCounter;
-	pickupItemCounter++;
+function Upgrade(position, type){
+	this.id = upgradeCounter;
+	upgradeCounter++;
 	this.pos = position;
 	this.type = type;
 	this.size = {x: 40, y: 30};		
 	switch (type) {
-		case PickupItemType.Credit:
+		case UpgradeTypes.CreditUpgrade:
 			this.size = {x: 30, y: 30};				
 			break;
-		case PickupItemType.HealthUpgrade:
+		case UpgradeTypes.HealthUpgrade:
 			this.size = {x: 45, y: 35};				
 			break;		
 	}
@@ -127,13 +112,24 @@ var GameStates = {
   GetReady: 5
 };
 
+if (isServer){
+	var misc = require('./misc.js');
+	var pl = require('./player.js');
+	pl.setUpgrades(UpgradeTypes);
+	var Player = pl.Player;
+	var b2k = misc.b2k;
+	var k2b = misc.k2b;
+	var Vertex3 = misc.Vertex3;
+	var Vertex2 = misc.Vertex2;
+}
+
 function GameLogics(){
   this.lastTouch = {x: 0, y: 0};
   this.ballpos = new Vertex3(0,0,0);// {x: 0.0, y: 0.0, z: 0};
   this.ballposResidual = new Vertex3(0,0,0); // {x: 0.0, y: 0.0, z: 0};
   this.ballSpeed = new Vertex3(0,0,0); //{x: 0.0, y: 0.0, z: 0.0};
   this.ballHandler = null;
-  this.pickupItems = [];
+  this.upgrades = [];
   this.lastTimeStamp = 0;
   this.currentTimeStamp = 0;
   this.deltaTime = 0;
@@ -208,7 +204,6 @@ function GameLogics(){
         this.eventCallBack({ t: MsgTypes.ChangeGameState, state: GameStates.GetReady });
         this.roundStartTime = this.currentTimeStamp;
       }
-//w       var pickupItemChance = this.
     }
 
     if (this.state !== GameStates.Playing){
@@ -219,41 +214,40 @@ function GameLogics(){
       var player = this.team1[i];
       this.updatePlayer(player);
       if(isServer){
-      	this.checkPickupItem(player);
+      	this.checkUpgrade(player);
 		  }
     }
     for (var i = 0; i < this.team2.length; i++){
       var player = this.team2[i];
       this.updatePlayer(player);
       if(isServer){
-      	this.checkPickupItem(player);
+      	this.checkUpgrade(player);
 		  }
     }		
   };
-  this.checkPickupItem = (player) => {
-  	var pickedItems = [];
-		for (j in this.pickupItems){											
-			var pickupItem = this.pickupItems[j];
-			var dist = player.dist(pickupItem.pos);					
+  this.checkUpgrade = (player) => {
+  	var pickedUpgrades = [];
+		for (j in this.upgrades){											
+			var upgrade = this.upgrades[j];
+			var dist = player.dist(upgrade.pos);					
 			if (dist<player.reach*1.5){
-				pickedItems.push(pickupItem);
+				pickedUpgrades.push(upgrade);
 				var takeMsg = this.getPlayerTeamAndIndex(player);				 
-				takeMsg.t = MsgTypes.PickupItemTaken;
-				takeMsg.item = pickupItem;
+				takeMsg.t = MsgTypes.UpgradeTaken;
+				takeMsg.upg = upgrade;
 				
 				this.eventCallBack(takeMsg);
-				if (pickupItem.type == PickupItemType.HealthUpgrade){
+				if (upgrade.type == UpgradeTypes.HealthUpgrade){
 					player.health = Math.min(player.health + 20, 100);
 				} else {
-					player.pickupItems.push(pickupItem);
-				}
-				
+					player.upgrades.push(upgrade);
+				}				
 			}					
 		}
-		for (j in pickedItems){	
-			var pickupItem = pickedItems[j];
-			var itemIndex = this.pickupItems.indexOf(pickupItem);
-			this.pickupItems.splice(itemIndex, 1);
+		for (j in pickedUpgrades){	
+			var upgrade = pickedUpgrades[j];
+			var itemIndex = this.upgrades.indexOf(upgrade);
+			this.upgrades.splice(itemIndex, 1);
 		}
   }
   this.switchSide = () => {
@@ -500,17 +494,13 @@ function GameLogics(){
       if (this.currentTimeStamp>player.animFrameTime+nextFrameTimeLength){
         player.animFrameTime += nextFrameTimeLength;
         player.animFrameIndex++;
-      }
-      
-            
+      }                  
       if (isServer && player.animFrameIndex > 3 && player === this.ballHandler){
         this.ballThrown(player);                    
       }
       if (player.animFrameIndex >= 5){  
         player.throwing = false;                
-      }
-            
-      
+      }                  
     } else if (player.running) {
       var healthMultiplier = Math.max(0.45, player.health/100);
       player.speed += (player.maxSpeed*healthMultiplier-player.speed)* Math.pow(player.acceleration, 16/this.deltaTime);
@@ -542,11 +532,9 @@ function GameLogics(){
     }
 
     var xlimit = 440 - player.reach/2;
-    var ylimit = 810 - player.reach/2;
-    
+    var ylimit = 810 - player.reach/2;    
     player.pos.x += scale * player.speed * Math.cos(player.dir) * this.deltaTime/16;
     player.pos.y += scale * player.speed * Math.sin(player.dir) * this.deltaTime/16;
-
     player.pos.x = Math.max(-xlimit*scale, player.pos.x);
     player.pos.x = Math.min(xlimit*scale, player.pos.x);
     player.pos.y = Math.max(-ylimit*scale, player.pos.y);
@@ -738,12 +726,13 @@ function GameLogics(){
     }
   };
 }
+
 if (isServer){
   exports.GameLogics = GameLogics;
   exports.GameStates = GameStates;
   exports.places = places;
-  exports.PickupItemType = PickupItemType;
-  exports.PickupItem = PickupItem;
+  exports.UpgradeTypes = UpgradeTypes;
+  exports.Upgrade = Upgrade;
   exports.MsgTypes = MsgTypes;
   exports.playerCount = playerCount;
   exports.GameTypes = GameTypes;

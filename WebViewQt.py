@@ -7,16 +7,18 @@ from PyQt5.QtCore import QEvent, Qt, QUrl, QMargins
 from PyQt5.QtWidgets import *
 
 app = QApplication(sys.argv)
-
 debug = True;
+
 
 class WebView(QWebEngineView):
 	def __init__(self, parent):
 		QWebEngineView.__init__(self, parent)
+		self.address = "https://www.pracedru.dk:8888"
 		if debug:
-			self.load(QUrl("https://www.pracedru.dk:8889"))
-		else:
-			self.load(QUrl("https://www.pracedru.dk:8888"))
+			self.address = "https://www.pracedru.dk:8889"
+
+		self.load(QUrl(self.address))
+
 
 class MainWindow(QWidget):
 	def __init__(self):
@@ -25,11 +27,12 @@ class MainWindow(QWidget):
 		self.setMinimumWidth(360)
 		self.setMaximumHeight(720)
 		self.setMaximumWidth(360)
-		web_view = WebView(self)
+		self.web_view = WebView(self)
+		
 		layout = QVBoxLayout()
 		self.setLayout(layout)
 		layout.setContentsMargins(QMargins(0, 0, 0, 0))
-		layout.addWidget(web_view)
+		layout.addWidget(self.web_view)
 		self.installEventFilter(self)
 
 	def eventFilter(self, obj, event):
@@ -37,6 +40,10 @@ class MainWindow(QWidget):
 			if event.key() == Qt.Key_Escape:
 				print("closing")
 				self.close()
+				return True
+			if event.key() == Qt.Key_F5:
+				print("refresh")
+				self.web_view.load(QUrl(self.web_view.address))
 				return True
 		return False
 

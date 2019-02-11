@@ -12,6 +12,7 @@ var ctx;
 var AudioContext = window.AudioContext || window.webkitAudioContext;
 var aCtx = new AudioContext();
 var scale = 1;
+var resizeEventHandlers = [];
 var modalAccept = () => { console.log("dud modal"); };
 var modalClose = () => { 
     var modal = document.getElementById('myModal');
@@ -121,6 +122,11 @@ function init(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     scale = canvas.width/412;    
+    for (i in resizeEventHandlers){
+    	var resizeEventHandler = resizeEventHandlers[i];
+    	resizeEventHandler();
+    }
+    
   }
   resizeCanvas();  
   menuRenderer.init();
@@ -139,8 +145,12 @@ function init(){
 
 function mainLoop(){
   if (currentRenderer !== null){
-    currentRenderer.update();
-    currentRenderer.render();
+  	try {
+    	currentRenderer.update();
+    	currentRenderer.render();
+    } catch (e) {
+    	console.log(e);
+    }
   } else {
     if (menuRenderer !== undefined)
       menuRenderer.setRenderer();
