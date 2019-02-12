@@ -12,6 +12,8 @@ exports.Arena = function(id) {
   this.nextSpawnTime = Date.now() + 2000;
   this.maxSpawnTime = 10;
   this.minSpawnTime = 5;
+  this.team1Id = null;
+  this.team2Id = null;
   this.team1Socket = null;
   this.team2Socket = null;
   this.playAgainstAI = false;
@@ -23,36 +25,51 @@ exports.Arena = function(id) {
   this.gameLogic.arena = this;
   this.gameLogic.team1AI = new ai.TeamAI(this.gameLogic, this.gameLogic.team1, this);
   this.gameLogic.team2AI = new ai.TeamAI(this.gameLogic, this.gameLogic.team2, this);
-  
+  this.eventCallBack = (sender, msg) => {}  
   this.gameLogic.eventCallBack = function (msg) {
-    try{
+    try{    	
       this.arena.sendPlayerUpdate(msg);
       if (msg.t === MsgTypes.ChangeGameState && msg.state === gl.GameStates.GetReady){
         this.team1AI.playersReady = false;
         this.team2AI.playersReady = false;        
       }
+      this.arena.eventCallBack(this, msg);
     } catch(e) {
       console.log(e);
     }
-  };
+  }
   this.checkRecycle = () => {
     if (this.team1Socket === null && this.team2Socket === null && this.spectatorSockets.length ===0){
       console.log("Arena recycled");
       arenas[this.id] = null;
       this.recycled = true;
     }
-  };
+  }
   this.setSocket = (webSocket, msg) => {
-  	//console.log(msg);
-  	
-    if(this.team1Socket===null){
-      this.setTeam1Socket(webSocket, msg);
-    } else if(this.team2Socket===null){
-      this.setTeam2Socket(webSocket, msg);
-    } else {
-      this.setSpectatorSocket(webSocket, msg);
-    }
-  };
+		//console.log(msg);  	
+		if (msg.teamId != null){
+			if (msg.teamId == this.team1Id){
+				this.setTeam1Socket(webSocket, msg);
+			} else if(msg.teamId == this.team2Id){
+				this.setTeam2Socket(webSocket, msg);
+			} else {
+				console.log(msg.teamId);
+				console.log(this.team1Id);
+				console.log(this.team2Id);
+				this.setSpectatorSocket(webSocket, msg);
+			} 			
+		} else { // TODO: this shall be removed
+			if(this.team1Socket===null){
+		    this.setTeam1Socket(webSocket, msg);
+		  } else if(this.team2Socket===null){
+		    this.setTeam2Socket(webSocket, msg);
+		  } else {
+		    this.setSpectatorSocket(webSocket, msg);
+		  }
+		}
+		
+    
+  }
   this.getGameState = () => {
     for (var i = 0; i < this.gameLogic.team1.length; i++){
       this.gameLogic.team1[i].collisions = [];

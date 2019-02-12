@@ -23,6 +23,17 @@ function pictureTaken(input) {
   reader.readAsDataURL(input.files[0]);
 }
 
+function mouseButtons(bk){
+	var downKeys = {
+		b1: (bk & 0b1)>0, 
+		b2: (bk & 0b10)>0, 
+		b3: (bk & 0b100)>0, 
+		b4: (bk & 0b1000)>0, 
+		b5: (bk & 0b10000)>0
+	}
+	return downKeys;
+}
+
 var playerRenderer = {
   state: PlayerRendererStates.ImageShow,
   init: () => {
@@ -110,8 +121,9 @@ var playerRenderer = {
         break;
       case PlayerRendererStates.ImageEdit:
         ctx.save();
-        ctx.rotate(playerRenderer.angle);
+        
         ctx.translate(playerRenderer.pos.x, playerRenderer.pos.y);
+        ctx.rotate(playerRenderer.angle);
         ctx.scale(playerRenderer.scale, playerRenderer.scale);
         var ratio = cameraImage.height/cameraImage.width;
         if(playerRenderer.imageTransformed){
@@ -149,8 +161,8 @@ var playerRenderer = {
     playerRenderer.imageTransformed = false;
     var context = Filters.getCanvas(canvas.width, canvas.width).getContext('2d');;
     context.save();
-    context.rotate(playerRenderer.angle);
     context.translate(playerRenderer.pos.x, playerRenderer.pos.y);
+    context.rotate(playerRenderer.angle);
     context.scale(playerRenderer.scale, playerRenderer.scale);
     var ratio = cameraImage.height/cameraImage.width;
     context.drawImage(cameraImage, 0, 0, canvas.width, canvas.width*ratio);    
@@ -245,9 +257,28 @@ var playerRenderer = {
     }
     
     if (playerRenderer.transforming){
-      playerRenderer.pos.x += playerRenderer.deltaTouch.x;
-      playerRenderer.pos.y += playerRenderer.deltaTouch.y;
-      playerRenderer.imageTransformed = true;
+    	if(e.buttons) {
+    		var buttons = mouseButtons(e.buttons);
+		  	if (buttons.b1){
+					playerRenderer.pos.x += playerRenderer.deltaTouch.x;
+				  playerRenderer.pos.y += playerRenderer.deltaTouch.y;
+				  playerRenderer.imageTransformed = true;
+		  	}
+		  	if (buttons.b2){
+		  		playerRenderer.scale += playerRenderer.deltaTouch.x/100;
+		  		playerRenderer.imageTransformed = true;
+		  	}
+		  	if (buttons.b3){
+		  		playerRenderer.angle += playerRenderer.deltaTouch.x/100;
+		  		playerRenderer.imageTransformed = true;
+		  	}
+		  	//console.log(JSON.stringify(mouseButtons(e.buttons)));
+		  } else {
+		  	playerRenderer.pos.x += playerRenderer.deltaTouch.x;
+		    playerRenderer.pos.y += playerRenderer.deltaTouch.y;
+		    playerRenderer.imageTransformed = true;
+		  }
+      
     } else if (!buttonPressed) {
       if (playerRenderer.imageTransformed){
         playerRenderer.getImageData();        
@@ -264,12 +295,30 @@ var playerRenderer = {
         playerRenderer.brightness.r += playerRenderer.deltaTouch.x*0.5;
         playerRenderer.brightness.b += playerRenderer.deltaTouch.y*0.5;
       } else {
-        playerRenderer.brightness.r += playerRenderer.deltaTouch.x*0.5;
-        playerRenderer.brightness.g += playerRenderer.deltaTouch.x*0.5;
-        playerRenderer.brightness.b += playerRenderer.deltaTouch.x*0.5;
-        playerRenderer.contrast += playerRenderer.deltaTouch.y*0.01;
-        playerRenderer.contrast = Math.max(0, playerRenderer.contrast);
-        playerRenderer.contrast = Math.min(3, playerRenderer.contrast);
+      	if(e.buttons) {
+		  		var buttons = mouseButtons(e.buttons);
+					if (buttons.b1){
+						playerRenderer.brightness.r += playerRenderer.deltaTouch.x*0.5;
+				    playerRenderer.brightness.g += playerRenderer.deltaTouch.x*0.5;
+				    playerRenderer.brightness.b += playerRenderer.deltaTouch.x*0.5;
+				    playerRenderer.contrast += playerRenderer.deltaTouch.y*0.01;
+				    playerRenderer.contrast = Math.clamp(playerRenderer.contrast, 0, 3);
+					}
+					if (buttons.b2){
+						playerRenderer.brightness.r += playerRenderer.deltaTouch.x*0.5;
+				    playerRenderer.brightness.b += playerRenderer.deltaTouch.y*0.5;
+					}
+					if (buttons.b3){ 
+						
+					}
+					//console.log(JSON.stringify(mouseButtons(e.buttons)));
+				} else {
+		      playerRenderer.brightness.r += playerRenderer.deltaTouch.x*0.5;
+		      playerRenderer.brightness.g += playerRenderer.deltaTouch.x*0.5;
+		      playerRenderer.brightness.b += playerRenderer.deltaTouch.x*0.5;
+		      playerRenderer.contrast += playerRenderer.deltaTouch.y*0.01;
+		      playerRenderer.contrast = Math.clamp(playerRenderer.contrast, 0, 3);
+		  	}
       }
       Filters.contrast(imageDataOriginal, playerRenderer.contrast, playerRenderer.saturation, imageDataManipulated);
       Filters.brightnessRGB(imageDataManipulated, playerRenderer.brightness);               
@@ -281,15 +330,16 @@ var playerRenderer = {
       var dy = t2.clientY - t1.clientY;
       var odx = playerRenderer.pinchTouch.x;
       var ody = playerRenderer.pinchTouch.y;
-      var oldDist = Math.sqrt(odx*odx+ody*ody);
-      var newDist = Math.sqrt(dx*dx+dy*dy);
+      var oldDist = Math.sqrt(odx**2+ody**2);
+      var newDist = Math.sqrt(dx**2+dy**2);
       var pivot = {x: t1.clientX + dx/2, y: t1.clientY + dy/2 };
       var dxpivot = playerRenderer.pos.x - pivot.x;
       var dypivot = playerRenderer.pos.y - pivot.y;
+      var pivotAngle = Math.atan2(-dypivot, -dxpivot);
+      var pivotDist = Math.sqrt(dxpivot**2+dypivot**2);
       
       if (playerRenderer.transforming){
         playerRenderer.scale *= newDist/oldDist;
-
         playerRenderer.pos.x += dxpivot*newDist/oldDist-dxpivot;
         playerRenderer.pos.y += dypivot*newDist/oldDist-dypivot;      
         playerRenderer.imageTransformed = true;
@@ -297,7 +347,12 @@ var playerRenderer = {
         var pdy = playerRenderer.pinchTouch.y;
         var oldAngle = Math.atan2(pdy, pdx);
         var newAngle = Math.atan2(dy, dx);
-        playerRenderer.angle += newAngle - oldAngle;
+        var angleDelta = newAngle - oldAngle;
+        playerRenderer.angle += angleDelta;
+      	var rotx = Math.cos(pivotAngle)*pivotDist - Math.cos(pivotAngle+angleDelta)*pivotDist;
+      	var roty = Math.sin(pivotAngle)*pivotDist - Math.sin(pivotAngle+angleDelta)*pivotDist;
+      	playerRenderer.pos.x += rotx;
+      	playerRenderer.pos.y += roty;
       } 
       
       playerRenderer.pinchTouch.x = dx;

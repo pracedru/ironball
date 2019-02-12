@@ -101,8 +101,9 @@ var Rounds = {
   First: 1,
   Second: 2,
   Third: 3,
-  Fourth: 4
-};
+  Fourth: 4,
+  Fifth: 5
+}
 
 var GameStates = {
   Paused: 0,  
@@ -110,8 +111,9 @@ var GameStates = {
   Goal: 2,
   HalfTime: 3,
   PreGame: 4,
-  GetReady: 5
-};
+  GetReady: 5,
+	Finished: 6	
+}
 
 if (isServer){
 	var misc = require('./misc.js');
@@ -138,6 +140,7 @@ function GameLogics(){
   this.roundStartTime = 0;
   this.stateTime = 0;
   this.round = Rounds.First;
+  this.lastRound = Rounds.Second;
   this.state = GameStates.PreGame;
   this.score = {team1: 0, team2: 0};
   this.eventCallBack = (msg)=>{};
@@ -175,7 +178,7 @@ function GameLogics(){
     
     this.lastTimeStamp = Date.now();
     this.roundStartTime = this.lastTimeStamp;
-  };
+  }
   this.restartGame = () => {
     this.ballpos.x = 0;
     this.ballpos.y = 0;
@@ -186,7 +189,7 @@ function GameLogics(){
     this.ballposResidual.y = 0;
     this.ballHandler = null;
     
-  };
+  }
   this.update = () => {
     this.currentTimeStamp = Date.now();
 
@@ -198,12 +201,16 @@ function GameLogics(){
       if (time <= 0){
         var msg = {t: MsgTypes.RoundEnded};
         this.eventCallBack(msg);
-        this.round ++;
-        this.switchSide();
-        this.restartGame();
-        this.state = GameStates.GetReady;
-        this.eventCallBack({ t: MsgTypes.ChangeGameState, state: GameStates.GetReady });
-        this.roundStartTime = this.currentTimeStamp;
+        this.round ++;        
+        if (this.round > this.lastRound){
+	        this.state = GameStates.Finished;        	
+        } else {
+  	      this.switchSide();
+	        this.restartGame();        
+	        this.state = GameStates.GetReady;
+	        this.roundStartTime = this.currentTimeStamp;
+        }    
+        this.eventCallBack({ t: MsgTypes.ChangeGameState, state: this.state });           
       }
     }
 

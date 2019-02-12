@@ -5,6 +5,7 @@ var Tournament = function(){
   this.teamId = 0;
   this.teamUpgrades = null;
   this.playerUpgrades = {};
+  this.gameType = -1;
   this.kachingAudio = new GameAudio("snd/kaching.wav", false);
   this.onmessage = (evt) => {
     var msg = JSON.parse(evt.data);
@@ -14,7 +15,8 @@ var Tournament = function(){
         localStorage.setItem("tournamentID", msg.id);
         this.teamId = msg.teamId;
         this.teamUpgrades = msg.teamUpgrades;
-        
+        this.gameType = msg.gt;
+        //console.log(evt.data);
         menuRenderer.menus[MenuStates.TeamManagerMenu][2].updateText();
         break;
       case MsgTypes.TournamentStateChanged:

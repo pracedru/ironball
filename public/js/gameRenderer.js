@@ -334,10 +334,9 @@ gameRenderer.render = () => {
     var xlim = canvas.width*((s-1)/2);
     var ylim = h/2 - canvas.height/2;
     var cyoffset = canvas.height/6;
-    //var desiredCamPosX = Math.max(Math.min((gameRenderer.ballpos.x + viewTargetPos.x)/2, xlim), -xlim);
-    //var desiredCamPosY = Math.max(Math.min((gameRenderer.ballpos.y + viewTargetPos.y)/2-cyoffset, ylim), -ylim -canvas.width/2);
-    var desiredCamPosX = Math.max(Math.min((gameRenderer.ballpos.x), xlim), -xlim);
-    var desiredCamPosY = Math.max(Math.min((gameRenderer.ballpos.y)-cyoffset, ylim), -ylim -canvas.width/2);
+    
+    var desiredCamPosX = Math.clamp(gameRenderer.ballpos.x, -xlim, xlim);
+    var desiredCamPosY = Math.clamp(gameRenderer.ballpos.y-cyoffset, -ylim-canvas.width/2, ylim);
     gameRenderer.camera.residualPos.x = desiredCamPosX - gameRenderer.camera.pos.x;
     gameRenderer.camera.residualPos.y = desiredCamPosY - gameRenderer.camera.pos.y;
     var x = -w/2+canvas.width/2-gameRenderer.camera.pos.x;
@@ -592,7 +591,8 @@ gameRenderer.setRenderer = () => {
       t: MsgTypes.ArenaConnection, 
       tm: JSON.stringify(team),
       arenaID: gameRenderer.arenaID,
-      handsOff: gameRenderer.handsOff
+      handsOff: gameRenderer.handsOff,
+      teamId: menuRenderer.tournament.teamId
     }
     gameRenderer.ws.send(JSON.stringify(msg));
     console.log("Connection request is sent...");
@@ -730,17 +730,23 @@ gameRenderer.setRenderer = () => {
         gameRenderer.getReadyAudio.play();
         this.roundStartTime = this.currentTimeStamp;
         gameRenderer.round += 1;
-        if (gameRenderer.round === Rounds.Third){
-          menuRenderer.state = MenuStates.GameOverMenu;
-          localStorage.winner = gameRenderer.score.team1 > gameRenderer.score.team2 ? gameRenderer.teamName1 : gameRenderer.teamName2;
-          history.back();
-        }
+        
         break;
       case MsgTypes.ChangeGameState:
       	if (gameRenderer.state == GameStates.PreGame && msg.state == GameStates.GetReady){
       		gameRenderer.arenaMenuState = ArenaMenuStates.InGameMenu;
       		gameRenderer.arenaMenuSpeed.x = 0.3;
       	}
+      	if (gameRenderer.state === GameStates.Finished){
+          menuRenderer.state = MenuStates.GameOverMenu;
+          menuRenderer.renderScreen = false;
+          if (gameRenderer.score.team1 === gameRenderer.score.team2){
+          	localStorage.winner = "Tie";
+          } else {
+          	localStorage.winner = gameRenderer.score.team1 > gameRenderer.score.team2 ? gameRenderer.teamName1 : gameRenderer.teamName2;
+          }
+          history.back();
+        }
         gameRenderer.setState(msg.state);
         break;
       case MsgTypes.BallThrown:      

@@ -46,6 +46,10 @@ function k2b(dk){
 	return (dk['a'] << 0) + (dk['s'] << 1) + (dk['d'] << 2) + (dk['w'] << 3) + (dk[' '] << 4);
 }
 
+Math.clamp = function(number, min, max) {
+  return Math.min(Math.max(number, min), max);
+};
+
 function b2k(bk){
 	var downKeys = {
 		a: (bk & 0b1)>0, 

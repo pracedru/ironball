@@ -430,10 +430,19 @@ var menuRenderer = {
   initGameOverMenu: () => {
     var gomctrls = [];
     menuRenderer.menus[MenuStates.GameOverMenu] = gomctrls;
-    gomctrls.push(new TextBox('img/sm_txtbx.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "The Winner:", {name: "winner"}, 30, "dark"));
-    gomctrls.push(new Button('img/sm_nbtn.png', 'img/sm_nbtnpress.png', {x: 0.3, y: 0.3}, Control.Sizes["Narrow"], "Back", 30, "dark"));
-    gomctrls[0].editable = false;
-    gomctrls[1].clicked = () => { menuRenderer.state = MenuStates.MainMenu; };
+    var doneBtn = new Button('img/sm_nbtn.png', 'img/sm_nbtnpress.png', {x: 0.3, y: 0.3}, Control.Sizes["Narrow"], "Done", 30, "dark");
+    var winnerTextbox = new TextBox('img/sm_txtbx.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "The Winner:", {name: "winner"}, 30, "dark");
+    gomctrls.push(winnerTextbox);
+    gomctrls.push(doneBtn);
+    winnerTextbox.editable = false;
+    doneBtn.clicked = () => { 
+    	if (menuRenderer.tournament.gameType === GameTypes.SingleMatch){
+    		menuRenderer.state = MenuStates.TeamManagerMenu; 
+    		menuRenderer.renderScreen = true;
+    	} else {
+	    	menuRenderer.state = MenuStates.MainMenu; 
+    	}    	
+    }
   },
   initPlayersMenu: () => {
     var ctrls = [];

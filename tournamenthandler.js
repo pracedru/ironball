@@ -5,6 +5,7 @@ var tournaments = {};
 var MsgTypes = gl.MsgTypes;
 var UpgradeTypes = gl.UpgradeTypes;
 var GameTypes = gl.GameTypes;
+var GameStates = gl.GameStates;
 
 var TeamUpgrades = function(id){
 	this.id = id;
@@ -48,6 +49,17 @@ exports.Tournament = function(id) {
     }
   }
   
+  this.arenaCallback = (sender, msg) =>  (sender, msg) => {
+		if (msg.t === MsgTypes.ChangeGameState){
+			if (msg.state === GameStates.Finished){
+				if (this.gameType === GameTypes.SingleMatch){
+					
+				}
+			}
+		}
+	}
+  
+  
   this.onParticipantMessage = (data, ws) => { 
     var msg = JSON.parse(data); 
     switch (msg.t){
@@ -70,25 +82,34 @@ exports.Tournament = function(id) {
       		arena = ah.getArena(arenaID);
       		if (arena === null){
       			arena = new ah.Arena(arenaID);
+      			arena.eventCallBack = this.arenaCallback;
       			this.arenaCounter++;
       		}
-      	}
-      	
+      	}      	
       	var msg = {
       		t: MsgTypes.ArenaCreated,
       		id: arenaID
       	}
-      	var players = arena.gameLogic.team1;
+      	if (arena.team1Id === null){
+      		arena.team1Id = ws.teamId;
+	      	var players = arena.gameLogic.team1;
+      	} else {
+      		arena.team2Id = ws.teamId;
+	      	var players = arena.gameLogic.team2;
+      	}
       	for (var i in players){
       		var player = players[i];
       		var upgrades = ws.teamUpgrades.upgrades[i];
       		player.setUpgrades(upgrades)
-      	}
-      	var data = JSON.stringify(msg);
-      	ws.send(data);
+      	}      	
       	if (this.playAgainstAI){
       		arena.gameLogic.teamName2 = "Steel Fury";           
 		      arena.playAgainstAI = true;
+		      var data = JSON.stringify(msg);
+	      	ws.send(data);
+      	}
+      	if (players == arena.gameLogic.team2){
+      		this.sendMessageToAllSockets(msg);
       	}
       	break;
       case MsgTypes.PlayAgainstAI:
@@ -156,6 +177,7 @@ exports.Tournament = function(id) {
     var tournamentState = this.getTournamentState();
     tournamentState.teamUpgrades = webSocket.teamUpgrades;
     tournamentState.t = MsgTypes.Connected;
+    tournamentState.teamId = webSocket.teamId;
     webSocket.send(JSON.stringify(tournamentState));
     this.onTournamentStateChanged();
   }
@@ -188,6 +210,18 @@ exports.Tournament = function(id) {
         
       }
     }    
+  }
+  
+  this.sendMessageToAllSockets = (msg) => {
+  	var data = JSON.stringify(msg);
+  	for (var i in this.participantSockets){
+      try {
+        var webSocket = this.participantSockets[i];
+        webSocket.send(data);
+      } catch (e){
+        
+      }
+    } 
   }
   
   this.update = () => {    
