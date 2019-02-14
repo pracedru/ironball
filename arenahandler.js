@@ -25,15 +25,19 @@ exports.Arena = function(id) {
   this.gameLogic.arena = this;
   this.gameLogic.team1AI = new ai.TeamAI(this.gameLogic, this.gameLogic.team1, this);
   this.gameLogic.team2AI = new ai.TeamAI(this.gameLogic, this.gameLogic.team2, this);
-  this.eventCallBack = (sender, msg) => {}  
+  this.eventCallBack = null;
+  
   this.gameLogic.eventCallBack = function (msg) {
-    try{    	
-      this.arena.sendPlayerUpdate(msg);
+    try{   
+      
+      this.arena.sendPlayerUpdate(msg);      
+      if (this.arena.eventCallBack !=null) 
+      	this.arena.eventCallBack(this.arena, msg); 
       if (msg.t === MsgTypes.ChangeGameState && msg.state === gl.GameStates.GetReady){
         this.team1AI.playersReady = false;
         this.team2AI.playersReady = false;        
       }
-      this.arena.eventCallBack(this, msg);
+      
     } catch(e) {
       console.log(e);
     }
@@ -91,7 +95,7 @@ exports.Arena = function(id) {
       upgrades: this.gameLogic.upgrades
     }
     return gameState;
-  };
+  }
   this.setTeam1Socket = function(webSocket, msg){
     webSocket.arena = this;
     this.team1Socket = webSocket;
@@ -116,7 +120,7 @@ exports.Arena = function(id) {
     	this.gameLogic.team1AI.aiOnly = false;
     
     this.syncTeamNames();
-  };
+  }
   this.setTeam2Socket = function(webSocket, msg){
     webSocket.arena = this;
     this.team2Socket = webSocket;
@@ -142,7 +146,7 @@ exports.Arena = function(id) {
     	this.gameLogic.team1AI.aiOnly = false;
     
     this.syncTeamNames();
-  }; 
+  }
   this.setSpectatorSocket = function(webSocket, msg){
     webSocket.arena = this;
     this.spectatorSockets.push(webSocket);
@@ -155,25 +159,25 @@ exports.Arena = function(id) {
     gameState.t = MsgTypes.Connected;
     gameState.ct = 0;
     webSocket.send(JSON.stringify(gameState));
-  };
+  }
 
   this.onTeam1Message = function(data){
     var team = this.arena.gameLogic.team1;
     var teamNo = 1;
     this.arena.onTeamMessage(teamNo, team, data);
-  };
+  }
   
   this.onTeam2Message = function(data){
     var team = this.arena.gameLogic.team2;
     var teamNo = 2;
     this.arena.onTeamMessage(teamNo, team, data);
-  };
+  }
 
 	this.onSpectatorMessage = function(data){
  		var team = null;
     var teamNo = 0;
     this.arena.onTeamMessage(teamNo, team, data);
-  };
+  }
 
   this.onTeamMessage = function(teamNo, team, data){
 
@@ -274,7 +278,7 @@ exports.Arena = function(id) {
       default:
         console.log(data);
     }
-  };
+  }
 
   this.syncTeamNames = () => {
     this.sendPlayerUpdate({ 
@@ -282,7 +286,7 @@ exports.Arena = function(id) {
       tn1: this.gameLogic.teamName1, 
       tn2: this.gameLogic.teamName2
     });
-  };
+  }
 
   this.sendPlayerUpdate = (playerUpdateData) => {
     if(this.team1Socket !== null){
@@ -300,20 +304,20 @@ exports.Arena = function(id) {
         this.spectatorSockets[i].send(JSON.stringify(playerUpdateData));
       } catch (e) {}      
     }
-  };
+  }
 
   
   this.update = () => {
     if (this.gameLogic.state === gl.GameStates.PreGame){
       if (this.gameLogic.team1AI.preGameReady && this.gameLogic.team2AI.preGameReady){
         if (this.team1Socket !== null && this.team2Socket !== null || this.playAgainstAI){
-          this.gameLogic.setState(gl.GameStates.GetReady);      
+          this.gameLogic.state = gl.GameStates.GetReady;      
           this.sendPlayerUpdate({ t: MsgTypes.ChangeGameState, state: gl.GameStates.GetReady });
         }
       }
     } else if (this.gameLogic.state === gl.GameStates.GetReady){
       if (this.gameLogic.team1AI.playersReady && this.gameLogic.team2AI.playersReady){        
-        this.gameLogic.setState(gl.GameStates.Playing);      
+        this.gameLogic.state = gl.GameStates.Playing;      
         this.sendPlayerUpdate({ t: MsgTypes.ChangeGameState, state: gl.GameStates.Playing });
       }
     }
@@ -321,8 +325,9 @@ exports.Arena = function(id) {
     this.gameLogic.team1AI.update();
     this.gameLogic.team2AI.update();
     this.gameLogic.update();
-  	
+
   	if (this.gameLogic.currentTimeStamp>this.nextSpawnTime && this.gameLogic.state === gl.GameStates.Playing){  	
+	  	//  Spawning upgrades
   		var type = Math.round(Math.random()*(Object.keys(gl.UpgradeTypes).length-1));
   		var pos = randomArenaPosition();
   		var upgrade = new gl.Upgrade(pos, type);
@@ -340,10 +345,10 @@ exports.Arena = function(id) {
     if (!this.recycled){
       setTimeout(this.update, 50, 'update');
     }
-  };
+  }
   setTimeout(this.update, 50, 'update');
 	console.log("Arena created " + this.id); 
-};
+}
 
 function randomRangedSigned(range){
 	var sign = Math.random()<0.5 ? -1 : 1;
@@ -364,4 +369,4 @@ exports.getArena = function(id) {
   } else{
     return null;
   }
-};
+}

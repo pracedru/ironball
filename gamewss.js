@@ -58,8 +58,7 @@ function onMessage(data) {
     if (tournament === null){
       var tournamentID = tournamentIDCounter;
       tournamentIDCounter++;
-      var tournament = new TournamentHandler.Tournament(tournamentID);
-      tournament.gameType = msg.gameType;
+      var tournament = new TournamentHandler.Tournament(tournamentID, msg.gameType);
       tournament.addSocket(this, msg); 
     } else {
       tournament.addSocket(this, msg); 

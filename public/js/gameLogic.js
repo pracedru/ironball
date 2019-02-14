@@ -67,7 +67,7 @@ var MsgTypes = {
 	SpawnUpgrade: 18,
 	UpgradeTaken: 19,
 	TournamentStateChanged: 20,
-	TeamUpgradesChanged: 21,
+	TeamTournamentStateChanged: 21,
 	TeamIdChanged: 22,
 	PoolSizeChanged: 23,
 	PlayerUpgrade: 24,
@@ -204,6 +204,7 @@ function GameLogics(){
         this.round ++;        
         if (this.round > this.lastRound){
 	        this.state = GameStates.Finished;        	
+	        this.roundStartTime = this.currentTimeStamp;
         } else {
   	      this.switchSide();
 	        this.restartGame();        
@@ -272,29 +273,7 @@ function GameLogics(){
       p2.defaultDir = p2.defaultDir % (2*Math.PI);
     }
   }
-  this.setState = (state) => {
-    this.state = state;
-    switch (state) {
-      case GameStates.Paused:        
-        break;
-      case GameStates.Playing:
-        if (isClient){
-          this.goAudio.play(0);
-        }
-        break;
-      case GameStates.Goal:
-        break;
-      case GameStates.HalfTime:
-        break;
-      case GameStates.GetReady:
-        if (isClient){
-          gameRenderer.getReadyAudio.play(0);
-          animations['getReady'].start();
-          gameRenderer.playerIndex = -1;          
-        }
-        break;
-    }
-  };
+  
   this.scored = (team) => {
     if (isServer){
       if (team === 1){

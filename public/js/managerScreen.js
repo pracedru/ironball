@@ -27,8 +27,8 @@ var ManagerScreen = function (surfaceimg, loc, size){
 			pl = team.players[this.currentPlayerIndex];
 		else
 			pl = {firstName: "Team", lastName: ""};
-		if (menuRenderer.tournament.teamUpgrades === null) return;
-		var tm = menuRenderer.tournament.teamUpgrades;
+		if (menuRenderer.tournament.teamTournamentState === null) return;
+		var tm = menuRenderer.tournament.teamTournamentState;
 		var upgrade = tm.upgrades[this.currentPlayerIndex];
 		this.texts = [];
 		this.texts.push({ font: "monospace", pos: {x: 0, y: 0.40}, caption: "Credit", text: tm.credits.toString(), height: 20});
@@ -58,7 +58,7 @@ var ManagerScreen = function (surfaceimg, loc, size){
   }
   this.renderText = (size, loc) => {
     for (var i = 0; i < this.texts.length; i++){
-    	if (this.texts[i].text !== undefined)
+    	if (this.texts[i].text != null)
       	var text = this.texts[i].caption + ": " + this.texts[i].text;
       else{
       	var text = this.texts[i].caption; // + ": " + this.texts[i].value;	
@@ -78,16 +78,16 @@ var ManagerScreen = function (surfaceimg, loc, size){
       	//console.log(Object.keys(UpgradeTypes)[this.selectedDiscipline])
       	ctx.fillText("-->", + 20*scale+size.x/2, y);
       }      
-      if (this.texts[i].text === undefined){
+      if (this.texts[i].text == null){
       	y += 5*scale;
       	ctx.beginPath();
-      	ctx.fillStyle="#987";
-      	var fillWidth = size.x/2; //this.texts[i].value
+      	ctx.fillStyle="#765";
+      	var fillWidth = size.x/3; //this.texts[i].value
       	ctx.rect(x+size.x/2, y, fillWidth, -height*scale);
       	ctx.fill();
       	ctx.beginPath();
       	ctx.fillStyle="#fec";
-      	fillWidth *= this.texts[i].value/300;
+      	fillWidth *= this.texts[i].value/250;
       	ctx.rect(x+size.x/2, y, fillWidth, -height*scale);
       	ctx.fill();
       }
@@ -116,7 +116,7 @@ var ManagerScreen = function (surfaceimg, loc, size){
   this.clicked = (sender, loc) => {
   	var size = { x: this.size.x * canvas.width, y: this.size.y * canvas.height };
   	
-  	relpos = (loc.y - this.loc.y*canvas.height-5*scale)/size.y;
+  	var relpos = (loc.y - this.loc.y*canvas.height-5*scale)/size.y;
   	if (relpos > 1) return;
   	for (i in this.texts){
   		var text = this.texts[i];
@@ -131,9 +131,12 @@ var ManagerScreen = function (surfaceimg, loc, size){
   				}
   				menuRenderer.tournament.ws.send(JSON.stringify(msg));
   			} else{
-  				this.selectedDiscipline = text.type;
-  				gameRenderer.pickupAudio.volume = 1;
-  				gameRenderer.pickupAudio.play();
+  				if (text.type != null){
+  					this.selectedDiscipline = text.type;
+						gameRenderer.pickupAudio.volume = 1;
+						gameRenderer.pickupAudio.play();
+  				}
+  				
   			}
   		}
   	}

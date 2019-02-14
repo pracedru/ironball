@@ -7,10 +7,11 @@ var UpgradeTypes = gl.UpgradeTypes;
 var GameTypes = gl.GameTypes;
 var GameStates = gl.GameStates;
 
-var TeamUpgrades = function(id){
+var TeamTournamentState = function(id){
 	this.id = id;
 	this.credits = 500;
 	this.upgrades = [];
+	this.score = 0;
 	for (var i = 0; i < gl.playerCount+1; i++){
 		var upgrade = {};
 		upgrade[UpgradeTypes.SpeedUpgrade] = 100;
@@ -29,15 +30,23 @@ function onParticipantMessage(data){
 	this.tournament.onParticipantMessage(data, this);
 }
 
-exports.Tournament = function(id) {
+function Pool(){
+	this.teams = [];
+	this.unFinishedGames = [];
+	this.FinishedGames = [];
+	
+}
+
+exports.Tournament = function(id, gameType) {
   this.id = id;
   this.participantSockets = {};
   this.recycled = false;
   this.arenas = [];
   this.arenaCounter = 0;
   this.poolSize = 2;
-  this.gameType = -1;
+  this.gameType = gameType;
   this.playAgainstAI = false;
+  
   tournaments[this.id] = this;
   console.log("tournament created: " + id);
   this.checkRecycle = () => {
@@ -48,17 +57,44 @@ exports.Tournament = function(id) {
       this.recycled = true;      
     }
   }
-  
-  this.arenaCallback = (sender, msg) =>  (sender, msg) => {
+  this.getSocketFromTeamId = (id) => {
+  	if (id in this.participantSockets){
+  		return this.participantSockets[id];
+  	}
+  	return null;
+  }
+  this.arenaCallback = (sender, msg) => {
+		
 		if (msg.t === MsgTypes.ChangeGameState){
 			if (msg.state === GameStates.Finished){
-				if (this.gameType === GameTypes.SingleMatch){
-					
+				sender.eventCallBack = null;
+				console.log("game finished");
+				//console.log(sender);
+				var team1Socket = this.getSocketFromTeamId(sender.team1Id);
+				var team2Socket = this.getSocketFromTeamId(sender.team2Id);
+
+				var t1score = sender.gameLogic.score.team1;
+				var t2score = sender.gameLogic.score.team2;
+
+						
+				if (team1Socket != null){
+					team1Socket.teamTournamentState.score += t1score;
+					team1Socket.teamTournamentState.credits += 500;		
+					if (t1score > t2score)
+						team1Socket.teamTournamentState.credits += 500;					
+					this.onTeamTournamentStateChanged(team1Socket.teamTournamentState);
 				}
+				if (team2Socket != null){
+					team2Socket.teamTournamentState.score += t2score;
+					team2Socket.teamTournamentState.credits += 500;					
+					if (t1score < t2score)
+						team2Socket.teamTournamentState.credits += 500;					
+					this.onTeamTournamentStateChanged(team2Socket.teamTournamentState);
+				}
+				
 			}
 		}
-	}
-  
+	}  
   
   this.onParticipantMessage = (data, ws) => { 
     var msg = JSON.parse(data); 
@@ -99,7 +135,7 @@ exports.Tournament = function(id) {
       	}
       	for (var i in players){
       		var player = players[i];
-      		var upgrades = ws.teamUpgrades.upgrades[i];
+      		var upgrades = ws.teamTournamentState.upgrades[i];
       		player.setUpgrades(upgrades)
       	}      	
       	if (this.playAgainstAI){
@@ -124,31 +160,31 @@ exports.Tournament = function(id) {
   
   this.handlePlayerUpgrade = (msg, ws) => {
   	var teamChanged = false;
-  	var price = 5;
+  	var price = 30;
   	var upgrade = 5;
   	if (msg.pi === gl.playerCount){
   		for (var i = 0; i < gl.playerCount; i++){
-  			if (ws.teamUpgrades.credits >= price){
+  			if (ws.teamTournamentState.credits >= price){
   				var limited = false;
-  				if (msg.ut === UpgradeTypes.HealthUpgrade && ws.teamUpgrades.upgrades[i][msg.ut]>=100) limited = true; 
+  				if (msg.ut === UpgradeTypes.HealthUpgrade && ws.teamTournamentState.upgrades[i][msg.ut]>=100) limited = true; 
     			if (!limited){
     				teamChanged = true;
-		  			ws.teamUpgrades.upgrades[i][msg.ut] += upgrade;
-						ws.teamUpgrades.upgrades[gl.playerCount][msg.ut] += upgrade/gl.playerCount;
-						ws.teamUpgrades.credits -= price;
+		  			ws.teamTournamentState.upgrades[i][msg.ut] += upgrade;
+						ws.teamTournamentState.upgrades[gl.playerCount][msg.ut] += upgrade/gl.playerCount;
+						ws.teamTournamentState.credits -= price;
     			}
   			}	
   		}
   	} else {
-  		if (ws.teamUpgrades.credits >= price){
+  		if (ws.teamTournamentState.credits >= price){
   			teamChanged = true;
-  			ws.teamUpgrades.upgrades[msg.pi][msg.ut] += upgrade;
-  			ws.teamUpgrades.upgrades[gl.playerCount][msg.ut] += upgrade/gl.playerCount;
-				ws.teamUpgrades.credits -= price;
+  			ws.teamTournamentState.upgrades[msg.pi][msg.ut] += upgrade;
+  			ws.teamTournamentState.upgrades[gl.playerCount][msg.ut] += upgrade/gl.playerCount;
+				ws.teamTournamentState.credits -= price;
 				
 			}		
   	}
-  	if (teamChanged) this.onTeamUpgradesChanged(ws.teamUpgrades);
+  	if (teamChanged) this.onTeamTournamentStateChanged(ws.teamTournamentState);
   }
   
   this.getTournamentState = () => {
@@ -163,7 +199,7 @@ exports.Tournament = function(id) {
   this.addSocket = (webSocket, msg) => {    
     webSocket.tournament = this;
     webSocket.teamId = genUUID();
-    webSocket.teamUpgrades = new TeamUpgrades(webSocket.teamId);
+    webSocket.teamTournamentState = new TeamTournamentState(webSocket.teamId);
     webSocket.tournament = this;
     this.participantSockets[webSocket.teamId] = webSocket;
    
@@ -175,7 +211,7 @@ exports.Tournament = function(id) {
       this.checkRecycle(); 
     });
     var tournamentState = this.getTournamentState();
-    tournamentState.teamUpgrades = webSocket.teamUpgrades;
+    tournamentState.teamTournamentState = webSocket.teamTournamentState;
     tournamentState.t = MsgTypes.Connected;
     tournamentState.teamId = webSocket.teamId;
     webSocket.send(JSON.stringify(tournamentState));
@@ -197,19 +233,11 @@ exports.Tournament = function(id) {
     }    
   }
   
-  this.onTeamUpgradesChanged = (teamUpgrades) => {
+  this.onTeamTournamentStateChanged = (teamTournamentState) => {
     var msg = {};
-    msg.t = MsgTypes.TeamUpgradesChanged;
-    msg.teamUpgrades = teamUpgrades;
-    
-    for (var i in this.participantSockets){
-      try {
-        var webSocket = this.participantSockets[i];
-        webSocket.send(JSON.stringify(msg));
-      } catch (e){
-        
-      }
-    }    
+    msg.t = MsgTypes.TeamTournamentStateChanged;
+    msg.teamTournamentState = teamTournamentState;
+    this.sendMessageToAllSockets(msg);    
   }
   
   this.sendMessageToAllSockets = (msg) => {

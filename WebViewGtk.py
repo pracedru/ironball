@@ -15,14 +15,10 @@ webview = WebKit2.WebView()
 webview.connect("load-failed", on_load_failed)
 window.add(webview)
 
-<<<<<<< HEAD
-webview.load_uri("https://www.pracedru.dk:8888/index.html")	# this does not work.
-#webview.load_uri("https://www.w3schools.com/html/html5_canvas.asp")	# This works.
 
-=======
-#webview.load_uri("https://www.pracedru.dk:8889/index.html")
+#webview.load_uri("https://www.pracedru.dk:8888/index.html")	# this does not work.
 webview.load_uri("https://www.w3schools.com/html/html5_canvas.asp")
->>>>>>> 3dd069cb6d7ae0923975ebae09491a7f2576a8da
+
 
 window.show_all()
 Gtk.main()

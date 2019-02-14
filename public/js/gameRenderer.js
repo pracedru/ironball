@@ -737,7 +737,8 @@ gameRenderer.setRenderer = () => {
       		gameRenderer.arenaMenuState = ArenaMenuStates.InGameMenu;
       		gameRenderer.arenaMenuSpeed.x = 0.3;
       	}
-      	if (gameRenderer.state === GameStates.Finished){
+      	if (msg.state === GameStates.Finished){
+      		console.log("GameStates.Finished")
           menuRenderer.state = MenuStates.GameOverMenu;
           menuRenderer.renderScreen = false;
           if (gameRenderer.score.team1 === gameRenderer.score.team2){
@@ -929,6 +930,36 @@ gameRenderer.updateUserInput = () => {
     }
   }
 };
+
+
+gameRenderer.setState = (state) => {
+  gameRenderer.state = state;
+  switch (state) {
+    case GameStates.Paused:        
+      break;
+    case GameStates.Playing:
+      if (isClient){
+        gameRenderer.goAudio.play(0);
+      }
+      break;
+    case GameStates.Goal:
+      break;
+    case GameStates.HalfTime:
+      break;
+    case GameStates.GetReady:
+      if (isClient){
+        gameRenderer.getReadyAudio.play(0);
+        animations['getReady'].start();
+        gameRenderer.playerIndex = -1;          
+      }
+      break;
+    case GameStates.Finished:
+      if (isClient){
+        gameRenderer.beepAudio.play(0);          
+      }
+      break;
+  }
+}
 
 gameRenderer.animPlayers = (camposx, camposy) => {
   var nonFallenPlayers = [];
