@@ -18,7 +18,9 @@ function pictureTaken(input) {
     cameraImage.src =  e.target.result;
     cameraImage.onload = () => {
       playerRenderer.state = PlayerRendererStates.ImageEdit;
-    };          
+      input.value = "";
+    };     
+         
   };
   reader.readAsDataURL(input.files[0]);
 }
@@ -358,7 +360,7 @@ var playerRenderer = {
       playerRenderer.pinchTouch.x = dx;
       playerRenderer.pinchTouch.y = dy;
     } else if(e.buttons) {
-    	console.log(JSON.stringify(e.buttons));
+    	//console.log(JSON.stringify(e.buttons));
     }
   }, 
   touchEnd: (e)=>{

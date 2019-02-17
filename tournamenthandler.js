@@ -1,6 +1,7 @@
 const genUUID = require('uuid/v1');
 const gl = require('./public/js/gameLogic.js');
 const ah = require('./arenahandler.js');
+const ai = require('./artificialIntelligence.js');
 var tournaments = {};
 var MsgTypes = gl.MsgTypes;
 var UpgradeTypes = gl.UpgradeTypes;
@@ -30,11 +31,25 @@ function onParticipantMessage(data){
 	this.tournament.onParticipantMessage(data, this);
 }
 
-function Pool(){
+function TournamentPool(){
 	this.teams = [];
-	this.unFinishedGames = [];
-	this.FinishedGames = [];
-	
+	this.gamesUnfinished = [];
+	this.gamesFinished = [];
+	this.gamesInProgress = [];
+	this.createGames = (gameType) => {
+		console.log("this.createGames");
+		if (gameType === GameTypes.SingleMatch){
+			for (var i = 0; i < 3; i++){
+				var game = {
+					team1: this.teams[0],
+					team2: this.teams[1]
+				}
+				this.gamesUnfinished.push(game);
+				console.log("this.createGames");
+			}			
+		}
+		console.log(this);
+	}
 }
 
 exports.Tournament = function(id, gameType) {
@@ -45,12 +60,18 @@ exports.Tournament = function(id, gameType) {
   this.arenaCounter = 0;
   this.poolSize = 2;
   this.gameType = gameType;
+  this.pools = [new TournamentPool()];
   this.playAgainstAI = false;
   
   tournaments[this.id] = this;
   console.log("tournament created: " + id);
   this.checkRecycle = () => {
-    if (Object.keys(this.participantSockets).length === 0){
+  	var playerCount = 0;
+  	for (id in this.participantSockets){
+  		var participant = this.participantSockets[id];
+			if (participant.isAI) playerCount++;
+  	}
+    if (playerCount === 0){
       console.log("Tournament recycled");
       delete tournaments[this.id];
       this.arenas = [];
@@ -63,10 +84,14 @@ exports.Tournament = function(id, gameType) {
   	}
   	return null;
   }
-  this.arenaCallback = (sender, msg) => {
-		
+  this.arenaCallback = (sender, msg) => {		
 		if (msg.t === MsgTypes.ChangeGameState){
 			if (msg.state === GameStates.Finished){
+				var pool = sender.pool;
+				var game = sender.game;
+				var index = pool.gamesInProgress.indexOf(game);
+				pool.gamesInProgress.splice(index, 1);
+				pool.gamesFinished.push(game);
 				sender.eventCallBack = null;
 				console.log("game finished");
 				//console.log(sender);
@@ -75,7 +100,8 @@ exports.Tournament = function(id, gameType) {
 
 				var t1score = sender.gameLogic.score.team1;
 				var t2score = sender.gameLogic.score.team2;
-
+				
+				game.score = sender.gameLogic.score;
 						
 				if (team1Socket != null){
 					team1Socket.teamTournamentState.score += t1score;
@@ -90,8 +116,7 @@ exports.Tournament = function(id, gameType) {
 					if (t1score < t2score)
 						team2Socket.teamTournamentState.credits += 500;					
 					this.onTeamTournamentStateChanged(team2Socket.teamTournamentState);
-				}
-				
+				}				
 			}
 		}
 	}  
@@ -109,53 +134,76 @@ exports.Tournament = function(id, gameType) {
 			case MsgTypes.PlayerUpgrade:
       	this.handlePlayerUpgrade(msg, ws);
       	break; 	
+      case MsgTypes.StartTournament:
+      	this.handleStartTournament(msg, ws);
+      	break;
       case MsgTypes.TeamManagementDone:
-      	//var arenaID = this.id.toString() + "." + this.arenaCounter;
-      	var arena = null;
-      	if (this.gameType === GameTypes.SingleMatch)
-      	{
-      		var arenaID = this.id.toString() + ".0";
-      		arena = ah.getArena(arenaID);
-      		if (arena === null){
-      			arena = new ah.Arena(arenaID);
-      			arena.eventCallBack = this.arenaCallback;
-      			this.arenaCounter++;
-      		}
-      	}      	
-      	var msg = {
-      		t: MsgTypes.ArenaCreated,
-      		id: arenaID
-      	}
-      	if (arena.team1Id === null){
-      		arena.team1Id = ws.teamId;
-	      	var players = arena.gameLogic.team1;
-      	} else {
-      		arena.team2Id = ws.teamId;
-	      	var players = arena.gameLogic.team2;
-      	}
-      	for (var i in players){
-      		var player = players[i];
-      		var upgrades = ws.teamTournamentState.upgrades[i];
-      		player.setUpgrades(upgrades)
-      	}      	
-      	if (this.playAgainstAI){
-      		arena.gameLogic.teamName2 = "Steel Fury";           
-		      arena.playAgainstAI = true;
-		      var data = JSON.stringify(msg);
-	      	ws.send(data);
-      	}
-      	if (players == arena.gameLogic.team2){
-      		this.sendMessageToAllSockets(msg);
-      	}
+      	this.handleTeamManagementDone(msg, ws);
       	break;
       case MsgTypes.PlayAgainstAI:
       	if (this.gameType === GameTypes.SingleMatch){
       		this.playAgainstAI = true;
+      		var managerAI = new ai.ManagerAI(this, new TeamTournamentState(genUUID()));
+	  			managerAI.onMessage = this.onParticipantMessage;
+					this.participantSockets[managerAI.id] = managerAI;		  	
+					var pool = this.pools[0];
+	  			pool.teams.push(managerAI.teamId);	
+	  			if (pool.teams.length == 2) pool.createGames(this.gameType);
+					managerAI.manageTeam();		
       	}
       	break;
       default:
       	console.log(data);
     }            
+  }
+  
+  this.handleStartTournament = (msg, ws) => {
+  	
+  }
+  
+  this.handleTeamManagementDone =  (msg, ws) => {
+  	var arena = null;
+  	var pool = null;
+  	if (this.gameType === GameTypes.SingleMatch)
+  	{
+  		var arenaID = this.id.toString() + ".0";
+  		arena = ah.getArena(arenaID);
+			pool = this.pools[0];
+  		if (arena === null){
+  			arena = new ah.Arena(arenaID);  			
+  			arena.pool = pool;
+  			console.log(pool);
+  			arena.game = pool.gamesUnfinished.pop();
+  			pool.gamesInProgress.push(arena.game);
+  			arena.eventCallBack = this.arenaCallback;  			
+  			this.arenaCounter++;
+				arena.playAgainstAI = this.playAgainstAI;
+  		} 	  		
+  	} else {
+	  	var arenaID = this.id.toString() + "." + this.arenaCounter;
+  	} 	
+  	
+  	if (arena.team1Id === null){
+  		arena.team1Id = ws.teamId;
+    	var players = arena.gameLogic.team1;
+    	console.log("arena.team1Id: " + arena.team1Id);
+  	} else {
+  		arena.team2Id = ws.teamId;
+    	var players = arena.gameLogic.team2;
+    	console.log("arena.team2Id: " + arena.team2Id);
+  	}
+  	for (var i in players){
+  		var player = players[i];
+  		var upgrades = ws.teamTournamentState.upgrades[i];
+  		player.setUpgrades(upgrades)
+  	}      	
+  	var msg = {
+  		t: MsgTypes.ArenaCreated,
+  		id: arenaID
+  	}
+  	if (players == arena.gameLogic.team2){
+  		this.sendMessageToAllSockets(msg);
+  	}
   }
   
   this.handlePlayerUpgrade = (msg, ws) => {
@@ -201,8 +249,16 @@ exports.Tournament = function(id, gameType) {
     webSocket.teamId = genUUID();
     webSocket.teamTournamentState = new TeamTournamentState(webSocket.teamId);
     webSocket.tournament = this;
+    webSocket.isAI = false;
     this.participantSockets[webSocket.teamId] = webSocket;
-   
+   	
+   	if (this.gameType === GameTypes.SingleMatch)
+  	{
+  		var pool = this.pools[0];
+  		pool.teams.push(webSocket.teamId);  		
+  		if (pool.teams.length == 2) pool.createGames(this.gameType);
+  	}
+   	
     webSocket.on("message", onParticipantMessage);
     webSocket.on("close", (evt) => { 
       console.log("websocket closed " + webSocket.teamId);

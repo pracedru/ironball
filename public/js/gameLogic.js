@@ -72,7 +72,8 @@ var MsgTypes = {
 	PoolSizeChanged: 23,
 	PlayerUpgrade: 24,
 	TeamManagementDone: 25,
-	ArenaCreated: 26
+	ArenaCreated: 26,
+	ChatMessage: 27
 }
 
 var GameTypes = {

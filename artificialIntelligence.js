@@ -4,6 +4,7 @@ var misc = require('./public/js/misc.js');
 var rdz = misc.reducePrecision;
 var MsgTypes = gl.MsgTypes;
 var Vector = misc.Vector;
+var UpgradeTypes = gl.UpgradeTypes;
 
 function downKeysFromDirection(dx, dy){
   var downKeys = {a: false, s: false, d: false, w: false, ' ': false};
@@ -25,7 +26,29 @@ function downKeysFromDirection(dx, dy){
   return downKeys;
 }
 
-
+exports.ManagerAI = function(tournamentHandler, teamTournamentState) {
+	this.tournamentHandler = tournamentHandler;
+	this.teamId = teamTournamentState.id;
+	this.teamTournamentState = teamTournamentState;
+	this.name = "Steel Fury";     
+	this.isAI = true;	
+	this.onMessage = (data, ws) => {
+		
+	}
+	this.manageTeam = () => {
+		var msg = {
+			t: MsgTypes.PlayerUpgrade,
+			pi: gl.playerCount,
+			ut: UpgradeTypes.SpeedUpgrade
+		}
+		this.onMessage(JSON.stringify(msg), this);
+		
+		msg = {
+			t: MsgTypes.TeamManagementDone			
+		}
+		this.onMessage(JSON.stringify(msg), this);
+	}
+}
 
 exports.TeamAI = function(gameLogic, team, arena) {
 	this.currentTimeStamp = Date.now();

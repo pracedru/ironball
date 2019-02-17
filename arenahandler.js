@@ -103,7 +103,7 @@ exports.Arena = function(id) {
     webSocket.on("close", ()=>{ 
       this.team1Socket = null; 
       this.checkRecycle();
-      this.gameLogic.teamName1 = "Team 1";
+      this.gameLogic.teamName1 += "(AI)";
 	    this.gameLogic.team1AI.aiOnly = true;
       this.syncTeamNames();
     });
@@ -128,7 +128,7 @@ exports.Arena = function(id) {
     webSocket.on("close", ()=>{ 
       this.team2Socket = null; 
       this.checkRecycle();
-      this.gameLogic.teamName2 = "Team 2";
+      this.gameLogic.teamName2 += "(AI)";
 	    this.gameLogic.team2AI.aiOnly = true;
       this.syncTeamNames();
     });
