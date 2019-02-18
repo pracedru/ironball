@@ -53,7 +53,7 @@ var PlayersScreen = function (surfaceimg, loc, size){
       y += loc.y + 20*scale;
       ctx.font = height*scale + "px " + font;
       
-      ctx.fillStyle="#fec";
+      ctx.fillStyle="#afc";
       ctx.textAlign="start"; 
       ctx.fillText(text, x, y);
     }  

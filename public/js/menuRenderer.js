@@ -381,7 +381,7 @@ var menuRenderer = {
 					}	
 					positions.push(parseInt(sender.placeIndex));
 		  	}
-	  		console.log(positions.length);		  	
+	  		//console.log(positions.length);		  	
 		  	ctrls[places.length+2].value = (playerCount-positions.length).toString()+ "/" + playerCount;
 		  }
 		  ctrls.push(placeSwitch);

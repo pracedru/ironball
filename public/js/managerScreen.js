@@ -71,7 +71,7 @@ var ManagerScreen = function (surfaceimg, loc, size){
       x += loc.x + 20*scale;
       y += loc.y + 20*scale;
       ctx.font = height*scale + "px " + font;      
-      ctx.fillStyle="#fec";
+      ctx.fillStyle="#afc";
       ctx.textAlign="start"; 
       ctx.fillText(text, x, y);      
       if (this.selectedDiscipline===this.texts[i].type){
@@ -81,12 +81,12 @@ var ManagerScreen = function (surfaceimg, loc, size){
       if (this.texts[i].text == null){
       	y += 5*scale;
       	ctx.beginPath();
-      	ctx.fillStyle="#765";
+      	ctx.fillStyle="#397";
       	var fillWidth = size.x/3; //this.texts[i].value
       	ctx.rect(x+size.x/2, y, fillWidth, -height*scale);
       	ctx.fill();
       	ctx.beginPath();
-      	ctx.fillStyle="#fec";
+	      ctx.fillStyle="#afc";
       	fillWidth *= this.texts[i].value/250;
       	ctx.rect(x+size.x/2, y, fillWidth, -height*scale);
       	ctx.fill();

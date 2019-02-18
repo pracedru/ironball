@@ -31,24 +31,26 @@ function onParticipantMessage(data){
 	this.tournament.onParticipantMessage(data, this);
 }
 
-function TournamentPool(){
+function TournamentPool(id){
+	this.id = id;
 	this.teams = [];
 	this.gamesUnfinished = [];
 	this.gamesFinished = [];
 	this.gamesInProgress = [];
 	this.createGames = (gameType) => {
-		console.log("this.createGames");
+		//console.log("this.createGames");
 		if (gameType === GameTypes.SingleMatch){
 			for (var i = 0; i < 3; i++){
 				var game = {
 					team1: this.teams[0],
-					team2: this.teams[1]
+					team2: this.teams[1],
+					id: this.id.toString() + "." + i
 				}
 				this.gamesUnfinished.push(game);
-				console.log("this.createGames");
+				//console.log("this.createGames");
 			}			
 		}
-		console.log(this);
+		//console.log(this);
 	}
 }
 
@@ -60,7 +62,7 @@ exports.Tournament = function(id, gameType) {
   this.arenaCounter = 0;
   this.poolSize = 2;
   this.gameType = gameType;
-  this.pools = [new TournamentPool()];
+  this.pools = [new TournamentPool(0)];
   this.playAgainstAI = false;
   
   tournaments[this.id] = this;
@@ -69,22 +71,28 @@ exports.Tournament = function(id, gameType) {
   	var playerCount = 0;
   	for (id in this.participantSockets){
   		var participant = this.participantSockets[id];
-			if (participant.isAI) playerCount++;
+			if (!participant.isAI) playerCount++;
   	}
     if (playerCount === 0){
       console.log("Tournament recycled");
       delete tournaments[this.id];
+      for (i in this.arenas){
+      	var arena = this.arenas[i];
+      	arena.checkRecycle();
+      }
       this.arenas = [];
       this.recycled = true;      
     }
   }
-  this.getSocketFromTeamId = (id) => {
+  this.getParticipantFromTeamId = (id) => {
   	if (id in this.participantSockets){
   		return this.participantSockets[id];
-  	}
+  	}  	
   	return null;
   }
   this.arenaCallback = (sender, msg) => {		
+  	
+  	if (this.recycled) return;
 		if (msg.t === MsgTypes.ChangeGameState){
 			if (msg.state === GameStates.Finished){
 				var pool = sender.pool;
@@ -95,28 +103,31 @@ exports.Tournament = function(id, gameType) {
 				sender.eventCallBack = null;
 				console.log("game finished");
 				//console.log(sender);
-				var team1Socket = this.getSocketFromTeamId(sender.team1Id);
-				var team2Socket = this.getSocketFromTeamId(sender.team2Id);
+				var participant1 = this.getParticipantFromTeamId(sender.team1Id);
+				var participant2 = this.getParticipantFromTeamId(sender.team2Id);
 
 				var t1score = sender.gameLogic.score.team1;
 				var t2score = sender.gameLogic.score.team2;
 				
 				game.score = sender.gameLogic.score;
 						
-				if (team1Socket != null){
-					team1Socket.teamTournamentState.score += t1score;
-					team1Socket.teamTournamentState.credits += 500;		
+				if (participant1 != null){
+					participant1.teamTournamentState.score += t1score;
+					participant1.teamTournamentState.credits += 500;		
 					if (t1score > t2score)
-						team1Socket.teamTournamentState.credits += 500;					
-					this.onTeamTournamentStateChanged(team1Socket.teamTournamentState);
+						participant1.teamTournamentState.credits += 500;					
+					this.onTeamTournamentStateChanged(participant1.teamTournamentState);
+					if (participant1.isAI) participant1.manageTeam();
 				}
-				if (team2Socket != null){
-					team2Socket.teamTournamentState.score += t2score;
-					team2Socket.teamTournamentState.credits += 500;					
+				if (participant2 != null){
+					participant2.teamTournamentState.score += t2score;
+					participant2.teamTournamentState.credits += 500;					
 					if (t1score < t2score)
-						team2Socket.teamTournamentState.credits += 500;					
-					this.onTeamTournamentStateChanged(team2Socket.teamTournamentState);
-				}				
+						participant2.teamTournamentState.credits += 500;					
+					this.onTeamTournamentStateChanged(participant2.teamTournamentState);
+					if (participant2.isAI) participant2.manageTeam();
+				}		
+
 			}
 		}
 	}  
@@ -145,7 +156,7 @@ exports.Tournament = function(id, gameType) {
       		this.playAgainstAI = true;
       		var managerAI = new ai.ManagerAI(this, new TeamTournamentState(genUUID()));
 	  			managerAI.onMessage = this.onParticipantMessage;
-					this.participantSockets[managerAI.id] = managerAI;		  	
+					this.participantSockets[managerAI.teamId] = managerAI;		  	
 					var pool = this.pools[0];
 	  			pool.teams.push(managerAI.teamId);	
 	  			if (pool.teams.length == 2) pool.createGames(this.gameType);
@@ -166,19 +177,26 @@ exports.Tournament = function(id, gameType) {
   	var pool = null;
   	if (this.gameType === GameTypes.SingleMatch)
   	{
-  		var arenaID = this.id.toString() + ".0";
-  		arena = ah.getArena(arenaID);
-			pool = this.pools[0];
-  		if (arena === null){
-  			arena = new ah.Arena(arenaID);  			
-  			arena.pool = pool;
-  			console.log(pool);
-  			arena.game = pool.gamesUnfinished.pop();
-  			pool.gamesInProgress.push(arena.game);
-  			arena.eventCallBack = this.arenaCallback;  			
-  			this.arenaCounter++;
-				arena.playAgainstAI = this.playAgainstAI;
-  		} 	  		
+	  	pool = this.pools[0];
+			var game = pool.gamesInProgress.length == 0 ? pool.gamesUnfinished.pop() : pool.gamesInProgress[0];
+			if (game != null){
+				var arenaID = this.id.toString() + "." + game.id;
+				console.log(arenaID);
+				arena = ah.getArena(arenaID);				
+				if (arena === null){
+					arena = new ah.Arena(arenaID);  	
+					this.arenas.push(arena);		
+					arena.pool = pool;
+					arena.game = game;
+					pool.gamesInProgress.push(arena.game);
+					arena.eventCallBack = this.arenaCallback;  			
+					this.arenaCounter++;
+					arena.playAgainstAI = this.playAgainstAI;
+				} 	
+			} else {
+				console.log("tournament finished");
+				return;
+			}  		  		
   	} else {
 	  	var arenaID = this.id.toString() + "." + this.arenaCounter;
   	} 	
@@ -186,11 +204,21 @@ exports.Tournament = function(id, gameType) {
   	if (arena.team1Id === null){
   		arena.team1Id = ws.teamId;
     	var players = arena.gameLogic.team1;
-    	console.log("arena.team1Id: " + arena.team1Id);
+    	if (ws.isAI){
+    		arena.gameLogic.teamName1 = ws.name;    		
+    		arena.gameLogic.team1AI.aiOnly = true;
+    	} else {
+    		arena.gameLogic.team1AI.aiOnly = false;
+    	}
   	} else {
   		arena.team2Id = ws.teamId;
     	var players = arena.gameLogic.team2;
-    	console.log("arena.team2Id: " + arena.team2Id);
+    	if (ws.isAI){
+    		arena.gameLogic.teamName2 = ws.name;
+    		arena.gameLogic.team2AI.aiOnly = true;
+    	} else {
+    		arena.gameLogic.team2AI.aiOnly = false;
+    	}
   	}
   	for (var i in players){
   		var player = players[i];

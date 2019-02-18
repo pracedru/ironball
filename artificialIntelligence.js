@@ -36,6 +36,7 @@ exports.ManagerAI = function(tournamentHandler, teamTournamentState) {
 		
 	}
 	this.manageTeam = () => {
+		console.log("ai manageTeam");
 		var msg = {
 			t: MsgTypes.PlayerUpgrade,
 			pi: gl.playerCount,
@@ -57,7 +58,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
   this.arena = arena;
   this.preGameReady = false;
   this.playersReady = false;
-  this.aiOnly = true;
+  this.aiOnly = false;
   this.correctionNeededThresshold = 1;
   this.update = () => {
   	this.currentTimeStamp = Date.now();
