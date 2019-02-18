@@ -1,11 +1,9 @@
-var gl = require('./public/js/gameLogic.js');
-var ai = require("./artificialIntelligence.js");
-var misc = require('./public/js/misc.js');
-
-var rdz = misc.reducePrecision;
-var arenas = {};
-
-var MsgTypes = gl.MsgTypes;
+const gl = require('./public/js/gameLogic.js');
+const ai = require("./artificialIntelligence.js");
+const misc = require('./public/js/misc.js');
+const rdz = misc.reducePrecision;
+const arenas = {};
+const MsgTypes = gl.MsgTypes;
 
 exports.Arena = function(id) {
   this.id = id;

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-var express = require('express');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var useTLSEncryption = true;
-var port = 8888;
-var app = express();
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const useTLSEncryption = true;
+const port = 8888;
+const app = express();
 
 if (useTLSEncryption){
 	var https = require('https');

@@ -1,14 +1,11 @@
-var WebSocketServer = require('ws').Server;
-var ArenaHandler = require('./arenahandler.js');
-var TournamentHandler = require('./tournamenthandler.js');
-var gl = require('./public/js/gameLogic.js');
+const WebSocketServer = require('ws').Server;
+const ArenaHandler = require('./arenahandler.js');
+const TournamentHandler = require('./tournamenthandler.js');
+const gl = require('./public/js/gameLogic.js');
+const MsgTypes = gl.MsgTypes;
+
 var wss = null;
-
-var MsgTypes = gl.MsgTypes;
-
-var arenaIDCounter = 1000;
 var tournamentIDCounter = 1000;
-//var arena = new ArenaHandler.Arena();
 
 exports.gameWebSocketServer = function(server, app) {
   if (wss === null) {
@@ -18,28 +15,9 @@ exports.gameWebSocketServer = function(server, app) {
     wss.on("connection", function(webSocket) {
       webSocket.on("message", onMessage);
     });
-  }
-  
-  app.get("/createArena", function(req, res) {
-    var arenaID = arenaIDCounter;
-    arenaIDCounter++;
-    var arena = new ArenaHandler.Arena(arenaID);
-    res.writeHead(200, {'Content-Type': 'application/json'});
-    res.write(JSON.stringify({t: MsgTypes.ArenaCreated, arenaID}));
-    return res.end();
-  });
-  
-  app.get("/createTournament", function(req, res) {
-    var tournamentID = tournamentIDCounter;
-    tournamentIDCounter++;
-    var tournament = new TournamentHandler.Tournament(tournamentID);
-    res.writeHead(200, {'Content-Type': 'application/json'});
-    res.write(JSON.stringify({t: MsgTypes.TournamentCreated, tournamentID}));
-    return res.end();
-  });
-  
+  }  
   return wss;
-};
+}
 
 function onMessage(data) {  
   var msg = JSON.parse(data);  

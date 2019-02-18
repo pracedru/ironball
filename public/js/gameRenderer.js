@@ -584,8 +584,9 @@ gameRenderer.setRenderer = () => {
   gameRenderer.crowdAudio.play(0);
   gameRenderer.beepAudio.play(0);  
   currentRenderer = gameRenderer;
-    
-  gameRenderer.ws = new WebSocket("wss://" + location.host);  
+  
+  var protocol = location.protocol === "https:" ? "wss://" : "ws://";
+  gameRenderer.ws = new WebSocket(protocol + location.host);  
   gameRenderer.ws.onopen = function()
   {
     var msg = {

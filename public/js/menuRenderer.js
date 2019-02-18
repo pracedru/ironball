@@ -39,9 +39,7 @@ var LobbyScreen = function (surfaceimg, loc, size){
   this.avatars = [];
   this.currentAvatar = null;
   this.pools.push(new Pool(2, {x: 0.01, y:0.01}));
-  
   this.pools.push({loc: {x: 0.51, y:0.01}, size: {x: 0.48, y: 0.3}});
-  
   this.render = () => {
     var size = { x: this.size.x * canvas.width, y: this.size.y * canvas.height };
     var loc = { x: this.loc.x * canvas.width, y: this.loc.y * canvas.height };
@@ -536,7 +534,8 @@ var menuRenderer = {
   connectTournament: (id, destinationMenu, gameType) => {
     localStorage.setItem("playerCount", 0);
     localStorage.setItem("poolSize", 4);
-    menuRenderer.tournament.ws = new WebSocket("wss://" + location.host);
+    var protocol = location.protocol === "https:" ? "wss://" : "ws://";
+    menuRenderer.tournament.ws = new WebSocket(protocol + location.host);
     menuRenderer.tournament.ws.onopen = function()
     {
       var msg = {

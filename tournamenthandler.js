@@ -2,11 +2,11 @@ const genUUID = require('uuid/v1');
 const gl = require('./public/js/gameLogic.js');
 const ah = require('./arenahandler.js');
 const ai = require('./artificialIntelligence.js');
-var tournaments = {};
-var MsgTypes = gl.MsgTypes;
-var UpgradeTypes = gl.UpgradeTypes;
-var GameTypes = gl.GameTypes;
-var GameStates = gl.GameStates;
+const MsgTypes = gl.MsgTypes;
+const UpgradeTypes = gl.UpgradeTypes;
+const GameTypes = gl.GameTypes;
+const GameStates = gl.GameStates;
+const tournaments = {};
 
 var TeamTournamentState = function(id){
 	this.id = id;
