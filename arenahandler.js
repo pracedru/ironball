@@ -7,6 +7,7 @@ const MsgTypes = gl.MsgTypes;
 
 exports.Arena = function(id) {
   this.id = id;
+  this.handsOff = false;
   this.nextSpawnTime = Date.now() + 2000;
   this.maxSpawnTime = 10;
   this.minSpawnTime = 5;
@@ -15,7 +16,6 @@ exports.Arena = function(id) {
   this.team1Socket = null;
   this.team2Socket = null;
   this.spectatorSockets = [];
-  arenas[this.id] = this;
   this.recycled = false;
   this.gameLogic = new gl.GameLogics();
   this.gameLogic.initLogic();
@@ -23,6 +23,7 @@ exports.Arena = function(id) {
   this.gameLogic.team1AI = new ai.TeamAI(this.gameLogic, this.gameLogic.team1, this);
   this.gameLogic.team2AI = new ai.TeamAI(this.gameLogic, this.gameLogic.team2, this);
   this.eventCallBack = null;
+  arenas[this.id] = this;
   
   this.gameLogic.eventCallBack = function (msg) {
     try{         
@@ -113,7 +114,6 @@ exports.Arena = function(id) {
     });
     var team = JSON.parse(msg.tm);
     this.gameLogic.teamName1 = team.name;
-    this.handsOff = msg.handsOff;
     var gameState = this.getGameState();
     gameState.t = MsgTypes.Connected;
     gameState.ct = 1;        
@@ -138,12 +138,10 @@ exports.Arena = function(id) {
     });
     var team = JSON.parse(msg.tm);
     this.gameLogic.teamName2 = team.name;
-    //this.handsOff = msg.handsOff;
     var gameState = this.getGameState();
     gameState.t = MsgTypes.Connected;
     gameState.ct = 2;    
     webSocket.send(JSON.stringify(gameState));
-    
     if (this.handsOff) 
     	this.gameLogic.team2AI.aiOnly = true;
     else
@@ -248,12 +246,7 @@ exports.Arena = function(id) {
             this.gameLogic.updatePlayerInput(player, msg.bk);            
             this.sendPlayerUpdate(newmsg);
           }
-        }        
-        break;
-      case MsgTypes.PlayAgainstAI:           
-        /*this.gameLogic.teamName2 = "Steel Fury";        
-        this.syncTeamNames();       
-        this.playAgainstAI = true;*/
+        }
         break;
       case MsgTypes.ChangeFormation:
       	console.log("teamno: " + teamNo);

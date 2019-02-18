@@ -8,6 +8,7 @@ var Tournament = function(){
   this.gameType = -1;
   this.kachingAudio = new GameAudio("snd/kaching.wav", false);
   this.tree = null;
+  this.participants = {};
   this.onmessage = (evt) => {
     var msg = JSON.parse(evt.data);
     //console.log(evt.data);
@@ -24,16 +25,31 @@ var Tournament = function(){
         localStorage.setItem("playerCount", msg.playerCount);
         localStorage.setItem("poolSize", msg.poolSize);
         this.tree = msg.tt;
+        this.participants = {};
+        for (var i in msg.p){
+        	var participant = msg.p[i];
+        	this.participants[participant.id] = participant;
+        }
         if (msg.gt === GameTypes.SingleMatch){
         	if (menuRenderer.state == MenuStates.InvitePlayerMenu && msg.playerCount >= 2){
 				  	menuRenderer.state = MenuStates.TeamManagerMenu;
 				  	menuRenderer.renderScreen = true;        	
-        	}
-        	if (this.tree.gamesFinished.length && this.tree.gamesInProgress.length == 0 && this.tree.gamesUnfinished.length == 0){
-        		menuRenderer.state = MenuStates.TournamentFinishedMenu;
-				  	menuRenderer.renderScreen = true;        	
-        	}
+        	}        	
         }
+        if (this.tree.gamesFinished.length != 0 && this.tree.gamesInProgress.length == 0 && this.tree.gamesUnfinished.length == 0){
+		  		menuRenderer.state = MenuStates.TournamentFinishedMenu;
+		  		var winner = null;
+		  		for (var id in this.participants){
+		  			var participant = this.participants[id];
+		  			if (winner == null) winner = participant;
+		  			else {
+		  				if (winner.wins < participant.wins) winner = participant;
+		  				else if (winner.wins == participant.wins && winner.score < participant.score) winner = participant;
+		  			}
+		  		}
+					menuRenderer.menus[MenuStates.TournamentFinishedMenu][1].value = winner.name;
+					menuRenderer.renderScreen = false;        	
+		  	}
         break;
       case MsgTypes.TeamTournamentStateChanged:
       	//console.log(evt.data);
@@ -57,6 +73,7 @@ var Tournament = function(){
   }
   this.onclose = () => {
     console.log("Connection to tournament is closed...");    
+    this.ws = null;
   }
   this.onDoneClicked = () => {
   	var msg = {

@@ -195,7 +195,7 @@ exports.Tournament = function(id, gameType) {
 			var game = pool.gamesInProgress.length == 0 ? pool.gamesUnfinished.pop() : pool.gamesInProgress[0];
 			if (game != null){
 				var arenaID = this.id.toString() + "." + game.id;
-				console.log(arenaID);
+				//console.log(arenaID);
 				arena = ah.getArena(arenaID);				
 				if (arena === null){
 					arena = new ah.Arena(arenaID);  	
@@ -279,12 +279,18 @@ exports.Tournament = function(id, gameType) {
   }
   
   this.getTournamentState = () => {
+  	var participants = [];
+  	for (var id in this.participantSockets){
+  		var participant = this.participantSockets[id];
+  		participants.push({id: id, name: participant.name});
+  	} 
     return {
       id: this.id,
       playerCount: Object.keys(this.participantSockets).length,
       poolSize: this.poolSize,
       gt: this.gameType,
-      tt: this.tree.serialize()
+      tt: this.tree.serialize(),
+      p: participants
     }
   }
   
@@ -296,10 +302,11 @@ exports.Tournament = function(id, gameType) {
   this.addSocket = (webSocket, msg) => {    
     webSocket.tournament = this;
     webSocket.teamId = genUUID();
+    webSocket.name = msg.tn;
     webSocket.teamTournamentState = new TeamTournamentState(webSocket.teamId);
     webSocket.tournament = this;
     webSocket.isAI = false;
-       	
+    
    	if (this.gameType === GameTypes.SingleMatch)
   	{
 			console.log("this.participantSockets.length " + Object.keys(this.participantSockets).length );  	

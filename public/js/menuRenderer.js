@@ -194,7 +194,9 @@ var menuRenderer = {
   	var ctrls = [];
     menuRenderer.menus[MenuStates.TournamentFinishedMenu] = ctrls;
     var doneBtn = new Button('img/sm_nbtn.png', 'img/sm_nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Done", 30, "dark");
+    var winnerTextbox = new TextBox('img/sm_txtbx.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "Tournament Winner:", "Bente", 30, "dark");
     ctrls.push(doneBtn);
+    ctrls.push(winnerTextbox);
     
     doneBtn.clicked = () => {
     	menuRenderer.state = MenuStates.MainMenu;  
@@ -540,7 +542,7 @@ var menuRenderer = {
     {
       var msg = {
         t: MsgTypes.TournamentConnection, 
-        teamName: localStorage.teamName,
+        tn: team.name,
         tournamentID: id,
         gameType: gameType
       }
