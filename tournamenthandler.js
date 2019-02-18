@@ -37,8 +37,9 @@ function TournamentPool(id){
 	this.gamesUnfinished = [];
 	this.gamesFinished = [];
 	this.gamesInProgress = [];
+	this.prevPools = [];
+	this.nextPool = null;
 	this.createGames = (gameType) => {
-		//console.log("this.createGames");
 		if (gameType === GameTypes.SingleMatch){
 			for (var i = 0; i < 3; i++){
 				var game = {
@@ -47,10 +48,23 @@ function TournamentPool(id){
 					id: this.id.toString() + "." + i
 				}
 				this.gamesUnfinished.push(game);
-				//console.log("this.createGames");
 			}			
 		}
-		//console.log(this);
+	}
+	this.serialize = () => {
+		var serialized = {
+			teams: this.teams,
+			gamesUnfinished: this.gamesUnfinished,
+			gamesFinished: this.gamesFinished,
+			gamesInProgress: this.gamesInProgress,
+			prevPools: []
+		}
+		for (i in this.prevPools){
+			var prevPool = this.prevPools[i];
+			serialized.prevPools.push(prevPool.serialize());
+		}
+		
+		return serialized;
 	}
 }
 
@@ -62,7 +76,7 @@ exports.Tournament = function(id, gameType) {
   this.arenaCounter = 0;
   this.poolSize = 2;
   this.gameType = gameType;
-  this.pools = [new TournamentPool(0)];
+  this.tree = new TournamentPool(0);
   this.playAgainstAI = false;
   
   tournaments[this.id] = this;
@@ -91,17 +105,16 @@ exports.Tournament = function(id, gameType) {
   	return null;
   }
   this.arenaCallback = (sender, msg) => {		
-  	
   	if (this.recycled) return;
 		if (msg.t === MsgTypes.ChangeGameState){
 			if (msg.state === GameStates.Finished){
+				console.log("game finished");
 				var pool = sender.pool;
 				var game = sender.game;
 				var index = pool.gamesInProgress.indexOf(game);
 				pool.gamesInProgress.splice(index, 1);
 				pool.gamesFinished.push(game);
 				sender.eventCallBack = null;
-				console.log("game finished");
 				//console.log(sender);
 				var participant1 = this.getParticipantFromTeamId(sender.team1Id);
 				var participant2 = this.getParticipantFromTeamId(sender.team2Id);
@@ -127,7 +140,7 @@ exports.Tournament = function(id, gameType) {
 					this.onTeamTournamentStateChanged(participant2.teamTournamentState);
 					if (participant2.isAI) participant2.manageTeam();
 				}		
-
+				this.onTournamentStateChanged();
 			}
 		}
 	}  
@@ -157,10 +170,11 @@ exports.Tournament = function(id, gameType) {
       		var managerAI = new ai.ManagerAI(this, new TeamTournamentState(genUUID()));
 	  			managerAI.onMessage = this.onParticipantMessage;
 					this.participantSockets[managerAI.teamId] = managerAI;		  	
-					var pool = this.pools[0];
+					var pool = this.tree;
 	  			pool.teams.push(managerAI.teamId);	
 	  			if (pool.teams.length == 2) pool.createGames(this.gameType);
 					managerAI.manageTeam();		
+					managerAI.pool = pool;
       	}
       	break;
       default:
@@ -177,7 +191,7 @@ exports.Tournament = function(id, gameType) {
   	var pool = null;
   	if (this.gameType === GameTypes.SingleMatch)
   	{
-	  	pool = this.pools[0];
+	  	pool = this.tree;
 			var game = pool.gamesInProgress.length == 0 ? pool.gamesUnfinished.pop() : pool.gamesInProgress[0];
 			if (game != null){
 				var arenaID = this.id.toString() + "." + game.id;
@@ -192,6 +206,7 @@ exports.Tournament = function(id, gameType) {
 					arena.eventCallBack = this.arenaCallback;  			
 					this.arenaCounter++;
 					arena.playAgainstAI = this.playAgainstAI;
+					this.onTournamentStateChanged();
 				} 	
 			} else {
 				console.log("tournament finished");
@@ -268,8 +283,14 @@ exports.Tournament = function(id, gameType) {
       id: this.id,
       playerCount: Object.keys(this.participantSockets).length,
       poolSize: this.poolSize,
-      gt: this.gameType
+      gt: this.gameType,
+      tt: this.tree.serialize()
     }
+  }
+  
+  this.getTournamentTree = () => {
+  	var tree = {};
+  	return tree;
   }
   
   this.addSocket = (webSocket, msg) => {    
@@ -278,15 +299,22 @@ exports.Tournament = function(id, gameType) {
     webSocket.teamTournamentState = new TeamTournamentState(webSocket.teamId);
     webSocket.tournament = this;
     webSocket.isAI = false;
-    this.participantSockets[webSocket.teamId] = webSocket;
-   	
+       	
    	if (this.gameType === GameTypes.SingleMatch)
   	{
-  		var pool = this.pools[0];
+			console.log("this.participantSockets.length " + Object.keys(this.participantSockets).length );  	
+  		if (Object.keys(this.participantSockets).length >= 2){
+  			console.log("tournament full");
+  			webSocket.close();
+  			return;
+  		}
+  		var pool = this.tree;
   		pool.teams.push(webSocket.teamId);  		
   		if (pool.teams.length == 2) pool.createGames(this.gameType);
+  		webSocket.pool = pool;
   	}
-   	
+  	
+   	this.participantSockets[webSocket.teamId] = webSocket;
     webSocket.on("message", onParticipantMessage);
     webSocket.on("close", (evt) => { 
       console.log("websocket closed " + webSocket.teamId);

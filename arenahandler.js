@@ -16,7 +16,6 @@ exports.Arena = function(id) {
   this.team2Id = null;
   this.team1Socket = null;
   this.team2Socket = null;
-//  this.playAgainstAI = false;
   this.spectatorSockets = [];
   arenas[this.id] = this;
   this.recycled = false;
@@ -43,7 +42,14 @@ exports.Arena = function(id) {
   this.checkRecycle = () => {
     if (this.team1Socket === null && this.team2Socket === null && this.spectatorSockets.length ===0){
       if (this.id in arenas){
-		    console.log("Arena recycled");		    
+		    console.log("Arena recycled");		
+		    if (this.eventCallBack != null){
+		    	var msg = {
+				  	t: MsgTypes.ChangeGameState,
+				  	state: gl.GameStates.Finished
+				  }
+				  this.eventCallBack(this, msg);
+		    }		    
 		    delete arenas[this.id];
 		    this.recycled = true;
       }      
@@ -312,7 +318,6 @@ exports.Arena = function(id) {
       if (this.gameLogic.team1AI.preGameReady && this.gameLogic.team2AI.preGameReady){
       	var team1Ready = this.team1Socket !== null || this.gameLogic.team1AI.aiOnly;
       	var team2Ready = this.team2Socket !== null || this.gameLogic.team2AI.aiOnly;
-      	console.log(this.gameLogic.team1AI.aiOnly);
         if (team1Ready && team2Ready){
           this.gameLogic.state = gl.GameStates.GetReady;      
           this.sendPlayerUpdate({ t: MsgTypes.ChangeGameState, state: gl.GameStates.GetReady });

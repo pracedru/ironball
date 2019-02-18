@@ -18,7 +18,8 @@ MenuStates = {
   FormationMenu: 15,
   PlacesMenu: 16,
   TeamManagerMenu: 17,
-  InvitePlayerMenu: 18
+  InvitePlayerMenu: 18,
+  TournamentFinishedMenu: 19
 };
 
 var Pool = function (slots, loc) {
@@ -99,6 +100,7 @@ var menuRenderer = {
     menuRenderer.initPlacesMenu();
     menuRenderer.initManagerMenu();
     menuRenderer.initInvitePlayerMenu();
+    menuRenderer.initTournamentFinishedMenu();
   },
   initMainMenu: () => {
     var mmctrls = [];
@@ -189,6 +191,16 @@ var menuRenderer = {
     var jamctrls = [];
     menuRenderer.menus[MenuStates.JoinArenaMenu] = jamctrls;
     jamctrls.push(new TextBox('img/sm_txtbx.png', {x: 0.1, y: 0.06}, Control.Sizes["Wide"], "Arena ID:", {name: "teamName"}, 25, "dark"));
+  },  
+  initTournamentFinishedMenu: () => {
+  	var ctrls = [];
+    menuRenderer.menus[MenuStates.TournamentFinishedMenu] = ctrls;
+    var doneBtn = new Button('img/sm_nbtn.png', 'img/sm_nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Done", 30, "dark");
+    ctrls.push(doneBtn);
+    
+    doneBtn.clicked = () => {
+    	menuRenderer.state = MenuStates.MainMenu;  
+    }
   },
   initTournamentMenu: () => {
     var tnmctrls = [];

@@ -39,7 +39,7 @@ var places = [
 var playerCount = 8;
 var defaultPositions = {};
 var upgradeCounter = 0;
-var roundTime = 9;
+var roundTime = 90;
 
 defaultPositions['Balanced'] = [0, 15, 14, 10, 9, 8, 4, 3];         // 2, 3, 2
 defaultPositions['Defensive'] = [0, 10, 9, 8, 6, 5, 4, 3];          // 0, 1, 6
@@ -146,12 +146,11 @@ function GameLogics(){
   this.score = {team1: 0, team2: 0};
   this.eventCallBack = (msg)=>{};
   this.initLogic = () =>{
-
     this.team1 = [];
     this.team2 = [];
     this.teamName1 = "Team 1";
     this.teamName2 = "Team 2";
-    var defaultFormation = defaultPositions['Balanced']; 
+    var defaultFormation = defaultPositions['Balanced'];     
     for (var i = 0; i < 8; i++){
     	var placeIndex = defaultFormation[i];
       var pos = new Vertex2(places[placeIndex].x*scale, places[placeIndex].y*scale);      
@@ -164,19 +163,15 @@ function GameLogics(){
       newBluePlayer.isGoalee = (placeIndex === 0);
       newBluePlayer.maxTravelDist = placeIndex === 0 ? 150 : 500;
       this.team2.push(newBluePlayer);
-
       var sepDist = 75;      
       var teamOffset = 500;
       newYellowPlayer.pos.x = ((i*sepDist)%(sepDist*4))*scale - 1.5*sepDist*scale;
       newYellowPlayer.pos.y = -(Math.floor((i/4))*sepDist+75)*scale - teamOffset*scale; 
-			newYellowPlayer.dir = Math.PI;
-      
+			newYellowPlayer.dir = Math.PI;      
       newBluePlayer.pos.x = ((i*sepDist)%(sepDist*4))*scale - 1.5*sepDist*scale; 
       newBluePlayer.pos.y = (Math.floor((i/4))*sepDist+75) + teamOffset;
-			newBluePlayer.dir = 0;
-      
-    }
-    
+			newBluePlayer.dir = 0;      
+    }    
     this.lastTimeStamp = Date.now();
     this.roundStartTime = this.lastTimeStamp;
   }
@@ -188,8 +183,7 @@ function GameLogics(){
     this.ballSpeed.y = 0;
     this.ballposResidual.x = 0;
     this.ballposResidual.y = 0;
-    this.ballHandler = null;
-    
+    this.ballHandler = null;    
   }
   this.update = () => {
     this.currentTimeStamp = Date.now();

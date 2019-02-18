@@ -7,6 +7,7 @@ var Tournament = function(){
   this.playerUpgrades = {};
   this.gameType = -1;
   this.kachingAudio = new GameAudio("snd/kaching.wav", false);
+  this.tree = null;
   this.onmessage = (evt) => {
     var msg = JSON.parse(evt.data);
     //console.log(evt.data);
@@ -22,9 +23,16 @@ var Tournament = function(){
       case MsgTypes.TournamentStateChanged:
         localStorage.setItem("playerCount", msg.playerCount);
         localStorage.setItem("poolSize", msg.poolSize);
-        if (msg.gt === GameTypes.SingleMatch && msg.playerCount >= 2){
-        	menuRenderer.state = MenuStates.TeamManagerMenu;
-        	menuRenderer.renderScreen = true;
+        this.tree = msg.tt;
+        if (msg.gt === GameTypes.SingleMatch){
+        	if (menuRenderer.state == MenuStates.InvitePlayerMenu && msg.playerCount >= 2){
+				  	menuRenderer.state = MenuStates.TeamManagerMenu;
+				  	menuRenderer.renderScreen = true;        	
+        	}
+        	if (this.tree.gamesFinished.length && this.tree.gamesInProgress.length == 0 && this.tree.gamesUnfinished.length == 0){
+        		menuRenderer.state = MenuStates.TournamentFinishedMenu;
+				  	menuRenderer.renderScreen = true;        	
+        	}
         }
         break;
       case MsgTypes.TeamTournamentStateChanged:
@@ -33,8 +41,7 @@ var Tournament = function(){
       		this.teamTournamentState = msg.teamTournamentState;
       		menuRenderer.menus[MenuStates.TeamManagerMenu][2].updateText();
       		this.kachingAudio.play();
-      	}
-      	
+      	}      	
       	break;
       case MsgTypes.TeamIdChanged:
       	
@@ -42,8 +49,7 @@ var Tournament = function(){
       case MsgTypes.ArenaCreated:
       	gameRenderer.arenaID = msg.id;
         gameRenderer.handsOff = false;
-        gameRenderer.setRenderer();
-        
+        gameRenderer.setRenderer();        
       	break;
       default:
       	console.log(evt.data);

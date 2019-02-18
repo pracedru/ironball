@@ -560,6 +560,7 @@ gameRenderer.keyUp = (e)=>{
 }
 
 gameRenderer.setRenderer = () => {
+	gameRenderer.initLogic();
   history.pushState({state: "gameRenderer"}, "game", "index.html");
   gameRenderer.playAgainstAI = false;
   gameRenderer.playerIndex = -1;
