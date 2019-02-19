@@ -72,7 +72,8 @@ var Tournament = function(){
     }
   }
   this.onclose = () => {
-    console.log("Connection to tournament is closed...");    
+    console.log("Connection to tournament is closed...");   
+    menuRenderer.state = MenuStates.MainMenu; 
     this.ws = null;
   }
   this.onDoneClicked = () => {

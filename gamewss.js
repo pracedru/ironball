@@ -14,7 +14,9 @@ exports.gameWebSocketServer = function(server, app) {
     });
     wss.on("connection", function(webSocket) {
       webSocket.on("message", onMessage);
+      webSocket.on("error", (evt) => { console.log(evt) });
     });
+
   }  
   return wss;
 }

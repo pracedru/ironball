@@ -3,7 +3,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const useTLSEncryption = false;
+const useTLSEncryption = true;
 const port = 8888;
 const app = express();
 

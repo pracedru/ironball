@@ -1,7 +1,7 @@
 /* global aCtx, ctx, scale, canvas */
 
-isClient = true;
-hasTabbed = false;
+var isClient = true;
+var hasTabbed = false;
 
 
 if ('serviceWorker' in navigator) {
@@ -625,16 +625,36 @@ var Filters = {
     }
     return pixels;    
   },
-  toBase64: (image, size = null) => {
+  addAlphaMaskInv: (pixels, alphaMask, inverted = false) => {
+    var d = pixels.data;
+    var ad = alphaMask.data;
+    for (var i=0; i<d.length; i+=4) {
+      var r = ad[i];
+      var g = ad[i+1];      
+      var b = ad[i+2];  
+      var a = (r+g+b)/3;            
+      d[i+3] = 255-a;
+    }
+    return pixels;    
+  },
+  toBase64JPEG: (image, size = null, quality = 0.85) => {
     if (size === null){
       size = {x: image.width, y: image.height};      
     }
     var c = Filters.getCanvas(size.x, size.y);
     var context = c.getContext("2d");
     context.drawImage(image, 0, 0, size.x, size.y);
-    return c.toDataURL();
-    //return c.toDataURL("image/webp", 0.85);
-  }  
+    return c.toDataURL("image/jpeg", quality);
+  },
+  toBase64PNG: (image, size = null) => {
+    if (size === null){
+      size = {x: image.width, y: image.height};      
+    }
+    var c = Filters.getCanvas(size.x, size.y);
+    var context = c.getContext("2d");
+    context.drawImage(image, 0, 0, size.x, size.y);		
+    return c.toDataURL("image/png");
+  }    
 }
 
 

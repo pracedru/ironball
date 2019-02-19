@@ -1,7 +1,6 @@
 var ManagerScreen = function (surfaceimg, loc, size){    
   Screen.call(this, surfaceimg, loc, size)
   this.currentPlayerIndex = playerCount;
-  this.imgs = [];
   this.texts = [];
   this.moveDistance = 0;
   this.moveSpeed = 0;
@@ -10,23 +9,13 @@ var ManagerScreen = function (surfaceimg, loc, size){
   this.releaseAudio = new GameAudio("snd/btnRelease.wav", false);
   this.teamImg = new Image();
   this.teamImg.src = "img/team.png";
-  for (var i = 0; i < 8; i++){
-		pl = team.players[i];
-		var img = new Image();
-		if (pl.imageData!=null){
-			img.src = pl.imageData;
-		} else {
-			img.src = "img/default.png";	
-		}
-		this.imgs.push(img);
-	}
-	this.imgs.push(this.teamImg);
+  
 	
 	this.updateText = ()=>{
 		if (this.currentPlayerIndex < playerCount)
 			pl = team.players[this.currentPlayerIndex];
 		else
-			pl = {firstName: "Team", lastName: ""};
+			pl = {firstName: "Entire", lastName: "Team"};
 		if (menuRenderer.tournament.teamTournamentState === null) return;
 		var tm = menuRenderer.tournament.teamTournamentState;
 		var upgrade = tm.upgrades[this.currentPlayerIndex];
@@ -54,14 +43,18 @@ var ManagerScreen = function (surfaceimg, loc, size){
     var loc = { x: this.loc.x * canvas.width, y: this.loc.y * canvas.height };
   	this.renderText(size, loc);
 		var offset = 308*scale*this.moveDistance/35;		
-  	ctx.drawImage(this.imgs[this.currentPlayerIndex], loc.x + size.x/2-size.y/6 + offset, loc.y + 20*scale, size.y/3, size.y/3);  	  
+		var playerImage = this.teamImg;
+		if (this.currentPlayerIndex != playerCount)
+			playerImage = playerImages[this.currentPlayerIndex];
+		
+  	ctx.drawImage(playerImage, loc.x + size.x/2-size.y/6 + offset, loc.y + 20*scale, size.y/3, size.y/3);  	  
   }
   this.renderText = (size, loc) => {
     for (var i = 0; i < this.texts.length; i++){
     	if (this.texts[i].text != null)
       	var text = this.texts[i].caption + ": " + this.texts[i].text;
       else{
-      	var text = this.texts[i].caption; // + ": " + this.texts[i].value;	
+      	var text = this.texts[i].caption; 
       }      
       var height = this.texts[i].height;
       var font = this.texts[i].font;
@@ -74,15 +67,14 @@ var ManagerScreen = function (surfaceimg, loc, size){
       ctx.fillStyle="#afc";
       ctx.textAlign="start"; 
       ctx.fillText(text, x, y);      
-      if (this.selectedDiscipline===this.texts[i].type){
-      	//console.log(Object.keys(UpgradeTypes)[this.selectedDiscipline])
+      if (this.selectedDiscipline===this.texts[i].type){      	
       	ctx.fillText("-->", + 20*scale+size.x/2, y);
       }      
       if (this.texts[i].text == null){
       	y += 5*scale;
       	ctx.beginPath();
       	ctx.fillStyle="#397";
-      	var fillWidth = size.x/3; //this.texts[i].value
+      	var fillWidth = size.x/3; 
       	ctx.rect(x+size.x/2, y, fillWidth, -height*scale);
       	ctx.fill();
       	ctx.beginPath();

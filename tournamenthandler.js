@@ -78,6 +78,7 @@ exports.Tournament = function(id, gameType) {
   this.gameType = gameType;
   this.tree = new TournamentPool(0);
   this.playAgainstAI = false;
+  this.handsOFf = false;
   
   tournaments[this.id] = this;
   console.log("tournament created: " + id);

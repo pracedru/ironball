@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", function(){
 const VERSION = "0.1.0";
 var teamIndex = 0;
 var team = null;
-var playerImages = [];
 var canvas;
 var currentRenderer = null;
 var ctx;

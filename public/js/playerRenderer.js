@@ -36,6 +36,20 @@ function mouseButtons(bk){
 	return downKeys;
 }
 
+function frontImageMaskLoaded(){
+	var c = Filters.getCanvas(playerRenderer.frontImageMask.width, playerRenderer.frontImageMask.width);
+  var context = c.getContext('2d');            
+  context.drawImage(playerRenderer.frontImageMask, 0, 0, c.width, c.width);
+  var imageData = context.getImageData(0, 0, c.width, c.width);
+	var alphaMaskPixels = Filters.getPixels(playerRenderer.frontImageMask, {x: c.width, y: c.width});
+  Filters.addAlphaMaskInv(imageData, alphaMaskPixels);           
+  context.putImageData(imageData, 0, 0);  
+  playerRenderer.frontImageClip.src = c.toDataURL('image/png');
+  if (localStorage.frontImageMask == null){
+	  localStorage.frontImageMask = Filters.toBase64PNG(playerRenderer.frontImageMask);
+  }  
+}
+
 var playerRenderer = {
   state: PlayerRendererStates.ImageShow,
   init: () => {
@@ -57,9 +71,10 @@ var playerRenderer = {
     playerRenderer.frontImage = new Image();
     playerRenderer.frontImage.src = "img/playerFaceFront.png";
     playerRenderer.frontImageMask = new Image();
+    playerRenderer.frontImageMask.addEventListener('load', frontImageMaskLoaded);
     playerRenderer.frontImageMask.src = "img/playerFaceFrontMask.png";
     playerRenderer.frontImageClip = new Image();
-    playerRenderer.frontImageClip.src = "img/playerFaceFrontClip.png";
+    
     playerRenderer.adjusterImage = new Image();
     playerRenderer.adjusterImage.src = "img/adjuster.png";
     playerRenderer.playerImage = new Image();
@@ -82,6 +97,7 @@ var playerRenderer = {
     playerRenderer.doneBtn.clicked = () => {
       var alphaMaskPixels = Filters.getPixels(playerRenderer.frontImageMask, {x: canvas.width, y: canvas.width});
       Filters.addAlphaMask(imageDataManipulated, alphaMaskPixels);
+      //var c = Filters.getCanvas(canvas.width, canvas.width);
       var c = Filters.getCanvas(canvas.width, canvas.width);
       var context = c.getContext('2d');            
       context.putImageData(imageDataManipulated, 0, 0);      
@@ -93,8 +109,8 @@ var playerRenderer = {
 
     playerRenderer.saveBtn.clicked = () => {
     	var playersScreen = menuRenderer.menus[MenuStates.PlayersMenu][2];
-    	playersScreen.imgs[playersScreen.currentPlayerIndex] = playerRenderer.playerImage;
-    	team.players[playersScreen.currentPlayerIndex].imageData = Filters.toBase64(playerRenderer.playerImage);
+    	playerImages[playersScreen.currentPlayerIndex] = playerRenderer.playerImage;
+    	team.players[playersScreen.currentPlayerIndex].imageData = Filters.toBase64JPEG(playerRenderer.playerImage, {x: 256, y: 256});
     	saveTeam();
     }
     
@@ -138,7 +154,7 @@ var playerRenderer = {
         ctx.restore();
         ctx.fillStyle="black";
         ctx.fillRect ( 0 , canvas.width , canvas.width , canvas.height );
-        ctx.drawImage(playerRenderer.frontImageClip, 0, 0, canvas.width, canvas.width);
+       	ctx.drawImage(playerRenderer.frontImageClip, 0, 0, canvas.width, canvas.width);
         ctx.drawImage(playerRenderer.frontImage, 0, 0, canvas.width, canvas.width);
         
         ctx.drawImage(playerRenderer.adjusterImage, 0, canvas.width, canvas.width, canvas.height - canvas.width);

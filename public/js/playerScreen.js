@@ -1,21 +1,44 @@
+
+var frontImageMask = new Image();
+
+var playerImageLoaded = function() {
+	this.removeEventListener("load", playerImageLoaded);
+	var c = Filters.getCanvas(frontImageMask.width, frontImageMask.width);
+	var context = c.getContext('2d'); 
+	context.drawImage(this, 0, 0, c.width, c.width);
+	var imageData = context.getImageData(0, 0, c.width, c.width);
+	var alphaMaskPixels = Filters.getPixels(frontImageMask, {x: c.width, y: c.width});			
+	Filters.addAlphaMask(imageData, alphaMaskPixels);
+	context.putImageData(imageData, 0, 0); 
+	this.src = c.toDataURL('image/png');
+}
+	
+
 var PlayersScreen = function (surfaceimg, loc, size){    
   Screen.call(this, surfaceimg, loc, size);
   this.currentPlayerIndex = 0;
-  this.imgs = [];
   this.moveDistance = 0;
   this.moveSpeed = 0;
   this.releaseAudio = new GameAudio("snd/btnRelease.wav", false);
-  
-	for (var i = 0; i < 8; i++){
-		pl = team.players[i];
-		var img = new Image();
-		if (pl.imageData!=null){
-			img.src = pl.imageData;
-		} else {
-			img.src = "img/default.png";	
+	
+	this.frontImageMaskLoaded = () => {
+		console.log("frontImageMaskLoaded");
+		for (var i = 0; i < 8; i++){
+			pl = team.players[i];
+			var img = new Image();
+			if (pl.imageData!=null){
+				img.addEventListener('load', playerImageLoaded);
+				img.src = pl.imageData;				
+		
+			} else {
+				img.src = "img/default.png";	
+			}
+			playerImages.push(img);
 		}
-		this.imgs.push(img);
 	}
+	
+	frontImageMask.addEventListener('load', this.frontImageMaskLoaded);
+  frontImageMask.src = localStorage.frontImageMask;
 	
 	this.updateText = ()=>{
 		pl = team.players[this.currentPlayerIndex];
@@ -38,7 +61,7 @@ var PlayersScreen = function (surfaceimg, loc, size){
     var loc = { x: this.loc.x * canvas.width, y: this.loc.y * canvas.height };
   	this.renderText(size, loc);
 		var offset = 308*scale*this.moveDistance/35;		
-  	ctx.drawImage(this.imgs[this.currentPlayerIndex], loc.x + 20*scale + offset, loc.y + 20*scale, 268*scale, 268*scale);  
+  	ctx.drawImage(playerImages[this.currentPlayerIndex], loc.x + 20*scale + offset, loc.y + 20*scale, 268*scale, 268*scale);  
   	  	
   }
   this.renderText = (size, loc) => {

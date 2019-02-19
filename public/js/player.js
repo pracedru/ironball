@@ -1,7 +1,7 @@
 var isServer = typeof isClient !== "undefined" ? !isClient : true;
 var isClient = !isServer;
 
-
+var playerImages = [];
 var UpgradeTypes = null;
 
 if (isServer){

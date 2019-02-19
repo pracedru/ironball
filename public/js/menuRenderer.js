@@ -200,6 +200,9 @@ var menuRenderer = {
     
     doneBtn.clicked = () => {
     	menuRenderer.state = MenuStates.MainMenu;  
+    	if (menuRenderer.tournament.ws != null){
+    		menuRenderer.tournament.ws.close();
+    	}
     }
   },
   initTournamentMenu: () => {
@@ -521,7 +524,7 @@ var menuRenderer = {
     ctrls[5].clicked = () => { 
     	playerRenderer.setRenderer(); 
     	var playersScreen = menuRenderer.menus[MenuStates.PlayersMenu][2];
-    	playerRenderer.playerImage = playersScreen.imgs[playersScreen.currentPlayerIndex];
+    	playerRenderer.playerImage = playerImages[playersScreen.currentPlayerIndex];
     }
     ctrls[6].changed = (oldval, newval) => { 
     	var playersScreen = menuRenderer.menus[MenuStates.PlayersMenu][2];
@@ -555,6 +558,9 @@ var menuRenderer = {
       }
     }
     menuRenderer.tournament.ws.onmessage = menuRenderer.tournament.onmessage;
+    menuRenderer.tournament.ws.onerror = (evt) => {
+    	console.log(evt);
+    }
     menuRenderer.tournament.ws.onclose = (evt) => {        
       menuRenderer.tournament.onclose();  
       if (evt.srcElement===menuRenderer.tournament.ws){ 
