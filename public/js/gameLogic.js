@@ -153,6 +153,8 @@ function GameLogics(){
     this.team2 = [];
     this.teamName1 = "Team 1";
     this.teamName2 = "Team 2";
+    this.team1Id = null;
+    this.team2Id = null;
     var defaultFormation = defaultPositions['Balanced'];     
     for (var i = 0; i < 8; i++){
     	var placeIndex = defaultFormation[i];
@@ -186,7 +188,8 @@ function GameLogics(){
     this.ballSpeed.y = 0;
     this.ballposResidual.x = 0;
     this.ballposResidual.y = 0;
-    this.lastBallHandler = this.ballHandler;
+    if (this.ballHandler != null)
+    	this.lastBallHandler = this.ballHandler;
     this.ballHandler = null;    
   }
   this.update = () => {
@@ -377,7 +380,8 @@ function GameLogics(){
     this.eventCallBack(msg);
   }
   this.ballHandlerChanged = (player) =>{
-  	this.lastBallHandler = this.ballHandler;
+		if (this.ballHandler != null)
+			this.lastBallHandler = this.ballHandler;
     this.ballHandler = player;
     var msg = this.getPlayerTeamAndIndex(player);
     msg.t = MsgTypes.BallHandlerChanged;
@@ -399,7 +403,8 @@ function GameLogics(){
   }
 
   this.ballThrown = (player) => {
-  	this.lastBallHandler = this.ballHandler;
+  	if (this.ballHandler != null)
+	  	this.lastBallHandler = this.ballHandler;
     this.ballHandler = null;
     this.ballpos.x += Math.cos(player.dir)*(player.reach*scale+15);
     this.ballpos.y += Math.sin(player.dir)*(player.reach*scale+15);

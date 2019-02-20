@@ -407,10 +407,15 @@ gameRenderer.render = () => {
     }
 	}
 	if (gameRenderer.state == GameStates.Goal){
-		console.log("render player that scored");
 		
-		var playerImage = playerImages[0];	
-		ctx.drawImage(playerImage, 0, 0, canvas.width, canvas.width);
+		if (gameRenderer.lastBallHandler != null){
+			console.log("render player that scored");
+			var playerImage = gameRenderer.lastBallHandler.image;	
+			if (playerImage != null) {
+				ctx.drawImage(playerImage, 0, 0, canvas.width, canvas.width);
+			}
+		} else console.log("no last ball handler!!");
+		
 	}
 }
 gameRenderer.renderPointer = (camposx, camposy, cyoffset) => {
@@ -698,7 +703,8 @@ gameRenderer.setRenderer = () => {
         }
         player.posResidual.x = msg.pos.x*scale - player.pos.x;
         player.posResidual.y = msg.pos.y*scale - player.pos.y;
-        gameRenderer.lastBallHandler = gameRenderer.ballHandler;
+        if (gameRenderer.ballHandler != null)
+        	gameRenderer.lastBallHandler = gameRenderer.ballHandler;
         gameRenderer.ballHandler = player;
         gameRenderer.pickupAudio.play();
         //player.kicking = false;
@@ -766,7 +772,8 @@ gameRenderer.setRenderer = () => {
         gameRenderer.ballpos.x = bh.pos.x;   
         gameRenderer.ballpos.y = bh.pos.y;   
         gameRenderer.ballpos.z = msg.bp.z;     
-        gameRenderer.lastBallHandler = gameRenderer.ballHandler;
+        if (gameRenderer.ballHandler != null)
+   	    	gameRenderer.lastBallHandler = gameRenderer.ballHandler;
         gameRenderer.ballHandler = null;
         gameRenderer.ballposResidual = {
         	x: msg.bp.x*scale - bh.pos.x, 
@@ -776,7 +783,10 @@ gameRenderer.setRenderer = () => {
         break;
       case MsgTypes.SyncTeamNames:
         gameRenderer.teamName1 = msg.tn1;
-        gameRenderer.teamName2 = msg.tn2;        
+        gameRenderer.teamName2 = msg.tn2;     
+        gameRenderer.team1Id = msg.id1;
+        gameRenderer.team2Id = msg.id2;  
+        gameRenderer.attachPlayerImages();
         break;
       case MsgTypes.Connected:
       	console.log("connected");
@@ -844,6 +854,21 @@ gameRenderer.setRenderer = () => {
     gameRenderer.ws.close();
   };
 };
+
+gameRenderer.attachPlayerImages = () => {
+	var team1Images = null;
+	var team2Images = null;
+	if (gameRenderer.team1Id == menuRenderer.tournament.teamId)
+		 team1Images = playerImages;
+	else team1Images = menuRenderer.tournament.participants[gameRenderer.team1Id];
+	if (gameRenderer.team2Id == menuRenderer.tournament.teamId)
+		 team2Images = playerImages;
+	else team2Images = menuRenderer.tournament.participants[gameRenderer.team2Id];
+	for (var i = 0; i < playerCount; i++){
+		if (team1Images != null) gameRenderer.team1[i].image = team1Images[i];
+		if (team2Images != null) gameRenderer.team2[i].image = team2Images[i];
+	}	
+}
 
 gameRenderer.getUpgrade = (id) => {
 	for (i in gameRenderer.upgrades){

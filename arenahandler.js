@@ -282,7 +282,9 @@ exports.Arena = function(id) {
     this.sendPlayerUpdate({ 
       t: MsgTypes.SyncTeamNames, 
       tn1: this.gameLogic.teamName1, 
-      tn2: this.gameLogic.teamName2
+      tn2: this.gameLogic.teamName2,
+      id1: this.team1Id,
+      id2: this.team2Id
     });
   }
 
