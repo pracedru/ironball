@@ -78,7 +78,7 @@ exports.Tournament = function(id, gameType) {
   this.gameType = gameType;
   this.tree = new TournamentPool(0);
   this.playAgainstAI = false;
-  this.handsOFf = false;
+  this.handsOff = false;
   
   tournaments[this.id] = this;
   console.log("tournament created: " + id);
@@ -89,6 +89,7 @@ exports.Tournament = function(id, gameType) {
 			if (!participant.isAI) playerCount++;
   	}
     if (playerCount === 0){
+    	this.recycled = true; 
       console.log("Tournament recycled");
       delete tournaments[this.id];
       for (i in this.arenas){
@@ -96,7 +97,7 @@ exports.Tournament = function(id, gameType) {
       	arena.checkRecycle();
       }
       this.arenas = [];
-      this.recycled = true;      
+           
     }
   }
   this.getParticipantFromTeamId = (id) => {
@@ -131,7 +132,7 @@ exports.Tournament = function(id, gameType) {
 					if (t1score > t2score)
 						participant1.teamTournamentState.credits += 500;					
 					this.onTeamTournamentStateChanged(participant1.teamTournamentState);
-					if (participant1.isAI) participant1.manageTeam();
+					if (participant1.isAI && !this.recycled) participant1.manageTeam();
 				}
 				if (participant2 != null){
 					participant2.teamTournamentState.score += t2score;
@@ -139,7 +140,7 @@ exports.Tournament = function(id, gameType) {
 					if (t1score < t2score)
 						participant2.teamTournamentState.credits += 500;					
 					this.onTeamTournamentStateChanged(participant2.teamTournamentState);
-					if (participant2.isAI) participant2.manageTeam();
+					if (participant2.isAI && !this.recycled) participant2.manageTeam();
 				}		
 				this.onTournamentStateChanged();
 			}
@@ -178,6 +179,9 @@ exports.Tournament = function(id, gameType) {
 					managerAI.pool = pool;
       	}
       	break;
+      case MsgTypes.PlayHandsOff:
+      	this.handsOff = msg.val;
+      	break;
       default:
       	console.log(data);
     }            
@@ -203,6 +207,7 @@ exports.Tournament = function(id, gameType) {
 					this.arenas.push(arena);		
 					arena.pool = pool;
 					arena.game = game;
+					arena.handsOff = this.handsOff;
 					pool.gamesInProgress.push(arena.game);
 					arena.eventCallBack = this.arenaCallback;  			
 					this.arenaCounter++;
@@ -300,10 +305,31 @@ exports.Tournament = function(id, gameType) {
   	return tree;
   }
   
+  
+  this.handleNewTeam = (id) => {
+  	var msg = {
+  		t: MsgTypes.NewTeamAdded,
+  		id: id,
+  		tm: this.participantSockets[id].team
+  	}
+  	var newTeamData = JSON.stringify(msg);
+  	for (teamId in this.participantSockets){
+  		if (teamId != id){
+				participantSocket = this.participantSockets[teamId];
+				msg.id = teamId;
+				msg.tm = participantSocket.team;
+				var oldTeamData = JSON.stringify(msg);
+				this.participantSockets[id].send(oldTeamData);
+				participantSocket.send(newTeamData);
+  		}
+  	}
+  }
+  
   this.addSocket = (webSocket, msg) => {    
     webSocket.tournament = this;
     webSocket.teamId = genUUID();
-    webSocket.name = msg.tn;
+    webSocket.team = msg.tm;
+    webSocket.name = msg.tm.name;
     webSocket.teamTournamentState = new TeamTournamentState(webSocket.teamId);
     webSocket.tournament = this;
     webSocket.isAI = false;
@@ -336,6 +362,7 @@ exports.Tournament = function(id, gameType) {
     tournamentState.teamId = webSocket.teamId;
     webSocket.send(JSON.stringify(tournamentState));
     this.onTournamentStateChanged();
+    this.handleNewTeam(webSocket.teamId);
   }
   
   this.onTournamentStateChanged = () => {

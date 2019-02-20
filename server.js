@@ -18,7 +18,7 @@ if (useTLSEncryption){
 	};
 
 	var server = https.createServer(options, app).listen(port, function () {
-		console.log('Ironball listening on port ' + port);
+		console.log('Ironball listening on secure port ' + port);
 	});
 } else {
 	var server = app.listen(port, function () {

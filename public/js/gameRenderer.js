@@ -406,7 +406,12 @@ gameRenderer.render = () => {
       gameRenderer.renderPointer(gameRenderer.camera.pos.x, gameRenderer.camera.pos.y, cyoffset);
     }
 	}
-	
+	if (gameRenderer.state == GameStates.Goal){
+		console.log("render player that scored");
+		
+		var playerImage = playerImages[0];	
+		ctx.drawImage(playerImage, 0, 0, canvas.width, canvas.width);
+	}
 }
 gameRenderer.renderPointer = (camposx, camposy, cyoffset) => {
   var team = gameRenderer.getTeam();
@@ -693,6 +698,7 @@ gameRenderer.setRenderer = () => {
         }
         player.posResidual.x = msg.pos.x*scale - player.pos.x;
         player.posResidual.y = msg.pos.y*scale - player.pos.y;
+        gameRenderer.lastBallHandler = gameRenderer.ballHandler;
         gameRenderer.ballHandler = player;
         gameRenderer.pickupAudio.play();
         //player.kicking = false;
@@ -760,6 +766,7 @@ gameRenderer.setRenderer = () => {
         gameRenderer.ballpos.x = bh.pos.x;   
         gameRenderer.ballpos.y = bh.pos.y;   
         gameRenderer.ballpos.z = msg.bp.z;     
+        gameRenderer.lastBallHandler = gameRenderer.ballHandler;
         gameRenderer.ballHandler = null;
         gameRenderer.ballposResidual = {
         	x: msg.bp.x*scale - bh.pos.x, 
@@ -786,6 +793,7 @@ gameRenderer.setRenderer = () => {
         gameRenderer.state = msg.state;
         gameRenderer.playerIndex = -1;
         gameRenderer.upgrades = [];
+        gameRenderer.handsOff = msg.handsOff;
         for (var i in msg.upgrades){
         	var upgrade = msg.upgrades[i];
         	upgrade.image = upgradeImages[upgrade.type];

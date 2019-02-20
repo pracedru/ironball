@@ -9,6 +9,7 @@ var Tournament = function(){
   this.kachingAudio = new GameAudio("snd/kaching.wav", false);
   this.tree = null;
   this.participants = {};
+  
   this.onmessage = (evt) => {
     var msg = JSON.parse(evt.data);
     //console.log(evt.data);
@@ -67,6 +68,13 @@ var Tournament = function(){
         gameRenderer.handsOff = false;
         gameRenderer.setRenderer();        
       	break;
+      case MsgTypes.NewTeamAdded:
+      	var newTeamId = msg.id;
+      	var participant = msg.tm;
+      	participant.playerImages = [];
+      	this.participants[newTeamId] = participant;
+      	this.getTeamImages(newTeamId);
+      	break;
       default:
       	console.log(evt.data);
     }
@@ -82,6 +90,20 @@ var Tournament = function(){
   	}
   	var data = JSON.stringify(msg);
   	this.ws.send(data);
+  }
+  this.getTeamImages = (id) => {
+  	var participant = this.participants[id];
+  	for (var i = 0; i < playerCount; i++){
+			var pl = participant.players[i];
+			var img = new Image();
+			if (pl.imageData!=null){
+				img.addEventListener('load', playerImageLoaded);
+				img.src = pl.imageData;				
+			} else {
+				img.src = "img/default.png";	
+			}
+			participant.playerImages.push(img);
+		}
   }
 }
 

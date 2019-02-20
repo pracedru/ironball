@@ -30,7 +30,7 @@ exports.Arena = function(id) {
       this.arena.sendPlayerUpdate(msg);      
       if (this.arena.eventCallBack !=null) 
       	this.arena.eventCallBack(this.arena, msg); 
-      if (msg.t === MsgTypes.ChangeGameState && msg.state === gl.GameStates.GetReady){
+      if (msg.t === MsgTypes.ChangeGameState && (msg.state === gl.GameStates.GetReady || msg.state === gl.GameStates.Goal)){
         this.team1AI.playersReady = false;
         this.team2AI.playersReady = false;        
       }      
@@ -97,7 +97,8 @@ exports.Arena = function(id) {
       team1: this.gameLogic.team1,
       team2: this.gameLogic.team2,
       score: this.gameLogic.score,
-      upgrades: this.gameLogic.upgrades
+      upgrades: this.gameLogic.upgrades,
+      handsOff: this.handsOff
     }
     return gameState;
   }
@@ -314,7 +315,7 @@ exports.Arena = function(id) {
           this.sendPlayerUpdate({ t: MsgTypes.ChangeGameState, state: gl.GameStates.GetReady });
         }
       }
-    } else if (this.gameLogic.state === gl.GameStates.GetReady){
+    } else if (this.gameLogic.state === gl.GameStates.GetReady || this.gameLogic.state === gl.GameStates.Goal){
       if (this.gameLogic.team1AI.playersReady && this.gameLogic.team2AI.playersReady){        
         this.gameLogic.state = gl.GameStates.Playing;      
         this.sendPlayerUpdate({ t: MsgTypes.ChangeGameState, state: gl.GameStates.Playing });

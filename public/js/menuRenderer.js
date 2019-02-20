@@ -128,6 +128,7 @@ var menuRenderer = {
 		sfmctrls.push(testButton);
 		newMatchButton.clicked = () => {
 			menuRenderer.connectTournament(0, MenuStates.InvitePlayerMenu, GameTypes.SingleMatch);
+			menuRenderer.menus[MenuStates.InvitePlayerMenu][3].switchValue = false;
     }
     joinMatchButton.clicked = () => { 
       modalShow("Invitation", 100);
@@ -165,7 +166,9 @@ var menuRenderer = {
   	menuRenderer.menus[MenuStates.InvitePlayerMenu] = ctrls;
   	var backBtn = new Button('img/sm_nbtn.png', 'img/sm_nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"); 
   	var inviteAddressTxt = new TextBox('img/sm_txtbx.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "Invite friend to", {name: "tournamentID"}, 25, "dark");
-  	var playAgainstAIBtn = new Button('img/sm_wbtn.png', 'img/sm_wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Play against AI", 30, "dark");
+  	var playAgainstAIBtn = new Button('img/sm_wbtn.png', 'img/sm_wbtnpress.png', {x: 0.125, y: 0.33}, Control.Sizes["Wide"], "Play against AI", 30, "dark");
+  	var handsOffSwitch = new Button('img/wsw.png', 'img/wswpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Hands Off", 30, "dark");
+  	handsOffSwitch.isSwitch = true;
   	inviteAddressTxt.editable = false;
   	backBtn.clicked = () => {
   		menuRenderer.state = MenuStates.SingleFightMenu; 
@@ -181,9 +184,19 @@ var menuRenderer = {
   		menuRenderer.state = MenuStates.TeamManagerMenu;
   		menuRenderer.renderScreen = true;
   	}
+  	handsOffSwitch.clicked = () => {
+  		var msg = {
+  			t: MsgTypes.PlayHandsOff,
+  			val: !handsOffSwitch.switchValue
+  		}
+  		var data = JSON.stringify(msg);
+  		menuRenderer.tournament.ws.send(data);
+  	}
+  	
   	ctrls.push(inviteAddressTxt);
   	ctrls.push(backBtn);
   	ctrls.push(playAgainstAIBtn);
+  	ctrls.push(handsOffSwitch);
   },
   initJoinArenaMenu: () => {
     var jamctrls = [];
@@ -545,7 +558,7 @@ var menuRenderer = {
     {
       var msg = {
         t: MsgTypes.TournamentConnection, 
-        tn: team.name,
+        tm: team,
         tournamentID: id,
         gameType: gameType
       }

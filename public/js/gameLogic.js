@@ -73,7 +73,9 @@ var MsgTypes = {
 	PlayerUpgrade: 24,
 	TeamManagementDone: 25,
 	ArenaCreated: 26,
-	ChatMessage: 27
+	ChatMessage: 27,
+	PlayHandsOff: 28,
+	NewTeamAdded: 29
 }
 
 var GameTypes = {
@@ -133,6 +135,7 @@ function GameLogics(){
   this.ballposResidual = new Vertex3(0,0,0); // {x: 0.0, y: 0.0, z: 0};
   this.ballSpeed = new Vertex3(0,0,0); //{x: 0.0, y: 0.0, z: 0.0};
   this.ballHandler = null;
+  this.lastBallHandler = null;
   this.upgrades = [];
   this.lastTimeStamp = 0;
   this.currentTimeStamp = 0;
@@ -170,7 +173,7 @@ function GameLogics(){
 			newYellowPlayer.dir = Math.PI;      
       newBluePlayer.pos.x = ((i*sepDist)%(sepDist*4))*scale - 1.5*sepDist*scale; 
       newBluePlayer.pos.y = (Math.floor((i/4))*sepDist+75) + teamOffset;
-			newBluePlayer.dir = 0;      
+			newBluePlayer.dir = 0;     
     }    
     this.lastTimeStamp = Date.now();
     this.roundStartTime = this.lastTimeStamp;
@@ -183,6 +186,7 @@ function GameLogics(){
     this.ballSpeed.y = 0;
     this.ballposResidual.x = 0;
     this.ballposResidual.y = 0;
+    this.lastBallHandler = this.ballHandler;
     this.ballHandler = null;    
   }
   this.update = () => {
@@ -373,6 +377,7 @@ function GameLogics(){
     this.eventCallBack(msg);
   }
   this.ballHandlerChanged = (player) =>{
+  	this.lastBallHandler = this.ballHandler;
     this.ballHandler = player;
     var msg = this.getPlayerTeamAndIndex(player);
     msg.t = MsgTypes.BallHandlerChanged;
@@ -394,6 +399,7 @@ function GameLogics(){
   }
 
   this.ballThrown = (player) => {
+  	this.lastBallHandler = this.ballHandler;
     this.ballHandler = null;
     this.ballpos.x += Math.cos(player.dir)*(player.reach*scale+15);
     this.ballpos.y += Math.sin(player.dir)*(player.reach*scale+15);
@@ -415,8 +421,8 @@ function GameLogics(){
       this.restartGame();
     }
     this.eventCallBack(msg);
-    this.state = GameStates.GetReady;
-    this.eventCallBack({ t: MsgTypes.ChangeGameState, state: GameStates.GetReady });
+    this.state = GameStates.Goal;
+    this.eventCallBack({ t: MsgTypes.ChangeGameState, state: this.state });
   }
 
   this.updatePlayer = (player) =>{
@@ -597,7 +603,7 @@ function GameLogics(){
       if (otherPlayer.dist(kickPos)<player.reach*2){
         if(!otherPlayer.falling){
           otherPlayer.falling = true;
-          otherPlayer.health -= player.strength;
+          otherPlayer.health -= player.kickForce*0.1;
           this.playerHealthChange(otherPlayer, otherPlayer.health);
           player.kicking = false;
           otherPlayer.animFrameIndex = 0;

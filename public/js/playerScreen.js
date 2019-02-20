@@ -22,8 +22,8 @@ var PlayersScreen = function (surfaceimg, loc, size){
   this.releaseAudio = new GameAudio("snd/btnRelease.wav", false);
 	
 	this.frontImageMaskLoaded = () => {
-		console.log("frontImageMaskLoaded");
-		for (var i = 0; i < 8; i++){
+		//console.log("frontImageMaskLoaded");
+		for (var i = 0; i < playerCount; i++){
 			pl = team.players[i];
 			var img = new Image();
 			if (pl.imageData!=null){

@@ -78,7 +78,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
           }  
         }
         this.preGameReady = preGameReady;        
-      } else if (this.gameLogic.state === gl.GameStates.GetReady){
+      } else if (this.gameLogic.state === gl.GameStates.GetReady || this.gameLogic.state === gl.GameStates.Goal ){
         var ready = true;        
         for (var i = 0; i < this.team.length; i++){
           var player = this.team[i];
@@ -241,7 +241,7 @@ exports.TeamAI = function(gameLogic, team, arena) {
         	var decisionSpeed = (100 - player.intelligence)*(8 + Math.random()*8) ;
         	var inputChanged = [false, downKeys]
 
-        	if (decisionTime>decisionSpeed || this.gameLogic.state === gl.GameStates.PreGame || this.gameLogic.state === gl.GameStates.GetReady){
+        	if (decisionTime>decisionSpeed || this.gameLogic.state === gl.GameStates.PreGame || this.gameLogic.state === gl.GameStates.GetReady || this.gameLogic.state === gl.GameStates.Goal){
 
         		if (player.evaluation && this.gameLogic.state === gl.GameStates.Playing){
 		          if (player.evaluation.close){            	
