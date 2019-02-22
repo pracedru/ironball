@@ -118,14 +118,14 @@ var menuRenderer = {
     menuRenderer.menus[MenuStates.SingleFightMenu] = sfmctrls;
     var newMatchButton = new Button('img/sm_wbtn.png', 'img/sm_wbtnpress.png', {x: 0.125, y: 0.07}, Control.Sizes["Wide"], "New Match", 30, "dark");
     var joinMatchButton = new Button('img/sm_wbtn.png', 'img/sm_wbtnpress.png', {x: 0.125, y: 0.20}, Control.Sizes["Wide"], "Join Match", 30, "dark");
-    var newHandsOffMatchButton = new Button('img/sm_wbtn.png', 'img/sm_wbtnpress.png', {x: 0.125, y: 0.33}, Control.Sizes["Wide"], "Hands Off", 30, "dark");
+    //var newHandsOffMatchButton = new Button('img/sm_wbtn.png', 'img/sm_wbtnpress.png', {x: 0.125, y: 0.33}, Control.Sizes["Wide"], "Hands Off", 30, "dark");
     var backButton = new Button('img/sm_nbtn.png', 'img/sm_nbtnpress.png', {x: 0.125, y: 0.815}, Control.Sizes["Narrow"], "Back", 30, "dark"); 
-    var testButton = new Button('img/sm_wbtn.png', 'img/sm_wbtnpress.png', {x: 0.125, y: 0.46}, Control.Sizes["Wide"], "Test", 30, "dark");
+    //var testButton = new Button('img/sm_wbtn.png', 'img/sm_wbtnpress.png', {x: 0.125, y: 0.46}, Control.Sizes["Wide"], "Test", 30, "dark");
     sfmctrls.push(newMatchButton);
     sfmctrls.push(joinMatchButton);    
-    sfmctrls.push(newHandsOffMatchButton);
+    //sfmctrls.push(newHandsOffMatchButton);
     sfmctrls.push(backButton);
-		sfmctrls.push(testButton);
+		//sfmctrls.push(testButton);
 		newMatchButton.clicked = () => {
 			menuRenderer.connectTournament(0, MenuStates.InvitePlayerMenu, GameTypes.SingleMatch);
 			menuRenderer.menus[MenuStates.InvitePlayerMenu][3].switchValue = false;
@@ -143,7 +143,7 @@ var menuRenderer = {
         } 
       }
     }
-    newHandsOffMatchButton.clicked = () => { 
+    /*newHandsOffMatchButton.clicked = () => { 
       var request = new XMLHttpRequest();
       request.responseType = 'json';
       request.open('GET', "createArena", true);      
@@ -155,10 +155,10 @@ var menuRenderer = {
         }
       }
       request.send();
-    }
-    testButton.clicked = () => { 
+    }*/
+    /*testButton.clicked = () => { 
     	menuRenderer.connectTournament(0, MenuStates.InvitePlayerMenu, GameTypes.SingleMatch);
-    }
+    }*/
     backButton.clicked = () => { menuRenderer.state = MenuStates.MainMenu; };
   },
   initInvitePlayerMenu: () => {
